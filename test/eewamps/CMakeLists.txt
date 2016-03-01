@@ -1,0 +1,3 @@
+SET(TEST_EEWAMPS_BLCAD_SOURCES testprocs.cpp)
+SC_ADD_TEST_EXECUTABLE(TEST_EEWAMPS_BLCAD testeewampsprocs)
+SC_LINK_LIBRARIES_INTERNAL(testeewampsprocs client eewamps)

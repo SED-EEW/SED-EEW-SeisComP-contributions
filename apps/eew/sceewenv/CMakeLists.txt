@@ -1,0 +1,13 @@
+SET(EEWENV_TARGET sceewenv)
+
+SET(
+	EEWENV_SOURCES
+		main.cpp
+)
+
+SC_ADD_EXECUTABLE(EEWENV ${EEWENV_TARGET})
+SC_LINK_LIBRARIES_INTERNAL(${EEWENV_TARGET} eewamps datamodel_vs)
+SC_INSTALL_INIT(${EEWENV_TARGET} ../../../../trunk/apps/templates/initd.py)
+
+FILE(GLOB descs "${CMAKE_CURRENT_SOURCE_DIR}/descriptions/*.xml")
+INSTALL(FILES ${descs} DESTINATION ${SC3_PACKAGE_APP_DESC_DIR})
