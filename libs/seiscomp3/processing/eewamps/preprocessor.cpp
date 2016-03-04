@@ -22,6 +22,7 @@
 #include <seiscomp3/io/recordfilter/demux.h>
 #include <seiscomp3/io/recordfilter/iirfilter.h>
 #include <seiscomp3/math/filter/iirintegrate.h>
+#include <seiscomp3/math/filter/chainfilter.h>
 
 #include "filter/diffcentral.h"
 #include "processors/envelope.h"
@@ -350,10 +351,14 @@ bool PreProcessor::compile(const DataModel::WaveformStreamID &id) {
 			case MeterPerSecondSquared:
 				_coLocatedLocationCode = "PV";
 				if ( _config->wantSignal[MeterPerSecond] || _config->wantSignal[Meter] ) {
+					Math::Filtering::ChainFilter<double> *filter;
+					filter = new Math::Filtering::ChainFilter<double>;
+					filter->add(new Math::Filtering::IIR::ButterworthHighpass<double>(4,0.075));
+					filter->add(new Math::Filtering::IIRIntegrate<double>());
 					if ( usedComponent() == Vertical )
-						_coLocatedFilter = new IO::RecordIIRFilter<double>(new Math::Filtering::IIRIntegrate<double>());
+						_coLocatedFilter = new IO::RecordIIRFilter<double>(filter);
 					else
-						_coLocatedFilter = new IO::RecordDemuxFilter(new IO::RecordIIRFilter<double>(new Math::Filtering::IIRIntegrate<double>()));
+						_coLocatedFilter = new IO::RecordDemuxFilter(new IO::RecordIIRFilter<double>(filter));
 				}
 				break;
 			default:
