@@ -368,13 +368,17 @@ bool PreProcessor::compile(const DataModel::WaveformStreamID &id) {
 		}
 
 		if ( _config->wantSignal[Meter] ) {
+			Math::Filtering::ChainFilter<double> *filter;
+			filter = new Math::Filtering::ChainFilter<double>;
+			filter->add(new Math::Filtering::IIR::ButterworthHighpass<double>(4,0.075));
+			filter->add(new Math::Filtering::IIRIntegrate<double>());
 			if ( usedComponent() == Vertical ) {
 				// Integrate to displacement in any case
-				_displacementFilter = new IO::RecordIIRFilter<double>(new Math::Filtering::IIRIntegrate<double>());
+				_displacementFilter = new IO::RecordIIRFilter<double>(filter);
 			}
 			else {
 				// Integrate to displacement in any case
-				_displacementFilter = new IO::RecordDemuxFilter(new IO::RecordIIRFilter<double>(new Math::Filtering::IIRIntegrate<double>()));
+				_displacementFilter = new IO::RecordDemuxFilter(new IO::RecordIIRFilter<double>(filter));
 			}
 		}
 	}
