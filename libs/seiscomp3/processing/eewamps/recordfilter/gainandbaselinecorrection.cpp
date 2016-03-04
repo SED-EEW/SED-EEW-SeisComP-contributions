@@ -114,7 +114,7 @@ void GainAndBaselineCorrectionRecordFilter<T>::setBaselineCorrectionBufferLength
 	_taper.setLength(lengthInSeconds);
 #endif
 #ifdef BASELINE_CORRECTION_WITH_HIGHPASS
-	_baselineCorrection = BaselineRemoval(2,1.0/lengthInSeconds);
+	_baselineCorrection = BaselineRemoval(4,1.0/lengthInSeconds);
 #else
 	_baselineCorrection.setLength(lengthInSeconds);
 #endif
@@ -216,11 +216,6 @@ Record *GainAndBaselineCorrectionRecordFilter<T>::feed(const Record *rec) {
 		_baselineCorrection.setStreamID(rec->networkCode(), rec->stationCode(), rec->locationCode(), rec->channelCode());
 	}
 
-#ifdef BASELINE_CORRECTION_WITH_TAPER
-	// Apply taper
-	_taper.apply(n, data);
-#endif
-
 	// Remove average
 #ifdef BASELINE_CORRECTION_WITH_HIGHPASS
 	_baselineCorrection.apply(n, data);
@@ -230,6 +225,11 @@ Record *GainAndBaselineCorrectionRecordFilter<T>::feed(const Record *rec) {
 		_baselineCorrection.apply(1, &v);
 		data[i] -= v;
 	}
+#endif
+
+#ifdef BASELINE_CORRECTION_WITH_TAPER
+	// Apply taper
+	_taper.apply(n, data);
 #endif
 
 	_lastEndTime = rec->endTime();
