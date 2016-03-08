@@ -102,11 +102,11 @@ class App : public Client::StreamApplication {
 			_eewProc.setEnvelopeCallback(boost::bind(&App::handleEnvelope, this, _1, _2, _3, _4));
 			_eewProc.setInventory(Client::Inventory::Instance()->inventory());
 
-			_eewProc.showConfig();
-			_eewProc.showRules();
-
 			if ( !_eewProc.init(configuration()) )
 				return false;
+
+			_eewProc.showConfig();
+			_eewProc.showRules();
 
 			_eewProc.subscribeToChannels(recordStream(), Core::Time::GMT());
 
