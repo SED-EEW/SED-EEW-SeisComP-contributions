@@ -95,7 +95,6 @@ PreProcessor *Router::route(const Record *rec) {
 	wid.setNetworkCode(rec->networkCode());
 	wid.setStationCode(rec->stationCode());
 	wid.setLocationCode(rec->locationCode());
-	wid.setChannelCode(rec->channelCode());
 
 	VPreProcessorPtr vproc;
 	HPreProcessorPtr hproc;
@@ -106,6 +105,9 @@ PreProcessor *Router::route(const Record *rec) {
 	vproc->streamConfig(PreProcessor::VerticalComponent).init(tc.comps[ThreeComponents::Vertical]);
 	vproc->streamConfig(PreProcessor::FirstHorizontalComponent).init(tc.comps[ThreeComponents::FirstHorizontal]);
 	vproc->streamConfig(PreProcessor::SecondHorizontalComponent).init(tc.comps[ThreeComponents::SecondHorizontal]);
+
+	wid.setChannelCode(tc.comps[ThreeComponents::Vertical]->code());
+
 	if ( !vproc->compile(wid) ) {
 		SEISCOMP_ERROR("Failed to compile vertical processor on %s.%s.%s.%s",
 		               rec->networkCode().c_str(),
