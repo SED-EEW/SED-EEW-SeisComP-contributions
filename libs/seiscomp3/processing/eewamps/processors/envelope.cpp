@@ -72,7 +72,7 @@ void EnvelopeProcessor::process(const Record *rec, const DoubleArray &data) {
 	if ( !_stream.initialized ) {
 		SEISCOMP_INFO("%s: initializing envelope processor", rec->streamID().c_str());
 
-		_samplePool.reset((int)(_stream.fsamp*_config->vsfndr.envelopeInterval)+1);
+		_samplePool.reset((int)(_stream.fsamp*_config->vsfndr.envelopeInterval+0.5)+1);
 		_dt = Core::TimeSpan(1.0 / _stream.fsamp);
 
 		setupTimeWindow(rec->startTime());
@@ -83,7 +83,7 @@ void EnvelopeProcessor::process(const Record *rec, const DoubleArray &data) {
 		              rec->samplingFrequency());
 		reset();
 
-		_samplePool.reset((int)(_stream.fsamp*_config->vsfndr.envelopeInterval)+1);
+		_samplePool.reset((int)(_stream.fsamp*_config->vsfndr.envelopeInterval+0.5)+1);
 		_dt = Core::TimeSpan(1.0 / _stream.fsamp);
 
 		setupTimeWindow(rec->startTime());
