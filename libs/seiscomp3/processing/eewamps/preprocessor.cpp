@@ -222,11 +222,6 @@ bool RoutingProcessor::compile(const DataModel::WaveformStreamID &id) {
 		}
 	}
 
-	if ( _impls.empty() ) {
-		SEISCOMP_WARNING("Terminate processor");
-		setStatus(Terminated,0);
-	}
-
 	return allGood;
 }
 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -385,7 +380,7 @@ bool PreProcessor::compile(const DataModel::WaveformStreamID &id) {
 
 	RoutingProcessor::compile(id);
 
-	return !isFinished();
+	return !_impls.empty() || _coLocatedFilter || _displacementFilter;
 }
 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
