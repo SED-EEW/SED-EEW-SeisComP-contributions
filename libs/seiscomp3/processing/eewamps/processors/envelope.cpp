@@ -171,7 +171,7 @@ void EnvelopeProcessor::flush(const Record *rec) {
 
 	// Publish result
 	if ( _config->vsfndr.publish )
-		_config->vsfndr.publish(this, amp, _currentStartTime, _samplePool.clipped);
+		_config->vsfndr.publish(this, amp, _currentEndTime, _samplePool.clipped);
 
 	_samplePool.clear();
 }
