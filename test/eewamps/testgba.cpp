@@ -78,6 +78,8 @@ class App : public Client::StreamApplication {
 			eewCfg.dumpRecords = commandline().hasOption("dump");
 
 			eewCfg.gba.enable = true;
+			eewCfg.gba.bufferSize = Core::TimeSpan(20,0);
+			eewCfg.gba.cutOffTime = Core::TimeSpan(20,0);
 
 			// Convert to all signal units
 			eewCfg.wantSignal[Processing::WaveformProcessor::MeterPerSecondSquared] = true;
@@ -85,7 +87,7 @@ class App : public Client::StreamApplication {
 			eewCfg.wantSignal[Processing::WaveformProcessor::Meter] = true;
 
 			_eewProc.setConfiguration(eewCfg);
-			//_eewProc.setGbACallback
+			_eewProc.setGbACallback(boost::bind(&App::handleFilterBank, this, _1, _2, _3, _4, _5, _6));
 			//_eewProc.setEnvelopeCallback(boost::bind(&App::handleEnvelope, this, _1, _2, _3, _4));
 			_eewProc.setInventory(Client::Inventory::Instance()->inventory());
 
@@ -111,6 +113,17 @@ class App : public Client::StreamApplication {
 
 		}
 
+		void handleFilterBank(const Processing::EEWAmps::BaseProcessor *proc,
+		                      std::string pickID, double *amps,
+		                      const Core::Time &max, const Core::Time &ptime,
+		                      const Core::Time &maxevaltime){
+			cout << proc->usedComponent() << "; " << proc->streamID() <<"; ";
+			cout << ptime.iso() << "; " << max.iso() << "; ";
+			for(size_t i=0; i<_eewProc.configuration().gba.passbands.size(); i++){
+				cout << amps[i] << " ";
+			}
+			cout << endl;
+		}
 
 		void handleEnvelope(const Processing::EEWAmps::BaseProcessor *proc,
 		                    double value, const Core::Time &timestamp,

@@ -20,3 +20,9 @@ Test run:
 ```
 testeewampsprocs -I IU.COLA-test.mseed -d tesla --debug --dump > test.mseed
 ```
+
+The filterbank test has to be run using `faketime`:
+
+```
+faketime -f "@1996-08-10 18:12:22.82" testgba --inventory-db Inventory_BO_ABK.xml --debug -I test2.mseed.sorted > fb_AKT019.txt
+```
