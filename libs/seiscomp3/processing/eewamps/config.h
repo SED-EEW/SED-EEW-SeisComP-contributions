@@ -188,7 +188,7 @@ struct SC_LIBEEWAMPS_API Config {
 
 		typedef boost::function<void (const BaseProcessor *proc,
 		                              const std::string &pickID,
-		                              double peakPerPassband[9],
+		                              double *peakPerPassband,
 		                              const Core::Time &peakTime,
 		                              const Core::Time &startTime,
 		                              const Core::Time &endTime,
