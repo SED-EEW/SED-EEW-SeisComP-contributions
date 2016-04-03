@@ -86,7 +86,8 @@ struct SC_LIBEEWAMPS_API Config {
 	double baseLineCorrectionBufferLength;
 
 	/**
-	 * Length in seconds of the taper that is to the beginning of the trace.
+	 * Length in seconds of the taper that is applied to the beginning of the
+	 * trace.
 	 */
 	double taperLength;
 
