@@ -90,6 +90,12 @@ class SC_LIBEEWAMPS_API GainAndBaselineCorrectionRecordFilter : public RecordFil
 		void setBaselineCorrectionBufferLength(double lengthInSeconds);
 
 		/**
+		 * @brief Sets the lengths of the taper at the beginning of the trace
+		 * @param lengthInSeconds The taper length in seconds.
+		 */
+		void setTaperLength(double lengthInSeconds);
+
+		/**
 		 * @brief Sets the saturation threshold to check for clipped data.
 		 * @param threshold The threshold in absolute amplitudes. A negative
 		 *                  value disables the check.
@@ -133,10 +139,9 @@ class SC_LIBEEWAMPS_API GainAndBaselineCorrectionRecordFilter : public RecordFil
 		double                           _samplingFrequency;
 		double                           _saturationThreshold;
 		double                           _baselineCorrectionLength;
+		double                           _taperLength;
 
-#ifdef BASELINE_CORRECTION_WITH_TAPER
 		Math::Filtering::InitialTaper<T> _taper;
-#endif
 		BaselineRemoval                  _baselineCorrection;
 };
 

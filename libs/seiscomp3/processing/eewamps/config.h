@@ -86,6 +86,11 @@ struct SC_LIBEEWAMPS_API Config {
 	double baseLineCorrectionBufferLength;
 
 	/**
+	 * Length in seconds of the taper that is to the beginning of the trace.
+	 */
+	double taperLength;
+
+	/**
 	 * An array that configures what signals are requested and required by
 	 * the application. If e.g. only MeterPerSecondSquared is enable then
 	 * each velocity data stream is converted to acceleration and only that

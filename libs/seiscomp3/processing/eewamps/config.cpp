@@ -56,6 +56,7 @@ Config::Config() {
 	dumpRecords = false;
 	saturationThreshold = 80;
 	baseLineCorrectionBufferLength = 60.0;
+	taperLength = 60.0;
 
 	for ( int i = 0; i < WaveformProcessor::SignalUnit::Quantity; ++i )
 		wantSignal[i] = false;

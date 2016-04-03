@@ -76,8 +76,10 @@ GainAndBaselineCorrectionRecordFilter<T>::GainAndBaselineCorrectionRecordFilter(
 , _gainCorrectionFactor(0)
 , _saturationThreshold(-1)
 , _baselineCorrectionLength(60.0)
+, _taperLength(60)
 {
 	setBaselineCorrectionBufferLength(_baselineCorrectionLength);
+	setTaperLength(_taperLength);
 }
 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -91,8 +93,10 @@ GainAndBaselineCorrectionRecordFilter<T>::GainAndBaselineCorrectionRecordFilter(
 , _gainCorrectionFactor(0)
 , _samplingFrequency(-1)
 , _saturationThreshold(other._saturationThreshold)
-, _baselineCorrectionLength(other._baselineCorrectionLength) {
+, _baselineCorrectionLength(other._baselineCorrectionLength)
+, _taperLength(other._taperLength){
 	setBaselineCorrectionBufferLength(_baselineCorrectionLength);
+	setTaperLength(_taperLength);
 }
 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -110,9 +114,6 @@ GainAndBaselineCorrectionRecordFilter<T>::~GainAndBaselineCorrectionRecordFilter
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 template <typename T>
 void GainAndBaselineCorrectionRecordFilter<T>::setBaselineCorrectionBufferLength(double lengthInSeconds) {
-#ifdef BASELINE_CORRECTION_WITH_TAPER
-	_taper.setLength(lengthInSeconds);
-#endif
 #ifdef BASELINE_CORRECTION_WITH_HIGHPASS
 	_baselineCorrection = BaselineRemoval(4,1.0/lengthInSeconds);
 #else
@@ -120,6 +121,16 @@ void GainAndBaselineCorrectionRecordFilter<T>::setBaselineCorrectionBufferLength
 #endif
 }
 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+template <typename T>
+void GainAndBaselineCorrectionRecordFilter<T>::setTaperLength(double lengthInSeconds) {
+	_taper.setLength(lengthInSeconds);
+}
+// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
 
 
 

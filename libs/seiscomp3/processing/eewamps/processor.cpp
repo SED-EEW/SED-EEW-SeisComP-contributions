@@ -97,6 +97,7 @@ void Processor::showConfig() const {
 	SEISCOMP_DEBUG("dump-records        : %s", _members->config.dumpRecords ? "yes":"no");
 	SEISCOMP_DEBUG("saturation-threshold: %f%%", _members->config.saturationThreshold);
 	SEISCOMP_DEBUG("baseline-corr-buffer: %fs", (double)_members->config.baseLineCorrectionBufferLength);
+	SEISCOMP_DEBUG("taper length        : %fs", (double)_members->config.taperLength);
 	SEISCOMP_DEBUG("hor-buffer-size     : %fs", (double)_members->config.horizontalBufferSize);
 	SEISCOMP_DEBUG("hor-max-delay       : %fs", (double)_members->config.horizontalMaxDelay);
 	SEISCOMP_DEBUG("max-delay           : %fs", (double)_members->config.maxDelay);
@@ -229,6 +230,11 @@ bool Processor::init(const Seiscomp::Config::Config &conf,
 	catch ( ... ) {}
 
 	try {
+		_members->config.taperLength = conf.getDouble(configPrefix + "taperLength");
+	}
+	catch ( ... ) {}
+
+	try {
 		_members->config.horizontalBufferSize = conf.getDouble(configPrefix + "horizontalBuffer");
 	}
 	catch ( ... ) {}
@@ -298,6 +304,7 @@ bool Processor::init(const Seiscomp::Config::Config &conf,
 	IO::GainAndBaselineCorrectionRecordFilter<float> *tpl = new IO::GainAndBaselineCorrectionRecordFilter<float>(_inventory);
 	tpl->setSaturationThreshold((1 << 23)*_members->config.saturationThreshold*0.01);
 	tpl->setBaselineCorrectionBufferLength(_members->config.baseLineCorrectionBufferLength);
+	tpl->setTaperLength(_members->config.taperLength);
 
 	_members->demuxer = new IO::RecordDemuxFilter(tpl);
 	_members->router.setConfig(&_members->config);
