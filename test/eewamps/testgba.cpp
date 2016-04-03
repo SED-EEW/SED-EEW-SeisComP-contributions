@@ -62,33 +62,40 @@ class App : public Client::StreamApplication {
 			if ( !StreamApplication::init() )
 				return false;
 
-			//Create a test pick
-			_pick = new DataModel::Pick("TESTPICK");
+			//Create test picks
+			_pickabk = new DataModel::Pick("TESTPICK_ABK");
 			Core::Time ptime(1996,8,10,18,12,21,840000);
 			Core::Time now = Core::Time::GMT();
 			DataModel::CreationInfo ci;
 			ci.setCreationTime(now);
 			ci.setAgencyID("GbA");
-			_pick->setCreationInfo(ci);
-			_pick->setTime(DataModel::TimeQuantity(ptime));
-			_pick->setWaveformID(DataModel::WaveformStreamID("BO","ABK","","HGZ","SomeURI"));
-			_pick->setPhaseHint(DataModel::Phase("P"));
+			_pickabk->setCreationInfo(ci);
+			_pickabk->setTime(DataModel::TimeQuantity(ptime));
+			_pickabk->setWaveformID(DataModel::WaveformStreamID("BO","ABK","","HGZ","SomeURI/ABK"));
+			_pickabk->setPhaseHint(DataModel::Phase("P"));
+
+			_pickabo = new DataModel::Pick("TESTPICK_ABO");
+			ci.setCreationTime(now);
+			ci.setAgencyID("GbA");
+			_pickabo->setCreationInfo(ci);
+			_pickabo->setTime(DataModel::TimeQuantity(ptime));
+			_pickabo->setWaveformID(DataModel::WaveformStreamID("BO","ABO","","HGZ","SomeURI/ABO"));
+			_pickabo->setPhaseHint(DataModel::Phase("P"));
 
 			Processing::EEWAmps::Config eewCfg;
 			eewCfg.dumpRecords = commandline().hasOption("dump");
 
+			eewCfg.baseLineCorrectionBufferLength = 40.0;
+			eewCfg.taperLength = 10.0;
 			eewCfg.gba.enable = true;
 			eewCfg.gba.bufferSize = Core::TimeSpan(20,0);
 			eewCfg.gba.cutOffTime = Core::TimeSpan(20,0);
 
 			// Convert to all signal units
-			eewCfg.wantSignal[Processing::WaveformProcessor::MeterPerSecondSquared] = true;
 			eewCfg.wantSignal[Processing::WaveformProcessor::MeterPerSecond] = true;
-			eewCfg.wantSignal[Processing::WaveformProcessor::Meter] = true;
 
 			_eewProc.setConfiguration(eewCfg);
 			_eewProc.setGbACallback(boost::bind(&App::handleFilterBank, this, _1, _2, _3, _4, _5, _6));
-			//_eewProc.setEnvelopeCallback(boost::bind(&App::handleEnvelope, this, _1, _2, _3, _4));
 			_eewProc.setInventory(Client::Inventory::Instance()->inventory());
 
 			if ( !_eewProc.init(configuration()) )
@@ -105,8 +112,9 @@ class App : public Client::StreamApplication {
 			RecordPtr tmp(rec);
 			_eewProc.feed(rec);
 			Core::Time start(rec->startTime());
-			if ((double)start > (double)_pick->time().value() && first){
-				_eewProc.feed(_pick);
+			if ((double)start > (double)_pickabk->time().value() && first){
+				_eewProc.feed(_pickabk);
+				_eewProc.feed(_pickabo);
 				SEISCOMP_DEBUG("Sending pick at %s",start.iso().c_str());
 				first = false;
 			}
@@ -125,57 +133,10 @@ class App : public Client::StreamApplication {
 			cout << endl;
 		}
 
-		void handleEnvelope(const Processing::EEWAmps::BaseProcessor *proc,
-		                    double value, const Core::Time &timestamp,
-		                    bool clipped) {
-			/*
-			cerr << "- env " << proc->waveformID().networkCode() << "." << proc->waveformID().stationCode();
-			cerr << " " << timestamp.iso() << " " << value << " "
-			     << (proc->usedComponent() == Processing::WaveformProcessor::Vertical?"V":"H") << " "
-			     << proc->signalUnit().toString() << " "
-			     << (clipped?"clipped":"good") << endl;
-			*/
-
-			if ( _eewProc.configuration().dumpRecords ) {
-				GenericRecord tmp;
-				tmp.setNetworkCode(proc->waveformID().networkCode());
-				tmp.setStationCode(proc->waveformID().stationCode());
-				switch ( proc->signalUnit() ) {
-					case Processing::WaveformProcessor::Meter:
-						tmp.setLocationCode("ED");
-						break;
-					case Processing::WaveformProcessor::MeterPerSecond:
-						tmp.setLocationCode("EV");
-						break;
-					case Processing::WaveformProcessor::MeterPerSecondSquared:
-						tmp.setLocationCode("EA");
-						break;
-					default:
-						break;
-				}
-
-				if ( proc->usedComponent() != Processing::WaveformProcessor::Vertical )
-					tmp.setChannelCode(proc->waveformID().channelCode()+'X');
-				else
-					tmp.setChannelCode(proc->waveformID().channelCode());
-
-				tmp.setStartTime(timestamp);
-				tmp.setSamplingFrequency(1.0 / _eewProc.configuration().vsfndr.envelopeInterval);
-
-				FloatArrayPtr data = new FloatArray(1);
-				data->set(0, value);
-				tmp.setData(data.get());
-
-				IO::MSeedRecord mseed(tmp);
-				mseed.write(std::cout);
-			}
-		}
-
-
 	private:
 		std::string                    _allowString, _denyString;
 		Processing::EEWAmps::Processor _eewProc;
-		DataModel::Pick *_pick;
+		DataModel::Pick *_pickabk, *_pickabo;
 		bool first;
 };
 
