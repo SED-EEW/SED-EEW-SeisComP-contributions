@@ -109,6 +109,10 @@ class SC_LIBEEWAMPS_API Processor : public Core::BaseObject {
 		//! Clears all stream filter rules.
 		void clearRules();
 
+		//! Returns whether a stream id is allowed or not according to the
+		//! current set of rules.
+		bool isStreamIDAllowed(const std::string &id) const;
+
 		/**
 		 * @brief Initializes the processor. This method must be called before
 		 *        any data packets can be fed.

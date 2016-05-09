@@ -193,6 +193,15 @@ void Processor::clearRules() {
 
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+bool Processor::isStreamIDAllowed(const std::string &id) const {
+	return _streamFirewall.isAllowed(id);
+}
+// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+
+// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 bool Processor::init(const Seiscomp::Config::Config &conf,
                      const std::string &configPrefix) {
 	if ( _inventory == NULL )
