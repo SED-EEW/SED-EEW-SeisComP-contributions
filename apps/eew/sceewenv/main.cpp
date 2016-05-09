@@ -1,25 +1,25 @@
-/***************************************************************************
- *   Copyright (C) by gempa GmbH                                           *
- *                                                                         *
- *   You can redistribute and/or modify this program under the             *
- *   terms of the SeisComP Public License.                                 *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   SeisComP Public License for more details.                             *
- *                                                                         *
- *   --------------------------------------------------------------------  *
- *                                                                         *
- *   Simple test client that reads inventory and data, removes the gain    *
- *   according to the given inventory and corrects for the baseline. The   *
- *   results are written as MiniSEED records to stdout.                    *
- *                                                                         *
- *   --------------------------------------------------------------------  *
- *                                                                         *
- *   Author: Jan Becker, gempa GmbH <jabe@gempa.de>                        *
- *                                                                         *
- ***************************************************************************/
+/******************************************************************************
+ *   Copyright (C) by gempa GmbH                                              *
+ *                                                                            *
+ *   You can redistribute and/or modify this program under the                *
+ *   terms of the SeisComP Public License.                                    *
+ *                                                                            *
+ *   This program is distributed in the hope that it will be useful,          *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            *
+ *   SeisComP Public License for more details.                                *
+ *                                                                            *
+ *   -----------------------------------------------------------------------  *
+ *                                                                            *
+ *   SeisComP3 EEW envelope modules that generates envelope amplitudes        *
+ *   with libseiscomp3_eewamps and sends them as data messages to the         *
+ *   messaging bus.                                                           *
+ *                                                                            *
+ *   -----------------------------------------------------------------------  *
+ *                                                                            *
+ *   Author: Jan Becker, gempa GmbH <jabe@gempa.de>                           *
+ *                                                                            *
+ ******************************************************************************/
 
 
 #define SEISCOMP_COMPONENT EEWENV
