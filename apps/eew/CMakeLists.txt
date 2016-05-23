@@ -1,1 +1,1 @@
-SUBDIRS(sceewenv)
+SUBDIRS(sceewenv scfinder)
