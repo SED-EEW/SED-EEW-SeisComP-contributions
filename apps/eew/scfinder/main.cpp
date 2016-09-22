@@ -346,10 +346,10 @@ class App : public Client::StreamApplication {
 			try {
 				Finder::Init(_finderConfig.c_str(), station_coord_list);
 			}
-			catch ( Errorff &e ) {
-				SEISCOMP_ERROR("Finder error: %s", e.what());
-				return false;
-			}
+			//			catch ( Errorff &e ) {
+			//	SEISCOMP_ERROR("Finder error: %s", e.what());
+			//	return false;
+			//}
 			catch ( std::exception &e ) {
 				SEISCOMP_ERROR("Finder error: %s", e.what());
 				return false;
@@ -454,6 +454,7 @@ class App : public Client::StreamApplication {
 					buddy->pgas.setCapacity(_bufferLength),
 					buddy->meta = loc;
 					_locationLookup[id] = buddy;
+					it = _locationLookup.find(id); 
 				}
 				else
 					it->second->meta = loc;
