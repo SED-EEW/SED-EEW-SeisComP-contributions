@@ -135,6 +135,14 @@
 			</group>
 
 			<group name="Offline">
+				<option long-flag="offline">
+					<description>
+						Do not connect to the messaging. This mode requires
+						either an explicit database connection to read the
+						inventory from or an inventory XML file. This option
+						implies --test.
+					</description>
+				</option>
 				<option long-flag="dump-config">
 					<description>
 						Show configuration in debug log and stdcerr and exit.

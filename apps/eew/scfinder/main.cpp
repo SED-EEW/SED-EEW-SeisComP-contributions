@@ -38,6 +38,8 @@
 #include "finite_fault.h"
 
 
+#define USE_FINDER
+
 using namespace Seiscomp;
 using namespace Seiscomp::DataModel;
 using namespace FiniteFault;
@@ -202,6 +204,7 @@ class App : public Client::StreamApplication {
 			commandline().addOption("Messaging", "test", "Test mode, no messages are sent");
 
 			commandline().addGroup("Offline");
+			commandline().addOption("Offline", "offline", "Do not connect to messaging, this implies --test");
 			commandline().addOption("Offline", "dump-config", "Show configuration in debug log and exits");
 			commandline().addOption("Offline", "ts", "Start time of data acquisition time window, requires also --te", &_strTs, false);
 			commandline().addOption("Offline", "te", "End time of data acquisition time window, requires also --ts", &_strTe, false);
@@ -241,6 +244,13 @@ class App : public Client::StreamApplication {
 			if ( !isInventoryDatabaseEnabled() )
 				setDatabaseEnabled(false, false);
 
+			_testMode = commandline().hasOption("test");
+
+			if ( commandline().hasOption("offline") ) {
+				setMessagingEnabled(false);
+				_testMode = true;
+			}
+
 			return true;
 		}
 
@@ -248,6 +258,7 @@ class App : public Client::StreamApplication {
 		bool init() {
 			if ( !StreamApplication::init() )
 				return false;
+#ifdef USE_FINDER
 
 			try {
 				_finderConfig = configGetPath("finder.config");
@@ -256,7 +267,7 @@ class App : public Client::StreamApplication {
 				SEISCOMP_ERROR("finder.config is mandatory");
 				return false;
 			}
-
+#endif
 			try {
 				_magnitudeGroup = configGetString("finder.magnitudeGroup");
 			}
@@ -266,8 +277,6 @@ class App : public Client::StreamApplication {
 				_bufferLength = configGetDouble("finder.envelopeBufferSize");
 			}
 			catch ( ... ) {}
-
-			_testMode = commandline().hasOption("test");
 
 			_creationInfo.setAgencyID(agencyID());
 			_creationInfo.setAuthor(author());
@@ -348,17 +357,15 @@ class App : public Client::StreamApplication {
 				}
 			}
 
+#ifdef USE_FINDER
 			try {
 				Finder::Init(_finderConfig.c_str(), station_coord_list);
 			}
-			//			catch ( Errorff &e ) {
-			//	SEISCOMP_ERROR("Finder error: %s", e.what());
-			//	return false;
-			//}
-			catch ( std::exception &e ) {
+			catch ( Error_FiniteFault &e ) {
 				SEISCOMP_ERROR("Finder error: %s", e.what());
 				return false;
 			}
+#endif
 
 			// ­Set the static variable NFinder = 0.  This will be automatically
 			// incremented in the Finder class constructor and decremented in
@@ -445,7 +452,7 @@ class App : public Client::StreamApplication {
 					loc->latitude();
 					loc->longitude();
 				}
-				catch ( std::exception &e ) {
+				catch ( Error_FiniteFault &e ) {
 					SEISCOMP_WARNING("%s.%s: location '%s': failed to add coordinate: %s",
 					                 proc->waveformID().networkCode().c_str(),
 					                 proc->waveformID().stationCode().c_str(),
@@ -480,14 +487,22 @@ class App : public Client::StreamApplication {
 
 			bool needFinderUpdate = false;
 
+#ifndef USE_FINDER
+			std::cout << "+ " << id << "   " << _referenceTime.iso() << "   " << minAmplTime.iso() << "   " << timestamp.iso() << "   " << value << std::endl;
+
+#endif
 			// Buffer envelope value
 			if ( it->second->pgas.feed(Amplitude(value, timestamp)) ) {
 				// Buffer changed -> update maximum
 				if ( (it->second->maxPGA.timestamp < minAmplTime)
 				  || (timestamp < minAmplTime)
 				  || (value >= it->second->maxPGA.value) ) {
-					if ( it->second->updateMaximum(minAmplTime) )
+					if ( it->second->updateMaximum(minAmplTime) ) {
+#ifndef USE_FINDER
+						std::cout << "M " << id << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.value << std::endl;
+#endif
 						needFinderUpdate = true;
+					}
 				}
 			}
 
@@ -496,8 +511,12 @@ class App : public Client::StreamApplication {
 			if ( referenceTimeUpdated ) {
 				for ( it = _locationLookup.begin(); it != _locationLookup.end(); ++it ) {
 					if ( it->second->maxPGA.timestamp >= minAmplTime ) continue;
-					if ( it->second->updateMaximum(minAmplTime) )
+					if ( it->second->updateMaximum(minAmplTime) ) {
+#ifndef USE_FINDER
+						std::cout << "M " << it->first << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.value << std::endl;
+#endif
 						needFinderUpdate = true;
+					}
 				}
 			}
 
@@ -514,6 +533,9 @@ class App : public Client::StreamApplication {
 			PGA_Data_List pga_data_list;
 			LocationLookup::iterator it;
 
+#ifndef USE_FINDER
+			std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << std::endl;
+#endif
 			for ( it = _locationLookup.begin(); it != _locationLookup.end(); ++it ) {
 				if ( !it->second->maxPGA.timestamp.valid() ) continue;
 
@@ -527,13 +549,28 @@ class App : public Client::StreamApplication {
 						it->second->maxPGA.value*100, it->second->maxPGA.timestamp
 					)
 				);
+#ifndef USE_FINDER
+				std::cout << it->first << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.value << std::endl;
+#endif
 			}
+#ifndef USE_FINDER
+			std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
+			// No finder for the time being
+			return;
 
+#endif
 			Coordinate_List clist;
 			Coordinate_List::iterator cit;
 
 			_lastFinderCall = Core::Time::GMT();
-			clist = Finder::Scan_Data(pga_data_list, _finderList);
+
+			try {
+				clist = Finder::Scan_Data(pga_data_list, _finderList);
+			}
+			catch ( Error_FiniteFault &e ) {
+				SEISCOMP_ERROR("Exception from FinDer: %s", e.what());
+				return;
+			}
 
 			for ( cit = clist.begin(); cit != clist.end(); ++cit ) {
 				// get the current time for this new finder object
@@ -552,7 +589,12 @@ class App : public Client::StreamApplication {
 			for ( fit = _finderList.begin(); fit != _finderList.end(); /* incrementing below */) {
 				// some method for getting the timestamp associated with the data
 				// event_continue == false when we want to stop processing
-				(*fit)->process(_referenceTime, pga_data_list);
+				try {
+					(*fit)->process(_referenceTime, pga_data_list);
+				}
+				catch ( Error_FiniteFault &e ) {
+					SEISCOMP_ERROR("Exception from FinDer::process: %s", e.what());
+				}
 
 				if ( (*fit)->get_finder_flags().get_message() &&
 				    ((*fit)->get_finder_length_list().size() > 0) )
