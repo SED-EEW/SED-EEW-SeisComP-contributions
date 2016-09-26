@@ -262,6 +262,11 @@ class App : public Client::StreamApplication {
 			}
 			catch ( ... ) {}
 
+			try {
+				_bufferLength = configGetDouble("finder.envelopeBufferSize");
+			}
+			catch ( ... ) {}
+
 			_testMode = commandline().hasOption("test");
 
 			_creationInfo.setAgencyID(agencyID());

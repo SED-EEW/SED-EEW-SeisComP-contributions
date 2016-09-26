@@ -63,6 +63,12 @@
 						Messaging group to send magnitudes to.
 					</description>
 				</parameter>
+				<parameter name="envelopeBufferSize" type="double" default="120" unit="s">
+					<description>
+						Size of envelope buffer in seconds. The envelope buffer is
+						a ring buffer and FinDer receives the maximum of this ring.
+					</description>
+				</parameter>
 			</group>
 		</configuration>
 		<command-line>
