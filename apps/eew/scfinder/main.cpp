@@ -39,6 +39,7 @@
 
 
 #define USE_FINDER
+//#define LOG_AMPS
 
 using namespace Seiscomp;
 using namespace Seiscomp::DataModel;
@@ -452,7 +453,7 @@ class App : public Client::StreamApplication {
 					loc->latitude();
 					loc->longitude();
 				}
-				catch ( FiniteFault::Error &e ) {
+				catch ( std::exception &e ) {
 					SEISCOMP_WARNING("%s.%s: location '%s': failed to add coordinate: %s",
 					                 proc->waveformID().networkCode().c_str(),
 					                 proc->waveformID().stationCode().c_str(),
@@ -487,18 +488,18 @@ class App : public Client::StreamApplication {
 
 			bool needFinderUpdate = false;
 
-#ifndef USE_FINDER
-			std::cout << "+ " << id << "   " << _referenceTime.iso() << "   " << minAmplTime.iso() << "   " << timestamp.iso() << "   " << value << std::endl;
+#if !defined(USE_FINDER) || defined(LOG_AMPS)
+			std::cout << "+ " << id << "." << proc->waveformID().channelCode() << "   " << _referenceTime.iso() << "   " << minAmplTime.iso() << "   " << timestamp.iso() << "   " << value << std::endl;
 
 #endif
 			// Buffer envelope value
-			if ( it->second->pgas.feed(Amplitude(value, timestamp)) ) {
+			if ( it->second->pgas.feed(Amplitude(value, timestamp, proc->waveformID().channelCode())) ) {
 				// Buffer changed -> update maximum
 				if ( (it->second->maxPGA.timestamp < minAmplTime)
 				  || (timestamp < minAmplTime)
 				  || (value >= it->second->maxPGA.value) ) {
 					if ( it->second->updateMaximum(minAmplTime) ) {
-#ifndef USE_FINDER
+#if !defined(USE_FINDER) || defined(LOG_AMPS)
 						std::cout << "M " << id << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.value << std::endl;
 #endif
 						needFinderUpdate = true;
@@ -512,7 +513,7 @@ class App : public Client::StreamApplication {
 				for ( it = _locationLookup.begin(); it != _locationLookup.end(); ++it ) {
 					if ( it->second->maxPGA.timestamp >= minAmplTime ) continue;
 					if ( it->second->updateMaximum(minAmplTime) ) {
-#ifndef USE_FINDER
+#if !defined(USE_FINDER) || defined(LOG_AMPS)
 						std::cout << "M " << it->first << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.value << std::endl;
 #endif
 						needFinderUpdate = true;
@@ -533,7 +534,7 @@ class App : public Client::StreamApplication {
 			PGA_Data_List pga_data_list;
 			LocationLookup::iterator it;
 
-#ifndef USE_FINDER
+#if !defined(USE_FINDER) || defined(LOG_AMPS)
 			std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << std::endl;
 #endif
 			for ( it = _locationLookup.begin(); it != _locationLookup.end(); ++it ) {
@@ -543,21 +544,22 @@ class App : public Client::StreamApplication {
 					PGA_Data(
 						it->second->meta->station()->code(),
 						it->second->meta->station()->network()->code(),
-						"nan",
-						it->second->meta->code(),
+						it->second->maxPGA.channel.c_str(),
+						it->second->meta->code().empty()?"--":it->second->meta->code().c_str(),
 						Coordinate(it->second->meta->latitude(), it->second->meta->longitude()),
 						it->second->maxPGA.value*100, it->second->maxPGA.timestamp
 					)
 				);
-#ifndef USE_FINDER
-				std::cout << it->first << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.value << std::endl;
+#if !defined(USE_FINDER) || defined(LOG_AMPS)
+				std::cout << it->first << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.timestamp.seconds() << "   " << (it->second->maxPGA.value*100) << std::endl;
 #endif
 			}
-#ifndef USE_FINDER
+#if !defined(USE_FINDER) || defined(LOG_AMPS)
 			std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
+#ifndef USE_FINDER
 			// No finder for the time being
 			return;
-
+#endif
 #endif
 			Coordinate_List clist;
 			Coordinate_List::iterator cit;
@@ -664,7 +666,7 @@ class App : public Client::StreamApplication {
 	private:
 		struct Amplitude {
 			Amplitude() {}
-			Amplitude(double v, const Core::Time &ts) : value(v), timestamp(ts) {}
+			Amplitude(double v, const Core::Time &ts, const std::string &cha) : value(v), timestamp(ts), channel(cha) {}
 
 			bool operator==(const Amplitude &other) const {
 				return value == other.value && timestamp == other.timestamp;
@@ -674,17 +676,18 @@ class App : public Client::StreamApplication {
 				return value != other.value || timestamp != other.timestamp;
 			}
 
-			double     value;
-			Core::Time timestamp;
+			double      value;
+			Core::Time  timestamp;
+			std::string channel;
 		};
 
 		typedef Ring<Amplitude> PGABuffer;
 
 		DEFINE_SMARTPOINTER(Buddy);
-		struct Buddy : public Core::BaseObject {
+		struct Buddy : Core::BaseObject {
 			SensorLocation *meta;
-			PGABuffer                  pgas;
-			Amplitude                  maxPGA;
+			PGABuffer       pgas;
+			Amplitude       maxPGA;
 
 			bool updateMaximum(const Core::Time &minTime);
 		};
@@ -728,6 +731,7 @@ bool App::Buddy::updateMaximum(const Core::Time &minTime) {
 			if ( !maxPGA.timestamp.valid() || it->value >= maxPGA.value ) {
 				maxPGA.timestamp = it->timestamp;
 				maxPGA.value = it->value;
+				maxPGA.channel = it->channel;
 			}
 		}
 	}
