@@ -361,7 +361,7 @@ class App : public Client::StreamApplication {
 			try {
 				Finder::Init(_finderConfig.c_str(), station_coord_list);
 			}
-			catch ( Error_FiniteFault &e ) {
+			catch ( FiniteFault::Error &e ) {
 				SEISCOMP_ERROR("Finder error: %s", e.what());
 				return false;
 			}
@@ -452,7 +452,7 @@ class App : public Client::StreamApplication {
 					loc->latitude();
 					loc->longitude();
 				}
-				catch ( Error_FiniteFault &e ) {
+				catch ( FiniteFault::Error &e ) {
 					SEISCOMP_WARNING("%s.%s: location '%s': failed to add coordinate: %s",
 					                 proc->waveformID().networkCode().c_str(),
 					                 proc->waveformID().stationCode().c_str(),
@@ -567,7 +567,7 @@ class App : public Client::StreamApplication {
 			try {
 				clist = Finder::Scan_Data(pga_data_list, _finderList);
 			}
-			catch ( Error_FiniteFault &e ) {
+			catch ( FiniteFault::Error &e ) {
 				SEISCOMP_ERROR("Exception from FinDer: %s", e.what());
 				return;
 			}
@@ -592,7 +592,7 @@ class App : public Client::StreamApplication {
 				try {
 					(*fit)->process(_referenceTime, pga_data_list);
 				}
-				catch ( Error_FiniteFault &e ) {
+				catch ( FiniteFault::Error &e ) {
 					SEISCOMP_ERROR("Exception from FinDer::process: %s", e.what());
 				}
 
