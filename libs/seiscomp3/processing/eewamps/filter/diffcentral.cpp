@@ -26,7 +26,7 @@ namespace Filtering {
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 template <typename TYPE>
-DiffCentral<TYPE>::DiffCentral() : _factor(0) {}
+DiffCentral<TYPE>::DiffCentral() : _factor(0), _init(false) {}
 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
@@ -59,7 +59,7 @@ void DiffCentral<TYPE>::apply(int n, TYPE *inout) {
 
 	TYPE v = inout[0];
 
-	if ( _init ) {
+	if ( !_init ) {
 		_prevVal = v;
 		inout[0] = 0;
 		_init = true;
