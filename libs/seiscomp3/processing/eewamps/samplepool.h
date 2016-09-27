@@ -27,7 +27,11 @@ struct SamplePool {
 	~SamplePool() { if ( samples != NULL ) delete[] samples; }
 
 	void reset(size_t i) {
-		if ( _size == i ) return;
+		if ( _size == i ) {
+			clear();
+			return;
+		}
+
 		delete[] samples;
 		samples = new double[i];
 		clipped = false;
