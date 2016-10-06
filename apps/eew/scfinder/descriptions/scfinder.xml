@@ -69,6 +69,20 @@
 						a ring buffer and FinDer receives the maximum of this ring.
 					</description>
 				</parameter>
+				<parameter name="scanInterval" type="double" default="0.1" unit="s">
+					<description>
+						Defines the interval to scan amplitudes by Finder. If set to 0
+						then the scan is called as soon as an amplitude change has been
+						detected. This can cause a high CPU usage.
+					</description>
+				</parameter>
+				<parameter name="processInterval" type="double" default="1" unit="s">
+					<description>
+						Defines the interval to process Finder objects. If set to 0
+						then Finder is called as soon as data has been scanned.
+						This can cause a high CPU usage.
+					</description>
+				</parameter>
 			</group>
 		</configuration>
 		<command-line>

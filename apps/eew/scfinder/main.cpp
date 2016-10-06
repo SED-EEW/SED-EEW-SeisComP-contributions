@@ -40,6 +40,7 @@
 
 #define USE_FINDER
 //#define LOG_AMPS
+//#define LOG_FINDER_PGA
 
 using namespace Seiscomp;
 using namespace Seiscomp::DataModel;
@@ -196,6 +197,13 @@ class App : public Client::StreamApplication {
 			_testMode = false;
 
 			_bufferLength = Core::TimeSpan(120,0);
+
+			// Default Finder call interval is 1s
+			_finderProcessCallInterval.set(1);
+			// Default scan call interval is 0.1s
+			_finderScanCallInterval.set(0).setUSecs(100000);
+			_finderAmplitudesDirty = false;
+			_finderScanDataDirty = false;
 		}
 
 
@@ -259,7 +267,7 @@ class App : public Client::StreamApplication {
 		bool init() {
 			if ( !StreamApplication::init() )
 				return false;
-#ifdef USE_FINDER
+			#ifdef USE_FINDER
 
 			try {
 				_finderConfig = configGetPath("finder.config");
@@ -268,7 +276,7 @@ class App : public Client::StreamApplication {
 				SEISCOMP_ERROR("finder.config is mandatory");
 				return false;
 			}
-#endif
+			#endif
 			try {
 				_magnitudeGroup = configGetString("finder.magnitudeGroup");
 			}
@@ -276,6 +284,16 @@ class App : public Client::StreamApplication {
 
 			try {
 				_bufferLength = configGetDouble("finder.envelopeBufferSize");
+			}
+			catch ( ... ) {}
+
+			try {
+				_finderProcessCallInterval = configGetDouble("finder.processInterval");
+			}
+			catch ( ... ) {}
+
+			try {
+				_finderScanCallInterval = configGetDouble("finder.scanInterval");
 			}
 			catch ( ... ) {}
 
@@ -315,7 +333,18 @@ class App : public Client::StreamApplication {
 
 			_sentMessagesTotal = 0;
 
-			return initFinder();
+			if ( !initFinder() )
+				return false;
+
+			if ( _finderProcessCallInterval != Core::TimeSpan(0,0) )
+				enableTimer(1);
+
+			if ( _finderProcessCallInterval != Core::TimeSpan(0,0) )
+				SEISCOMP_INFO("Throttle Finder processing to an interval of %fs", (double)_finderProcessCallInterval);
+			else
+				SEISCOMP_INFO("Process with Finder on each amplitude update");
+
+			return true;
 		}
 
 
@@ -358,7 +387,7 @@ class App : public Client::StreamApplication {
 				}
 			}
 
-#ifdef USE_FINDER
+			#ifdef USE_FINDER
 			try {
 				Finder::Init(_finderConfig.c_str(), station_coord_list);
 			}
@@ -366,7 +395,7 @@ class App : public Client::StreamApplication {
 				SEISCOMP_ERROR("Finder error: %s", e.what());
 				return false;
 			}
-#endif
+			#endif
 
 			// ­Set the static variable NFinder = 0.  This will be automatically
 			// incremented in the Finder class constructor and decremented in
@@ -488,10 +517,10 @@ class App : public Client::StreamApplication {
 
 			bool needFinderUpdate = false;
 
-#if !defined(USE_FINDER) || defined(LOG_AMPS)
+			#if defined(LOG_AMPS)
 			std::cout << "+ " << id << "." << proc->waveformID().channelCode() << "   " << _referenceTime.iso() << "   " << minAmplTime.iso() << "   " << timestamp.iso() << "   " << value << std::endl;
 
-#endif
+			#endif
 			// Buffer envelope value
 			if ( it->second->pgas.feed(Amplitude(value, timestamp, proc->waveformID().channelCode())) ) {
 				// Buffer changed -> update maximum
@@ -499,9 +528,9 @@ class App : public Client::StreamApplication {
 				  || (timestamp < minAmplTime)
 				  || (value >= it->second->maxPGA.value) ) {
 					if ( it->second->updateMaximum(minAmplTime) ) {
-#if !defined(USE_FINDER) || defined(LOG_AMPS)
+						#if defined(LOG_AMPS)
 						std::cout << "M " << id << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.value << std::endl;
-#endif
+						#endif
 						needFinderUpdate = true;
 					}
 				}
@@ -513,9 +542,9 @@ class App : public Client::StreamApplication {
 				for ( it = _locationLookup.begin(); it != _locationLookup.end(); ++it ) {
 					if ( it->second->maxPGA.timestamp >= minAmplTime ) continue;
 					if ( it->second->updateMaximum(minAmplTime) ) {
-#if !defined(USE_FINDER) || defined(LOG_AMPS)
+						#if defined(LOG_AMPS)
 						std::cout << "M " << it->first << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.value << std::endl;
-#endif
+						#endif
 						needFinderUpdate = true;
 					}
 				}
@@ -525,22 +554,52 @@ class App : public Client::StreamApplication {
 			if ( !needFinderUpdate )
 				return;
 
+			_finderAmplitudesDirty = true;
+
 			// Maximum updated, call Finder
-			callFinder();
+			scanFinderData();
 		}
 
 
-		void callFinder() {
-			PGA_Data_List pga_data_list;
+		void handleTimeout() {
+			// Scan data
+			scanFinderData();
+
+			// Call Finder
+			processFinder();
+		}
+
+
+		void scanFinderData() {
+			if ( !_finderAmplitudesDirty )
+				return;
+
+			if ( _finderScanCallInterval != Core::TimeSpan(0,0) ) {
+				// Throttle call frequency
+				Core::Time now = Core::Time::GMT();
+				if ( now - _lastFinderScanCall < _finderScanCallInterval )
+					return;
+
+				_lastFinderScanCall = now;
+			}
+
+			_finderAmplitudesDirty = false;
+			_finderScanDataDirty = true;
+
 			LocationLookup::iterator it;
 
-#if !defined(USE_FINDER) || defined(LOG_AMPS)
+			_latestMaxPGAs.clear();
+
+			#if defined(LOG_AMPS)
 			std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << std::endl;
-#endif
+			#endif
+			#ifdef LOG_FINDER_PGA
+			std::cout << _referenceTime.iso() << std::endl;
+			#endif
 			for ( it = _locationLookup.begin(); it != _locationLookup.end(); ++it ) {
 				if ( !it->second->maxPGA.timestamp.valid() ) continue;
 
-				pga_data_list.push_back(
+				_latestMaxPGAs.push_back(
 					PGA_Data(
 						it->second->meta->station()->code(),
 						it->second->meta->station()->network()->code(),
@@ -550,24 +609,23 @@ class App : public Client::StreamApplication {
 						it->second->maxPGA.value*100, it->second->maxPGA.timestamp
 					)
 				);
-#if !defined(USE_FINDER) || defined(LOG_AMPS)
+				#if defined(LOG_AMPS)
 				std::cout << it->first << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.timestamp.seconds() << "   " << (it->second->maxPGA.value*100) << std::endl;
-#endif
+				#endif
+				#ifdef LOG_FINDER_PGA
+				std::cout << "\t" << std::setw(12) << it->first << "\t" << it->second->maxPGA.timestamp.iso() << "\t" << (it->second->maxPGA.value*100) << std::endl;
+				#endif
 			}
-#if !defined(USE_FINDER) || defined(LOG_AMPS)
+			#if defined(LOG_AMPS)
 			std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
-#ifndef USE_FINDER
-			// No finder for the time being
-			return;
-#endif
-#endif
+			#endif
+
+			#ifdef USE_FINDER
 			Coordinate_List clist;
 			Coordinate_List::iterator cit;
 
-			_lastFinderCall = Core::Time::GMT();
-
 			try {
-				clist = Finder::Scan_Data(pga_data_list, _finderList);
+				clist = Finder::Scan_Data(_latestMaxPGAs, _finderList);
 			}
 			catch ( FiniteFault::Error &e ) {
 				SEISCOMP_ERROR("Exception from FinDer: %s", e.what());
@@ -584,15 +642,36 @@ class App : public Client::StreamApplication {
 				}
 
 				// make constructor take a Coordinate designated by *cit...it will increment Nfinder
-				_finderList.push_back(new Finder(*cit, pga_data_list, event_id, max(_bufferLength.seconds(),1L)*2));
+				_finderList.push_back(new Finder(*cit, _latestMaxPGAs, event_id, max(_bufferLength.seconds(),1L)*2));
+			}
+			#else
+			std::cerr << "ScanData" << std::endl;
+			#endif
+
+			processFinder();
+		}
+
+
+		void processFinder() {
+			if ( !_finderScanDataDirty )
+				return;
+
+			if ( _finderProcessCallInterval != Core::TimeSpan(0,0) ) {
+				// Throttle call frequency
+				Core::Time now = Core::Time::GMT();
+				if ( now - _lastFinderProcessCall < _finderProcessCallInterval )
+					return;
+
+				_lastFinderProcessCall = now;
 			}
 
+			#ifdef USE_FINDER
 			Finder_List::iterator fit;
 			for ( fit = _finderList.begin(); fit != _finderList.end(); /* incrementing below */) {
 				// some method for getting the timestamp associated with the data
 				// event_continue == false when we want to stop processing
 				try {
-					(*fit)->process(_referenceTime, pga_data_list);
+					(*fit)->process(_referenceTime, _latestMaxPGAs);
 				}
 				catch ( FiniteFault::Error &e ) {
 					SEISCOMP_ERROR("Exception from FinDer::process: %s", e.what());
@@ -611,6 +690,9 @@ class App : public Client::StreamApplication {
 				else
 					++fit;
 			}
+			#else
+			std::cerr << "ProcessData" << std::endl;
+			#endif
 		}
 
 
@@ -712,10 +794,17 @@ class App : public Client::StreamApplication {
 		Core::Time                     _startTime;
 		Core::Time                     _endTime;
 		Core::Time                     _referenceTime;
-		Core::Time                     _lastFinderCall;
+		Core::Time                     _lastFinderProcessCall;
+		Core::Time                     _lastFinderScanCall;
+
+		Core::TimeSpan                 _finderProcessCallInterval;
+		Core::TimeSpan                 _finderScanCallInterval;
+		bool                           _finderAmplitudesDirty;
+		bool                           _finderScanDataDirty;
 
 		LocationLookup                 _locationLookup;
 		Finder_List                    _finderList;
+		PGA_Data_List                  _latestMaxPGAs;
 };
 
 
