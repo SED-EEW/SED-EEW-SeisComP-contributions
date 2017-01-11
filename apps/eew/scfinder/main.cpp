@@ -717,6 +717,7 @@ class App : public Client::StreamApplication {
 
 			OriginQuality qual;
 			qual.setUsedStationCount(finder->get_Nstat_used());
+			qual.setUsedPhaseCount(finder->get_Nstat_used());
 
 			org->setQuality(qual);
 
