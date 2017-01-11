@@ -551,8 +551,9 @@ class App : public Client::StreamApplication {
 			}
 
 			// No changes, return
-			if ( !needFinderUpdate )
-				return;
+			// Changed by Maren Jan 3 2017
+			//if ( !needFinderUpdate )
+			//	return;
 
 			_finderAmplitudesDirty = true;
 
@@ -571,8 +572,9 @@ class App : public Client::StreamApplication {
 
 
 		void scanFinderData() {
-			if ( !_finderAmplitudesDirty )
-				return;
+			// Changed by Maren, Jan 3 2017
+			//if ( !_finderAmplitudesDirty )
+			//	return;
 
 			if ( _finderScanCallInterval != Core::TimeSpan(0,0) ) {
 				// Throttle call frequency
@@ -671,7 +673,10 @@ class App : public Client::StreamApplication {
 				// some method for getting the timestamp associated with the data
 				// event_continue == false when we want to stop processing
 				try {
-					(*fit)->process(_referenceTime, _latestMaxPGAs);
+                    long systemtime = (long)time(NULL);
+					// Changed by Maren, Jan 3 2017 (use systemtime instead of _referenceTime
+					//(*fit)->process(_referenceTime, _latestMaxPGAs);
+                    (*fit)->process(systemtime, _latestMaxPGAs);
 				}
 				catch ( FiniteFault::Error &e ) {
 					SEISCOMP_ERROR("Exception from FinDer::process: %s", e.what());
