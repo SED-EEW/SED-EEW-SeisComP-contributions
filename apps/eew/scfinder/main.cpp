@@ -507,8 +507,9 @@ class App : public Client::StreamApplication {
 			// to the latest timestamp of any envelope value.
 			bool referenceTimeUpdated = false;
 
-			if ( _referenceTime < timestamp ) {
-				_referenceTime = timestamp;
+			Core::Time now = Core::Time::GMT();
+			if ( _referenceTime < now ) {
+				_referenceTime = now;
 				referenceTimeUpdated = true;
 			}
 
@@ -667,16 +668,16 @@ class App : public Client::StreamApplication {
 				_lastFinderProcessCall = now;
 			}
 
+			// Get the system time to report it to Finder
+			Core::Time now = Core::Time::GMT();
+
 			#ifdef USE_FINDER
 			Finder_List::iterator fit;
 			for ( fit = _finderList.begin(); fit != _finderList.end(); /* incrementing below */) {
 				// some method for getting the timestamp associated with the data
 				// event_continue == false when we want to stop processing
 				try {
-                    long systemtime = (long)time(NULL);
-					// Changed by Maren, Jan 3 2017 (use systemtime instead of _referenceTime
-					//(*fit)->process(_referenceTime, _latestMaxPGAs);
-                    (*fit)->process(systemtime, _latestMaxPGAs);
+					(*fit)->process(now, _latestMaxPGAs);
 				}
 				catch ( FiniteFault::Error &e ) {
 					SEISCOMP_ERROR("Exception from FinDer::process: %s", e.what());
