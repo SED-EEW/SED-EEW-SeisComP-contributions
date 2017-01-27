@@ -1,3 +1,5 @@
+This branch is now retired. It comes from the SED-EEW fork of SeisComP3 where scfinder and eewamps were first developped.
+
 # Description
 
 The *sed-addons* module includes SeisComP3-based product of SED with restricted distribution. It includes:
