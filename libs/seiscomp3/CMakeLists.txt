@@ -1,1 +1,1 @@
-SUBDIRS(datamodel processing)
+SUBDIRS(processing)

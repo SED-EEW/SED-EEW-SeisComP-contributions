@@ -1,1 +1,1 @@
-SUBDIRS(screloc scorg2nll scwfparam scenvelope scvsmag eew)
+SUBDIRS(eew)
