@@ -11,8 +11,9 @@
  *                                                                            *
  *   -----------------------------------------------------------------------  *
  *                                                                            *
- *   SeisComP3 wrapper for the FinDer algorithm using libFinDer written by    *
- *   Deborah E. Smith (deborahsmith@usgs.gov).                                *
+ *   SeisComP3 wrapper for the FinDer algorithm using libFinder written by    *
+ *   Deborah E. Smith (deborahsmith@usgs.gov) and                             *
+ *   Maren Böse, ETH, (maren.boese@erdw.ethz.ch).                             *
  *                                                                            *
  *   -----------------------------------------------------------------------  *
  *                                                                            *
