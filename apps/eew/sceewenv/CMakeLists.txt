@@ -5,6 +5,9 @@ SET(
 		main.cpp
 )
 
+INCLUDE_DIRECTORIES(${SC3_PACKAGE_SOURCE_DIR}/../sed/libs)
+INCLUDE_DIRECTORIES(${SC3_PACKAGE_BINARY_DIR}/../sed/libs)
+
 SC_ADD_EXECUTABLE(EEWENV ${EEWENV_TARGET})
 SC_LINK_LIBRARIES_INTERNAL(${EEWENV_TARGET} eewamps datamodel_vs)
 SC_INSTALL_INIT(${EEWENV_TARGET} ../../../../trunk/apps/templates/initd.py)
