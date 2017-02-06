@@ -516,8 +516,6 @@ class App : public Client::StreamApplication {
 			// The minimum time for a valid amplitude
 			Core::Time minAmplTime = _referenceTime - _bufferLength;
 
-			bool needFinderUpdate = false;
-
 			#if defined(LOG_AMPS)
 			std::cout << "+ " << id << "." << proc->waveformID().channelCode() << "   " << _referenceTime.iso() << "   " << minAmplTime.iso() << "   " << timestamp.iso() << "   " << value << std::endl;
 
@@ -532,7 +530,6 @@ class App : public Client::StreamApplication {
 						#if defined(LOG_AMPS)
 						std::cout << "M " << id << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.value << std::endl;
 						#endif
-						needFinderUpdate = true;
 					}
 				}
 			}
@@ -546,15 +543,9 @@ class App : public Client::StreamApplication {
 						#if defined(LOG_AMPS)
 						std::cout << "M " << it->first << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.value << std::endl;
 						#endif
-						needFinderUpdate = true;
 					}
 				}
 			}
-
-			// No changes, return
-			// Changed by Maren Jan 3 2017
-			//if ( !needFinderUpdate )
-			//	return;
 
 			_finderAmplitudesDirty = true;
 
@@ -718,7 +709,7 @@ class App : public Client::StreamApplication {
 
 			OriginQuality qual;
 			qual.setUsedStationCount(finder->get_Nstat_used());
-			qual.setUsedPhaseCount(finder->get_Nstat_used());
+			qual.setUsedPhaseCount(finder->get_pga_above_min_thresh().size());
 
 			org->setQuality(qual);
 
