@@ -196,6 +196,7 @@ class App : public Client::StreamApplication {
 
 			_sentMessagesTotal = 0;
 			_testMode = false;
+			_playbackMode = false;
 
 			_bufferLength = Core::TimeSpan(120,0);
 
@@ -218,6 +219,9 @@ class App : public Client::StreamApplication {
 			commandline().addOption("Offline", "dump-config", "Show configuration in debug log and exits");
 			commandline().addOption("Offline", "ts", "Start time of data acquisition time window, requires also --te", &_strTs, false);
 			commandline().addOption("Offline", "te", "End time of data acquisition time window, requires also --ts", &_strTe, false);
+
+			commandline().addGroup("Mode");
+			commandline().addOption("Mode", "playback", "Run in playback mode which means that the reference time is set to the timestamp to the latest record instead of systemtime");
 		}
 
 
@@ -255,6 +259,7 @@ class App : public Client::StreamApplication {
 				setDatabaseEnabled(false, false);
 
 			_testMode = commandline().hasOption("test");
+			_playbackMode = commandline().hasOption("playback");
 
 			if ( commandline().hasOption("offline") ) {
 				setMessagingEnabled(false);
@@ -508,9 +513,12 @@ class App : public Client::StreamApplication {
 			// to the latest timestamp of any envelope value.
 			bool referenceTimeUpdated = false;
 
-			Core::Time now = Core::Time::GMT();
-			if ( _referenceTime < now ) {
-				_referenceTime = now;
+			// If in playback mode then use the latest envelope timestamp as
+			// reference time.
+			Core::Time tick = _playbackMode ? timestamp : Core::Time::GMT();
+
+			if ( _referenceTime < tick ) {
+				_referenceTime = tick;
 				referenceTimeUpdated = true;
 			}
 
@@ -661,7 +669,7 @@ class App : public Client::StreamApplication {
 			}
 
 			// Get the system time to report it to Finder
-			Core::Time now = Core::Time::GMT();
+			Core::Time tick = _playbackMode ? _referenceTime : Core::Time::GMT();
 
 			#ifdef USE_FINDER
 			Finder_List::iterator fit;
@@ -669,7 +677,7 @@ class App : public Client::StreamApplication {
 				// some method for getting the timestamp associated with the data
 				// event_continue == false when we want to stop processing
 				try {
-					(*fit)->process(now, _latestMaxPGAs);
+					(*fit)->process(tick, _latestMaxPGAs);
 				}
 				catch ( FiniteFault::Error &e ) {
 					SEISCOMP_ERROR("Exception from FinDer::process: %s", e.what());
@@ -777,6 +785,7 @@ class App : public Client::StreamApplication {
 		typedef map<string, BuddyPtr> LocationLookup;
 
 		bool                           _testMode;
+		bool                           _playbackMode;
 		std::string                    _strTs;
 		std::string                    _strTe;
 		std::string                    _magnitudeGroup;
