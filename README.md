@@ -8,7 +8,7 @@ The *sed-addons* module includes SeisComP3-based product of SED with restricted 
 
 In order to use this module the sources have to be compiled to an executable. Merge them into the Seiscomp3 sources and compile Seiscomp3 as usual.
 ```bash
-# merge bgr-mags-addons and Seiscomp3
+# merge sed-addons and Seiscomp3
 git clone https://github.com/SeisComP3/seiscomp3.git
 cd seiscomp3
 git submodule add -f https://gitlab.seismo.ethz.ch/SED-EEW/sed-addons.git src/sed-addons
