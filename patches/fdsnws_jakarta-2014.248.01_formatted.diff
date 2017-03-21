@@ -1,0 +1,26 @@
+Index: src/trunk/apps/fdsnws/fdsnws/event.py
+===================================================================
+--- src/trunk/apps/fdsnws/fdsnws/event.py
++++ src/trunk/apps/fdsnws/fdsnws/event.py
+@@ -229,7 +229,7 @@ class FDSNEvent(resource.Resource):
+ 		else:
+ 			exp = Exporter.Create(ro.Exporters[ro.format])
+ 			if exp:
+-				exp.setFormattedOutput(ro.formatted)
++				exp.setFormattedOutput(bool(ro.formatted))
+ 			else:
+ 				msg = "output format '%s' no available, export module '%s' could " \
+ 				      "not be loaded." % (ro.format, ro.Exporters[ro.format])
+Index: src/trunk/apps/fdsnws/fdsnws/station.py
+===================================================================
+--- src/trunk/apps/fdsnws/fdsnws/station.py
++++ src/trunk/apps/fdsnws/fdsnws/station.py
+@@ -290,7 +290,7 @@ class FDSNStation(resource.Resource):
+ 				                            msg, ro)
+ 
+ 			req.setHeader('Content-Type', 'application/xml')
+-			exp.setFormattedOutput(ro.formatted)
++			exp.setFormattedOutput(bool(ro.formatted))
+ 			d = deferToThread(self._processRequestExp, req, ro, exp)
+ 
+ 		# Process request in separate thread

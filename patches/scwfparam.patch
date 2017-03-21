@@ -1,0 +1,15 @@
+--- a/src/sed/apps/scwfparam/wfparam.cpp
++++ b/src/sed/apps/scwfparam/wfparam.cpp
+@@ -943,6 +943,12 @@ void WFParam::handleTimeout() {
+ 
+ // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+ bool WFParam::addProcess(DataModel::Event *evt) {
++       if ( !_config.eventID.empty() && (evt->publicID() != _config.eventID) ) {
++               SEISCOMP_NOTICE("%s: event ignored: only event %s is allowed for processing",
++                               evt->publicID().c_str(), _config.eventID.c_str());
++               return false;
++       }
++
+        if ( _processedEvents.find(evt->publicID()) != _processedEvents.end() ) {
+                SEISCOMP_DEBUG("%s: event has been completely processed already",
+                               evt->publicID().c_str());

@@ -1,0 +1,42 @@
+--- src/trunk/libs/seiscomp3/io/recordstream/sdsarchive.cpp
++++ src/trunk/libs/seiscomp3/io/recordstream/sdsarchive.cpp
+@@ -291,7 +291,7 @@ bool SDSArchive::setStart(const string &fname) {
+ 	ms_readmsr_r(&pfp,&prec,NULL,-1,NULL,NULL,0,0,0);
+ 
+ 	_recstream->stream().seekg(offset,ios::beg);
+-	if ( offset == size )
++	if ( offset >= size )
+ 		_recstream->stream().clear(ios::eofbit);
+ 
+ 	return result;
+@@ -309,7 +309,11 @@ bool SDSArchive::isEnd() {
+ 	int year, month, day;
+ 	Time etime = (_curidx->endTime() == Time())?_etime:_curidx->endTime();
+ 
+-	istr.read(buffer,sizeof(struct fsdh_s));
++	if ( !istr.read(buffer, sizeof(struct fsdh_s)) ) {
++		istr.clear(ios::eofbit);
++		return true;
++	}
++
+ 	istr.seekg(strpos);
+ 
+ 	/* Check to see if byte swapping is needed (bogus year makes good test) */
+@@ -373,7 +377,7 @@ istream& SDSArchive::stream() throw(ArchiveException) {
+ 				string fname = _fnames.front();
+ 				_fnames.pop();
+ 				if ( !_recstream->setSource(fname.c_str()) ) {
+-					SEISCOMP_DEBUG("file %s not found",fname.c_str());
++					SEISCOMP_DEBUG("file %s not found", fname.c_str());
+ 					_recstream->stream().clear();
+ 				}
+ 				else {
+@@ -382,7 +386,7 @@ istream& SDSArchive::stream() throw(ArchiveException) {
+ 							SEISCOMP_WARNING("Error reading file %s; start of time window maybe incorrect",fname.c_str());
+ 					}
+ 
+-					if ( !isEnd() && !_recstream->stream().eof() )
++					if ( !_recstream->stream().eof() && !isEnd() )
+ 						return _recstream->stream();
+ 				}
+ 
