@@ -4,11 +4,12 @@ The *sed-addons* module includes SeisComP3-based product of SED with restricted 
   - **scfinder** matches emerging patterns of strong motion from the seismic network with most likely seismic sources to predict location and size of finite faults, and from this, it infers event magnitude and resultant expected ground motion patterns.
   - **eewamps** produce ground motion enveloppe values for EEW product as **scfinder** and **scvsmag** (to be moved to main SeisComP3).
 
-# Compile
-Requirements:
+
+# Requirements
   - for seiscomp3: http://www.seiscomp3.org/doc/jakarta/current/base/installation.html#requirements
   - for scfinder: https://gitlab.seismo.ethz.ch/SED-EEW/FinDer
- 
+
+# Compilation
 In order to use this module the sources have to be compiled to an executable. Merge them into the Seiscomp3 sources and compile Seiscomp3 as usual.
   - If you never did, merge sed-addons and Seiscomp3 
 ```bash
