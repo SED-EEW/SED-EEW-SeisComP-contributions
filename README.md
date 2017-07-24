@@ -18,17 +18,20 @@ git submodule add -f https://gitlab.seismo.ethz.ch/SED-EEW/sed-addons.git src/se
 ```
 
   - If you have already cloned, and just want to update to last version: 
+
 ```bash
 cd <Path to your clone of>/seiscomp3
 git pull
 cd src/sed-addons
 git pull
 ```
+
   - Compilation
      - Configure 
 ```bash
 make -f ../Makefile.cvs
 ```
+
          - configure the **main installation path of seiscomp**
          - indicate  **where FinDer was installed** (see https://gitlab.seismo.ethz.ch/SED-EEW/FinDer)
          - configure all other requirement for your seiscomp system.
@@ -37,6 +40,7 @@ make -f ../Makefile.cvs
 cd build
 make 
 ```
+
      - Compile : if it went alright, your current install (if any) is still untouched but new executables are ready to be installed, to use them do: 
 ```bash
 make install
