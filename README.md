@@ -44,6 +44,7 @@ make -f ../Makefile.cvs
 ```bash
 cd build
 make 
+# use "make -j 4" for debug.
 ```
 
      - Compile : if it went alright, your current install (if any) is still untouched but new executables are ready to be installed, to use them do: 
