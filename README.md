@@ -36,7 +36,9 @@ make -f ../Makefile.cvs
 ```
 
          - configure the **main installation path of seiscomp**
-         - indicate  **where FinDer was installed** (see https://gitlab.seismo.ethz.ch/SED-EEW/FinDer)
+         - indicate  **where FinDer was installed**, [by default](https://gitlab.seismo.ethz.ch/SED-EEW/FinDer):
+             - `FinDer_INCLUDE_DIR           /usr/local/include/finder`
+             - `FinDer_LIBRARY               /usr/local/lib/libFinder.a`
          - configure all other requirement for your seiscomp system.
      - Compile and pre-install (this may be long) 
 ```bash
