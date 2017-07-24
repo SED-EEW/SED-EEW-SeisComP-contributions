@@ -7,7 +7,8 @@ The *sed-addons* module includes SeisComP3-based product of SED with restricted 
 # Compile
 
 In order to use this module the sources have to be compiled to an executable. Merge them into the Seiscomp3 sources and compile Seiscomp3 as usual.
-  - If you never did, merge sed-addons and Seiscomp3 ```bash
+  - If you never did, merge sed-addons and Seiscomp3 
+```bash
 git clone https://github.com/SeisComP3/seiscomp3.git
 cd seiscomp3
 # Make sure your select the branch of the last release :
