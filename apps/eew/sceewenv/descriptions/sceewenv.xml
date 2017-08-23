@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<seiscomp>
+	<module name="scfinder" category="Processing">
+		<description>EEW processor</description>
+		<configuration>
+			<parameter name="dumpRecords" type="bool" default="false">
+				<description>
+					Enables dumping of incoming, transformed and combined records to stdout. This
+					mode is for debugging. The default is false.
+				</description>
+			</parameter>
+			<parameter name="saturationThreshold" type="double" default="80" unit="percent">
+				<description>
+	 				Relative saturation threshold in percent. If the absolute raw amplitude
+	 				exceeds X% of 2**23 counts the station will be excluded from processing. This 
+					assumes a 24bit datalogger. The default is 80.
+				</description>
+			</parameter>
+			<parameter name="baseLineCorrectionBufferLength" type="double" default="60" unit="s">
+				<description>
+					Length in seconds of the baseline correction buffer. A running average is
+					computed and removed from the current sample. The default is 60s.
+				</description>
+			</parameter>
+			<parameter name="horizontalBufferSize" type="double" default="60" unit="s">
+				<description>
+					Length of buffer for horizontal components. Because horizontal components
+					are being received separately they must be buffered to align them properly.
+					Sets the buffer size for each component to compensate for
+					data acquisition latencies. Each component is buffered for
+					at least as long as \p ts seconds before single records
+					are being removed. This buffer size correlates to the maximum latency of 
+					one horiontal component with respect to the other. A too short buffer size
+					will lead to gaps in the combined data stream. bufferSize is as time span
+					(in seconds with fractional part). The default is 60s.
+				</description>
+			</parameter>
+			<parameter name="wantSignal" type="list:string">
+				<description>
+					An array that configures what signals are requested and required by
+					the application. If e.g. only MeterPerSecondSquared is enable then
+					each velocity data stream is converted to acceleration and only that
+					converted data stream is being processed and also dumped (if enabled).
+					
+					bool wantSignal[WaveformProcessor::SignalUnit::Quantity];
+				</description>
+			</parameter>
+			<parameter name="taperLength" type="double"  unit="s">
+				<description>
+					Length in seconds of the taper that is applied to the beginning of the
+					trace.
+				</description>
+			</parameter>
+			<parameter name="horizontalMaxDelay" type="double" default="60" unit="s">
+				<description>
+					Sets the maximum tolerated delay before issuing a warning. That
+					parameter does not configure buffers as such but only a threshold it
+					is being checked against to tell the user that something is not
+					real-time anymore. maxDelay as time span (in seconds with fractional
+					part). The default is 60s.
+				</description>
+			</parameter>
+			<parameter name="maxDelay" type="double" default="3" unit="s">
+				<description>
+					Sets the maximum tolerated package delay before issuing a warning.
+					The default is 3s.
+				</description>
+			</parameter>
+			<group name="streams">
+				<description>
+					Defines the white- and blacklist of data streams to be used. The
+					rules to decide if a stream is used or not are the following:
+
+					1. if whitelist is not empty and the stream is not on the whitelist,
+						don't use it, ok otherwise
+
+					2. if blacklist is not empty and the stream is on the blacklist,
+						don't use it, ok otherwise
+
+					Both checks are made and combined with AND. Either whitelist or
+					blacklist contains a list of patterns (wildcard allowed as * and ?),
+					eg GE.*.*.*, *, GE.MORC.*.BH? Each stream id (NET.STA.LOC.CHA) will
+					be checked against the defined patterns.
+				</description>
+				<parameter name="whitelist" type="list:string">
+					<description>The stream whitelist</description>
+				</parameter>
+				<parameter name="blacklist" type="list:string">
+					<description>The stream blacklist</description>
+				</parameter>
+			</group>
+			<group name="vsfndr">
+				<description>VS and FinDer configuration</description>
+				<parameter name="enable" type="bool" default="false">
+					<description>
+						Enables envelope processing support. Default is false.
+					</description>
+				</parameter>
+				<parameter name="envelopeInterval" type="double" unit="s" default="1.0">
+					<description>
+						Interval length for envelope computation. The default is 1s.
+						
+						Interval of the envelope computation. The maximum is taken with that
+						data interval and declared as envelope value. The intervals do not overlap.
+					</description>
+				</parameter>
+				<parameter name="filterAcc" type="bool" default="false">
+					<description>
+						Enable acceleration 3s lo-pass filter, default is false.
+					</description>
+				</parameter>
+				<parameter name="filterVel" type="bool" default="false">
+					<description>
+						Enable velocity 3s lo-pass filter, default is false.
+					</description>
+				</parameter>
+				<parameter name="filterDisp" type="bool" default="true">
+					<description>
+						Enable displacement 3s lo-pass filter, default is true.
+					</description>
+				</parameter>
+			</group>
+			<group name="gba">
+				<description>Gutenberg configuration</description>
+				<parameter name="enable" type="bool" default="false">
+					<description>
+						Enables envelope processing support. Default is false.
+					</description>
+				</parameter>
+				<parameter name="enable" type="double" default="10" unit="s">
+					<description>
+						The buffer size in seconds of the GbA amplitudes. Default is 10s.
+					</description>
+				</parameter>
+				<parameter name="enable" type="double" default="10"  unit="s">
+					<description>
+						The cutoff time after picks are discarded. Default is 10s.
+					</description>
+				</parameter>
+				<parameter name="enable" type="list:string" default="0.1875,0.375,0.75,1.5,3,6,12,24,48" unit="hz">
+		 			<description>
+						The filter passbands. The default is 9 octaves with an upper
+		 				frequency of 48Hz.
+					</description>
+				</parameter>
+			</group>
+			<group name="onsite">
+				<description>Onsite magnitude processing configuration</description>
+				<parameter name="enable" type="bool" default="false">
+					<description>
+						Enables onsite magnitude processing support. Default is false.
+					</description>
+				</parameter>
+				<parameter name="tauPDeadTime" type="double">		
+					<description>
+						??????????
+					</description>
+				</parameter>
+				<parameter name="cutOffTime" type="double" default="3" unit="s">
+					<description>
+						The cutoff time after a trigger for tauP calculation. Default is 3s.
+					</description>
+				</parameter>
+			</group>
+		</configuration>
+		<command-line>
+			<group name="Generic">
+				<optionReference>generic#help</optionReference>
+				<optionReference>generic#version</optionReference>
+				<optionReference>generic#config-file</optionReference>
+				<optionReference>generic#plugins</optionReference>
+				<optionReference>generic#daemon</optionReference>
+				<optionReference>generic#auto-shutdown</optionReference>
+				<optionReference>generic#shutdown-master-module</optionReference>
+				<optionReference>generic#shutdown-master-username</optionReference>
+				<option flag="x" long-flag="expiry" argument="time">
+					<description>Time span in hours after which objects expire.</description>
+				</option>
+				<option flag="O" long-flag="origin-id" argument="publicID">
+					<description>OriginID to calculate amplitudes for and exit.</description>
+				</option>
+				<option long-flag="dump-records">
+					<description>Dumps the filtered traces to ASCII when using -O.</description>
+				</option>
+			</group>
+			
+			<group name="Verbosity">
+				<optionReference>verbosity#verbosity</optionReference>
+				<optionReference>verbosity#v</optionReference>
+				<optionReference>verbosity#quiet</optionReference>
+				<optionReference>verbosity#component</optionReference>
+				<optionReference>verbosity#syslog</optionReference>
+				<optionReference>verbosity#lockfile</optionReference>
+				<optionReference>verbosity#console</optionReference>
+				<optionReference>verbosity#debug</optionReference>
+				<optionReference>verbosity#log-file</optionReference>
+			</group>
+			
+			<group name="Messaging">
+				<optionReference>messaging#user</optionReference>
+				<optionReference>messaging#host</optionReference>
+				<optionReference>messaging#timeout</optionReference>
+				<optionReference>messaging#primary-group</optionReference>
+				<optionReference>messaging#subscribe-group</optionReference>
+				<optionReference>messaging#encoding</optionReference>
+				<optionReference>messaging#start-stop-msg</optionReference>
+				<option long-flag="test">
+					<description>
+						Test mode where no messages are sent.
+					</description>
+				</option>
+			</group>
+			
+			<group name="Database">
+				<optionReference>database#db-driver-list</optionReference>
+				<optionReference>database#database</optionReference>
+				<optionReference>database#config-module</optionReference>
+				<optionReference>database#inventory-db</optionReference>
+				<optionReference>database#db-disable</optionReference>
+			</group>
+
+			<group name="Records">
+				<optionReference>records#record-driver-list</optionReference>
+				<optionReference>records#record-url</optionReference>
+				<optionReference>records#record-file</optionReference>
+				<optionReference>records#record-type</optionReference>
+			</group>
+
+			<group name="Offline">
+				<option long-flag="offline">
+					<description>
+						Do not connect to the messaging. This mode requires
+						either an explicit database connection to read the
+						inventory from or an inventory XML file. This option
+						implies --test.
+					</description>
+				</option>
+				<option long-flag="dump-config">
+					<description>
+						Show configuration in debug log and stdcerr and exit.
+					</description>
+				</option>
+				<option long-flag="ts">
+					<description>
+						Start time of data acquisition time window, requires also --te
+					</description>
+				</option>
+				<option long-flag="te">
+					<description>
+						End time of data acquisition time window, requires also --ts
+					</description>
+				</option>
+			</group>
+		</command-line>
+	</module>
+</seiscomp>
