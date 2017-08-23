@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <seiscomp>
-	<module name="scfinder" category="Processing">
+	<module name="sceewenv" category="Processing">
 		<description>EEW processor</description>
 		<configuration>
 			<parameter name="dumpRecords" type="bool" default="false">
