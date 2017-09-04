@@ -120,7 +120,7 @@
 					</description>
 				</parameter>
 			</group>
-			<group name="gba">
+			<group name="filterbank">
 				<description>Gutenberg configuration</description>
 				<parameter name="enable" type="bool" default="false">
 					<description>
@@ -144,19 +144,24 @@
 					</description>
 				</parameter>
 			</group>
-			<group name="onsite">
-				<description>Onsite magnitude processing configuration</description>
+			<group name="taup">
+				<description>
+					Onsite magnitude processing configuration
+					
+					Computation is done in time window:
+					[trigger+tauPDeadTime, trigger+cutoffTime].
+				</description>
 				<parameter name="enable" type="bool" default="false">
 					<description>
 						Enables onsite magnitude processing support. Default is false.
 					</description>
 				</parameter>
-				<parameter name="tauPDeadTime" type="double">		
+				<parameter name="tauPDeadTime" type="double" default="0" unit="s">		
 					<description>
-						??????????
+						The start time of the tauP computation time window. Default is 0s. 
 					</description>
 				</parameter>
-				<parameter name="cutOffTime" type="double" default="3" unit="s">
+				<parameter name="cutoffTime" type="double" default="3" unit="s">
 					<description>
 						The cutoff time after a trigger for tauP calculation. Default is 3s.
 					</description>
