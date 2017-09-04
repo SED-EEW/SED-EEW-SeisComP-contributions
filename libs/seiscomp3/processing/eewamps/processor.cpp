@@ -306,6 +306,11 @@ bool Processor::init(const Seiscomp::Config::Config &conf,
 	}
 	catch ( ... ) {}
 
+	try {
+		_members->config.omp.cutOffTime = conf.getDouble(configPrefix + "taup.cutoffTime");
+	}
+	catch ( ... ) {}
+
 
 	// ----------------------------------------------------------------------
 	// Setup processing chains
