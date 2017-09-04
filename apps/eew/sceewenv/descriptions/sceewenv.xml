@@ -120,53 +120,6 @@
 					</description>
 				</parameter>
 			</group>
-			<group name="filterbank">
-				<description>Gutenberg configuration</description>
-				<parameter name="enable" type="bool" default="false">
-					<description>
-						Enables envelope processing support. Default is false.
-					</description>
-				</parameter>
-				<parameter name="enable" type="double" default="10" unit="s">
-					<description>
-						The buffer size in seconds of the GbA amplitudes. Default is 10s.
-					</description>
-				</parameter>
-				<parameter name="enable" type="double" default="10"  unit="s">
-					<description>
-						The cutoff time after picks are discarded. Default is 10s.
-					</description>
-				</parameter>
-				<parameter name="enable" type="list:string" default="0.1875,0.375,0.75,1.5,3,6,12,24,48" unit="hz">
-		 			<description>
-						The filter passbands. The default is 9 octaves with an upper
-		 				frequency of 48Hz.
-					</description>
-				</parameter>
-			</group>
-			<group name="taup">
-				<description>
-					Onsite magnitude processing configuration
-					
-					Computation is done in time window:
-					[trigger+tauPDeadTime, trigger+cutoffTime].
-				</description>
-				<parameter name="enable" type="bool" default="false">
-					<description>
-						Enables onsite magnitude processing support. Default is false.
-					</description>
-				</parameter>
-				<parameter name="tauPDeadTime" type="double" default="0" unit="s">		
-					<description>
-						The start time of the tauP computation time window. Default is 0s. 
-					</description>
-				</parameter>
-				<parameter name="cutoffTime" type="double" default="3" unit="s">
-					<description>
-						The cutoff time after a trigger for tauP calculation. Default is 3s.
-					</description>
-				</parameter>
-			</group>
 		</configuration>
 		<command-line>
 			<group name="Generic">
