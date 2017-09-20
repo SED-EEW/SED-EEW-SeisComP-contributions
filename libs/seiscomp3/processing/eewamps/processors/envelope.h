@@ -48,6 +48,7 @@ class SC_LIBEEWAMPS_API EnvelopeProcessor : public BaseProcessor {
 	//  WaveformProcessor interface
 	// ----------------------------------------------------------------------
 	protected:
+		virtual bool store(const Record *rec);
 		virtual void process(const Record *rec, const DoubleArray &filteredData);
 
 

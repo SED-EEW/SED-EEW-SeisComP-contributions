@@ -68,23 +68,29 @@ EnvelopeProcessor::~EnvelopeProcessor() {}
 
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+bool EnvelopeProcessor::store(const Record *rec) {
+	if ( _stream.initialized
+	  && rec->samplingFrequency() != _stream.fsamp ) {
+		SEISCOMP_WARNING("%s: mismatching sampling frequency (%f != %f): reset",
+		                 rec->streamID().c_str(), _stream.fsamp,
+		                 rec->samplingFrequency());
+		reset();
+	}
+
+	return BaseProcessor::store(rec);
+}
+// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+
+// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 void EnvelopeProcessor::process(const Record *rec, const DoubleArray &data) {
 	if ( !_stream.initialized ) {
 		SEISCOMP_INFO("%s: initializing envelope processor", rec->streamID().c_str());
 
-		_samplePool.reset((int)(_stream.fsamp*_config->vsfndr.envelopeInterval+0.5)+1);
-		_dt = Core::TimeSpan(1.0 / _stream.fsamp);
-
-		setupTimeWindow(rec->startTime());
-	}
-	else if ( rec->samplingFrequency() != _stream.fsamp ) {
-		SEISCOMP_INFO("%s: mismatching sampling frequency (%f != %f): reset",
-		              rec->streamID().c_str(), _stream.fsamp,
-		              rec->samplingFrequency());
-		reset();
-
-		_samplePool.reset((int)(_stream.fsamp*_config->vsfndr.envelopeInterval+0.5)+1);
-		_dt = Core::TimeSpan(1.0 / _stream.fsamp);
+		_samplePool.reset((int)(rec->samplingFrequency()*_config->vsfndr.envelopeInterval+0.5)+1);
+		_dt = Core::TimeSpan(1.0 / rec->samplingFrequency());
 
 		setupTimeWindow(rec->startTime());
 	}
