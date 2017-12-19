@@ -775,7 +775,6 @@ class App : public Client::StreamApplication {
 
 			smRupture->setCentroidReference(centroid->publicID());
 
-#endif
 			{
 				RealQuantity ruptureLength;
 				ruptureLength.setValue(finder->get_rupture_length());
@@ -785,8 +784,11 @@ class App : public Client::StreamApplication {
 					ruptureLength.pdf().variable().content().push_back(misfitLength[i].get_value());
 					ruptureLength.pdf().probability().content().push_back(misfitLength[i].get_misf());
 				}
+
+				smRupture->setLength(ruptureLength);
 			}
 
+#endif
 #if SC_API_VERSION >= SC_API_VERSION_CHECK(11,1,0)
 			{
 				RealQuantity ruptureStrike;
@@ -807,6 +809,9 @@ class App : public Client::StreamApplication {
 				ar.create("-");
 				ar.setFormattedOutput(true);
 				ar << org;
+#if SC_API_VERSION >= SC_API_VERSION_CHECK(11,0,0)
+				ar << centroid;
+#endif
 				ar.close();
 			}
 			else if ( connection() ) {
