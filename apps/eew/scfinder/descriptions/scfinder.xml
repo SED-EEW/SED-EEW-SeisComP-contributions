@@ -58,9 +58,14 @@
 						Path to Finder config.
 					</description>
 				</parameter>
-				<parameter name="magnitudeGroup" type="string" default="MAGNIUDE">
+				<parameter name="magnitudeGroup" type="string" default="MAGNITUDE">
 					<description>
 						Messaging group to send magnitudes to.
+					</description>
+				</parameter>
+				<parameter name="strongMotionGroup" type="string" default="LOCATION">
+					<description>
+						Messaging group to send strong motion objects to.
 					</description>
 				</parameter>
 				<parameter name="envelopeBufferSize" type="double" default="120" unit="s">

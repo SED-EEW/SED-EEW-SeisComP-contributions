@@ -26,12 +26,14 @@
 
 #include <seiscomp3/logging/log.h>
 #include <seiscomp3/logging/output.h>
+#include <seiscomp3/core/version.h>
 #include <seiscomp3/client/streamapplication.h>
 #include <seiscomp3/client/inventory.h>
 #include <seiscomp3/client/queue.h>
 #include <seiscomp3/datamodel/eventparameters.h>
 #include <seiscomp3/datamodel/origin.h>
 #include <seiscomp3/datamodel/magnitude.h>
+#include <seiscomp3/datamodel/strongmotion/strongmotionparameters_package.h>
 #include <seiscomp3/io/archive/xmlarchive.h>
 #include <seiscomp3/processing/eewamps/processor.h>
 
@@ -193,6 +195,7 @@ class App : public Client::StreamApplication {
 			setRecordDatatype(Array::FLOAT);
 			setPrimaryMessagingGroup("LOCATION");
 			_magnitudeGroup = "MAGNITUDE";
+			_strongMotionGroup = "LOCATION";
 
 			_sentMessagesTotal = 0;
 			_testMode = false;
@@ -285,6 +288,11 @@ class App : public Client::StreamApplication {
 			#endif
 			try {
 				_magnitudeGroup = configGetString("finder.magnitudeGroup");
+			}
+			catch ( ... ) {}
+
+			try {
+				_strongMotionGroup = configGetString("finder.strongMotionGroup");
 			}
 			catch ( ... ) {}
 
@@ -703,6 +711,8 @@ class App : public Client::StreamApplication {
 
 
 		void sendFinder(const Finder *finder) {
+			Notifier::SetEnabled(false);
+
 			_creationInfo.setCreationTime(Core::Time::GMT());
 
 			Coordinate epicenter = finder->get_epicenter();
@@ -727,6 +737,71 @@ class App : public Client::StreamApplication {
 			mag->setMagnitude(RealQuantity(finder->get_mag(), finder->get_mag_uncer(), Core::None, Core::None, Core::None));
 			mag->setType("Mfd");
 
+			StrongMotion::StrongOriginDescriptionPtr smDesc = StrongMotion::StrongOriginDescription::Create();
+			smDesc->setCreationInfo(_creationInfo);
+			smDesc->setOriginID(org->publicID());
+
+			StrongMotion::RupturePtr smRupture = StrongMotion::Rupture::Create();
+			smDesc->add(smRupture.get());
+
+#if SC_API_VERSION >= SC_API_VERSION_CHECK(11,0,0)
+			OriginPtr centroid = Origin::Create();
+			centroid->setCreationInfo(_creationInfo);
+			org->setEvaluationMode(EvaluationMode(AUTOMATIC));
+			centroid->setType(OriginType(CENTROID));
+			centroid->setTime(TimeQuantity(Core::Time(finder->get_origin_time())));
+			centroid->setLatitude(RealQuantity(finder->get_finder_centroid().get_lat(),
+			                                   finder->get_finder_centroid_uncer().get_lat()));
+			centroid->setLongitude(RealQuantity(finder->get_finder_centroid().get_lon(),
+			                                    finder->get_finder_centroid_uncer().get_lon()));
+
+			{
+				centroid->latitude().setPdf(RealPDF1D());
+				Misfit2D_List misfitLat = finder->get_centroid_lat_pdf();
+				for ( size_t i = 0; i < misfitLat.size(); ++i ) {
+					centroid->latitude().pdf().variable().content().push_back(misfitLat[i].get_location().get_lat());
+					centroid->latitude().pdf().probability().content().push_back(misfitLat[i].get_misf());
+				}
+			}
+
+			{
+				centroid->longitude().setPdf(RealPDF1D());
+				Misfit2D_List misfitLon = finder->get_centroid_lon_pdf();
+				for ( size_t i = 0; i < misfitLon.size(); ++i ) {
+					centroid->longitude().pdf().variable().content().push_back(misfitLon[i].get_location().get_lon());
+					centroid->longitude().pdf().probability().content().push_back(misfitLon[i].get_misf());
+				}
+			}
+
+			smRupture->setCentroidReference(centroid->publicID());
+
+#endif
+			{
+				RealQuantity ruptureLength;
+				ruptureLength.setValue(finder->get_rupture_length());
+				Finder_Length_List misfitLength = finder->get_finder_length_list();
+				ruptureLength.setPdf(RealPDF1D());
+				for ( size_t i = 0; i < misfitLength.size(); ++i ) {
+					ruptureLength.pdf().variable().content().push_back(misfitLength[i].get_value());
+					ruptureLength.pdf().probability().content().push_back(misfitLength[i].get_misf());
+				}
+			}
+
+#if SC_API_VERSION >= SC_API_VERSION_CHECK(11,1,0)
+			{
+				RealQuantity ruptureStrike;
+				ruptureStrike.setValue(finder->get_rupture_azimuth());
+				ruptureStrike.setUncertainty(finder->get_azimuth_uncer());
+				ruptureStrike.setPdf(RealPDF1D());
+				Finder_Azimuth_List misfitAz = finder->get_finder_azimuth_list();
+				for ( size_t i = 0; i < misfitAz.size(); ++i ) {
+					ruptureStrike.pdf().variable().content().push_back(misfitAz[i].get_value());
+					ruptureStrike.pdf().probability().content().push_back(misfitAz[i].get_misf());
+				}
+
+				smRupture->setStrike(ruptureStrike);
+			}
+#endif
 			if ( _testMode ) {
 				IO::XMLArchive ar;
 				ar.create("-");
@@ -734,7 +809,7 @@ class App : public Client::StreamApplication {
 				ar << org;
 				ar.close();
 			}
-			else if ( connection() ){
+			else if ( connection() ) {
 				NotifierMessagePtr msg;
 
 				msg = new NotifierMessage;
@@ -747,7 +822,45 @@ class App : public Client::StreamApplication {
 
 				connection()->send(_magnitudeGroup, msg.get());
 
-				_sentMessagesTotal += 2;
+				{
+					Notifier::SetEnabled(true);
+
+#if SC_API_VERSION >= SC_API_VERSION_CHECK(11,0,0)
+					EventParameters ep;
+					ep.add(centroid.get());
+
+#endif
+					StrongMotion::StrongMotionParameters smp;
+					smp.add(smDesc.get());
+
+					PGA_Data_List pgas = finder->get_pga_above_min_thresh();
+					for ( size_t i = 0; i < pgas.size(); ++i ) {
+						PGA_Data &pga = pgas[i];
+						StrongMotion::RecordPtr rec = StrongMotion::Record::Create();
+						rec->setCreationInfo(_creationInfo);
+						rec->setWaveformID(WaveformStreamID(pga.get_network(),
+						                                    pga.get_name(),
+						                                    pga.get_location_code(),
+						                                    pga.get_channel(), ""));
+						rec->setStartTime(TimeQuantity(Core::Time(pga.get_timestamp())));
+						smp.add(rec.get());
+
+						StrongMotion::PeakMotionPtr peakMotion;
+
+						peakMotion = new StrongMotion::PeakMotion;
+						peakMotion->setType("pga");
+						peakMotion->setMotion(RealQuantity(pga.get_value()));
+						rec->add(peakMotion.get());
+					}
+
+					Notifier::SetEnabled(false);
+				}
+
+				msg = Notifier::GetMessage();
+
+				connection()->send(_strongMotionGroup, msg.get());
+
+				_sentMessagesTotal += 3;
 			}
 		}
 
@@ -789,6 +902,7 @@ class App : public Client::StreamApplication {
 		std::string                    _strTs;
 		std::string                    _strTe;
 		std::string                    _magnitudeGroup;
+		std::string                    _strongMotionGroup;
 		std::string                    _finderConfig;
 
 		Core::TimeSpan                 _bufferLength;
