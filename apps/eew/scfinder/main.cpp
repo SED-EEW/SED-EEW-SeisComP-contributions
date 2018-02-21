@@ -758,6 +758,7 @@ class App : public Client::StreamApplication {
 			{
 				centroid->latitude().setPdf(RealPDF1D());
 				Misfit2D_List misfitLat = finder->get_centroid_lat_pdf();
+				std::cout << misfitLat.size() << "  ";
 				for ( size_t i = 0; i < misfitLat.size(); ++i ) {
 					centroid->latitude().pdf().variable().content().push_back(misfitLat[i].get_location().get_lat());
 					centroid->latitude().pdf().probability().content().push_back(misfitLat[i].get_misf());
@@ -767,11 +768,19 @@ class App : public Client::StreamApplication {
 			{
 				centroid->longitude().setPdf(RealPDF1D());
 				Misfit2D_List misfitLon = finder->get_centroid_lon_pdf();
+				std::cout << misfitLon.size() << std::endl;
 				for ( size_t i = 0; i < misfitLon.size(); ++i ) {
 					centroid->longitude().pdf().variable().content().push_back(misfitLon[i].get_location().get_lon());
 					centroid->longitude().pdf().probability().content().push_back(misfitLon[i].get_misf());
 				}
 			}
+
+			std::cout << "Lat: "
+			          << centroid->latitude().pdf().variable().content().size() << " "
+			          << centroid->latitude().pdf().probability().content().size() << std::endl;
+			std::cout << "Lon: "
+			          << centroid->longitude().pdf().variable().content().size() << " "
+			          << centroid->longitude().pdf().probability().content().size() << std::endl;
 
 			smRupture->setCentroidReference(centroid->publicID());
 
@@ -805,6 +814,7 @@ class App : public Client::StreamApplication {
 			}
 #endif
 			if ( _testMode ) {
+				/*
 				IO::XMLArchive ar;
 				ar.create("-");
 				ar.setFormattedOutput(true);
@@ -813,6 +823,7 @@ class App : public Client::StreamApplication {
 				ar << centroid;
 #endif
 				ar.close();
+				*/
 			}
 			else if ( connection() ) {
 				NotifierMessagePtr msg;
