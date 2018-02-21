@@ -757,19 +757,19 @@ class App : public Client::StreamApplication {
 
 			{
 				centroid->latitude().setPdf(RealPDF1D());
-				Misfit2D_List misfitLat = finder->get_centroid_lat_pdf();
+				LogLikelihood2D_List misfitLat = finder->get_centroid_lat_pdf();
 				for ( size_t i = 0; i < misfitLat.size(); ++i ) {
 					centroid->latitude().pdf().variable().content().push_back(misfitLat[i].get_location().get_lat());
-					centroid->latitude().pdf().probability().content().push_back(misfitLat[i].get_misf());
+					centroid->latitude().pdf().probability().content().push_back(misfitLat[i].get_llk());
 				}
 			}
 
 			{
 				centroid->longitude().setPdf(RealPDF1D());
-				Misfit2D_List misfitLon = finder->get_centroid_lon_pdf();
+				LogLikelihood2D_List misfitLon = finder->get_centroid_lon_pdf();
 				for ( size_t i = 0; i < misfitLon.size(); ++i ) {
 					centroid->longitude().pdf().variable().content().push_back(misfitLon[i].get_location().get_lon());
-					centroid->longitude().pdf().probability().content().push_back(misfitLon[i].get_misf());
+					centroid->longitude().pdf().probability().content().push_back(misfitLon[i].get_llk());
 				}
 			}
 
@@ -778,11 +778,11 @@ class App : public Client::StreamApplication {
 			{
 				RealQuantity ruptureLength;
 				ruptureLength.setValue(finder->get_rupture_length());
-				Finder_Length_List misfitLength = finder->get_finder_length_list();
+				Finder_Length_LLK_List misfitLength = finder->get_finder_length_llk_list();
 				ruptureLength.setPdf(RealPDF1D());
 				for ( size_t i = 0; i < misfitLength.size(); ++i ) {
 					ruptureLength.pdf().variable().content().push_back(misfitLength[i].get_value());
-					ruptureLength.pdf().probability().content().push_back(misfitLength[i].get_misf());
+					ruptureLength.pdf().probability().content().push_back(misfitLength[i].get_llk());
 				}
 
 				smRupture->setLength(ruptureLength);
@@ -795,10 +795,10 @@ class App : public Client::StreamApplication {
 				ruptureStrike.setValue(finder->get_rupture_azimuth());
 				ruptureStrike.setUncertainty(finder->get_azimuth_uncer());
 				ruptureStrike.setPdf(RealPDF1D());
-				Finder_Azimuth_List misfitAz = finder->get_finder_azimuth_list();
+				Finder_Azimuth_LLK_List misfitAz = finder->get_finder_azimuth_llk_list();
 				for ( size_t i = 0; i < misfitAz.size(); ++i ) {
 					ruptureStrike.pdf().variable().content().push_back(misfitAz[i].get_value());
-					ruptureStrike.pdf().probability().content().push_back(misfitAz[i].get_misf());
+					ruptureStrike.pdf().probability().content().push_back(misfitAz[i].get_llk());
 				}
 
 				smRupture->setStrike(ruptureStrike);
