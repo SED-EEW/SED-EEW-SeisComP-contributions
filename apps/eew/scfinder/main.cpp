@@ -737,6 +737,12 @@ class App : public Client::StreamApplication {
 			mag->setMagnitude(RealQuantity(finder->get_mag(), finder->get_mag_uncer(), Core::None, Core::None, Core::None));
 			mag->setType("Mfd");
 
+			CommentPtr comment = new Comment();
+			comment->setId("likelihood");
+			comment->setText(Core::toString(finder->get_likelihood_estimate()));
+			comment->setCreationInfo(_creationInfo);
+			mag->add(comment.get());
+
 			StrongMotion::StrongOriginDescriptionPtr smDesc = StrongMotion::StrongOriginDescription::Create();
 			smDesc->setCreationInfo(_creationInfo);
 			smDesc->setOriginID(org->publicID());
