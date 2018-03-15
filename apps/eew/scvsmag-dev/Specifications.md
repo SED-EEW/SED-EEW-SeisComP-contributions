@@ -8,22 +8,22 @@ In the following we outline the technical specifications for the next version of
 
 ## Generalities
 - Integrate in SeisComP3.
-- Develop with git using <gitlab.seismo.ethz.ch/SED-EEW/sed-addons>.
+- Develop with git using <http://gitlab.seismo.ethz.ch/SED-EEW/sed-addons>.
  
 ## Structure 
 Integrate the three softwares in the structure of the SED-EEW package :
 - EEW (rst file,  explains libeewenv and list included  modules):
   - sceewenv (separate project)
   - FinDer (separate project)
-  - VS (incorportate all existing material, see <seiscomp3.org/doc/jakarta/current/apps/vs.html>)
-  - sceewlog (incorportate all existing material from scvsmaglog, see <seiscomp3.org/doc/jakarta/current/apps/scvsmaglog.html>)
+  - VS (incorportate all existing material, see <http://seiscomp3.org/doc/jakarta/current/apps/vs.html>)
+  - sceewlog (incorportate all existing material from scvsmaglog, see <http://seiscomp3.org/doc/jakarta/current/apps/scvsmaglog.html>)
 
 ### Note
 This is relying on the separate development (and documentation) of the SED-EEW package and of sceewenv.
 
 ## sceewlog
 ### Specifications
-- Keep all existing capacities of scvsmaglog (see <seiscomp3.org/doc/jakarta/current/apps/scvsmaglog.html>).
+- Keep all existing capacities of scvsmaglog (see <http://seiscomp3.org/doc/jakarta/current/apps/scvsmaglog.html>).
 - Rename scvsmaglog as sceewlog and adapt the names of all related files (e.g. `VS_reports` becomes `EEW_reports`).
 - More magnitude types:
   - Add the capacity to log several magnitude types.
@@ -32,7 +32,7 @@ This is relying on the separate development (and documentation) of the SED-EEW p
   - Add capacity to log with origins which have no pick, no update comments or likelyhood comments (e.g. scfinder).
   - Change the logic of magnitude ordering in the `EEW_report/` files for ordering by creation time instead of update number.  
 - Add `--playback` and `-I` options for sequential post-processing of a data file containing events in a real-time manner. 
-- Move sceewlog to its own directory inside the SED-EEW package (e.i. <gitlab.seismo.ethz.ch/SED-EEW/sed-addons/apps/eew>)   
+- Move sceewlog to its own directory inside the SED-EEW package (e.i. <http://gitlab.seismo.ethz.ch/SED-EEW/sed-addons/apps/eew>)   
 
 ### Tests
 - Demonstrate all outputs are the same while MVS only is configured in magnitude types.
@@ -43,7 +43,7 @@ This is relying on the separate development (and documentation) of the SED-EEW p
 
 ## scvsmag
 ### Specifications
-- Keep all existing capacities of scvsmag (see <seiscomp3.org/doc/jakarta/current/apps/scvsmag.html>).
+- Keep all existing capacities of scvsmag (see <http://seiscomp3.org/doc/jakarta/current/apps/scvsmag.html>).
 - libeewenv:
   - Add the capacity to use libeewenv instead of scenvelop (or `sceewenv`).
   - Add a parameter to switch from using a `sc*env*` module to `libeewenv`.
