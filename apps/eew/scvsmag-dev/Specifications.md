@@ -1,7 +1,7 @@
 # sceewlog, scvsmag and "decision module" : software specifications and requirements
 
 ## Introduction
-In the following we outline the technical specifications for the next version of two SeisComP3 modules and the implementation of a third one:
+In the following we outline the technical specifications for the next versions of two SeisComP3 modules and the implementation of a third one:
 - `sceewlog` : next version of `scvsmaglog` compatible with FinDer and any other magnitudes
 - `scvsmag` : next version of `scvsmag` using the eewenv library (`libeewenv`)
 - `sceeweval` : new decision module to define preferred magnitude and origin in EEW context.
@@ -23,19 +23,19 @@ This is relying on the separate development (and documentation) of the SED-EEW p
 
 ## sceewlog
 ### Specifications
-- Keep all existing capacities of scvsmaglog (see <http://seiscomp3.org/doc/jakarta/current/apps/scvsmaglog.html>).
-- Rename scvsmaglog as sceewlog and adapt the names of all related files (e.g. `VS_reports` becomes `EEW_reports`).
-- More magnitude types:
-  - Add the capacity to log several magnitude types.
+- Keep all existing capacities of scvsmaglog (see <http://seiscomp3.org/doc/jakarta/current/apps/scvsmaglog.html>):
+  - Reuse the code of scvsmaglog and rename as sceewlog and adapt the names of all related files (e.g. `VS_reports` becomes `EEW_reports`).
+  - Move sceewlog to its own directory inside the SED-EEW package and develop in <http://gitlab.seismo.ethz.ch/SED-EEW/sed-addons/apps/eew/sceewlog/>
+- Improve compatibility with other magnitude types than MVS):
+  - Add the capacity to log specific magnitude type or types.
   - Add a parameter to configure the list of magnitude types to be logged.
   - Add magnitude type in reports written to disk.
   - Add capacity to log with origins which have no pick, no update comments or likelyhood comments (e.g. scfinder).
   - Change the logic of magnitude ordering in the `EEW_report/` files for ordering by creation time instead of update number.  
-- Add `--playback` and `-I` options for sequential post-processing of a data file containing events in a real-time manner. 
-- Move sceewlog to its own directory inside the SED-EEW package (e.i. <http://gitlab.seismo.ethz.ch/SED-EEW/sed-addons/apps/eew>)   
+- Add `--playback` and `-I` options for sequential post-processing of a data file containing events in a real-time manner (respecting the creation times of input elements). 
 
 ### Tests
-- Demonstrate all outputs are the same while MVS only is configured in magnitude types.
+- Demonstrate all outputs are the same while only MVS is configured in the magnitude type list.
 - Demonstrate all configured outputs are correct while more magnitude types are configured.
 
 ### Documentation
