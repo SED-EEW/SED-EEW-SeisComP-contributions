@@ -29,17 +29,21 @@ This is relying on the separate development (and documentation) of the SED-EEW p
 - Improve compatibility with other magnitude types than MVS):
   - Add the capacity to log specific magnitude type or types.
   - Add a parameter to configure the list of magnitude types to be logged.
-  - Add magnitude type in reports written to disk.
   - Add capacity to log with origins which have no pick, no update comments or likelyhood comments (e.g. scfinder).
   - Change the logic of magnitude ordering in the `EEW_report/` files for ordering by creation time instead of update number.  
+  - Add magnitude type, rupture strike and length in reports (written to disk and sent by email, next section).
+  - Add rupture parameters in XML alert messages (sent to the ActiveMQ interface).
 - Add `--playback` and `-I` options for sequential post-processing of a data file containing events in a real-time manner (respecting the creation times of input elements). 
 
+### Specifications of the reports
+As scvsmaglog, sceewlog generates a report (written to disk and sent by email) once an event has timed out. An report example is given below:
 
-tdiff |Type|Mag.|Lat.  |Lon.   |Depth |creation time (UTC)      |origin time (UTC)        |likeh.|#st.(org.) |#st.(mag.) |Strike |Length |  author
-------------------------------------------------------------------------------------------------------------------------------------------
- 23.63|MVS |2.01| 46.29|   7.62|  3.65|2018-03-27T10:42:55.3516Z|2018-03-27T10:42:31.7209Z|  0.12|          6|      5    |       |       |    
- 23.63|Mfd |2.01| 46.29|   7.62|  3.65|2018-03-27T10:42:56.3517Z|2018-03-27T10:42:31.7209Z|  0.12|           |     15    |    345|   0.05|
-
+```
+Tdiff   |Type|Mag.|Lat.  |Lon.   |Depth |origin time (UTC)        |likeh.|#st.(org.) |#st.(mag.) |Strike |Length |    author
+----------------------------------------------------------------------------------------------------------------------------
+ 23.6324| MVS|2.01| 46.29|   7.62|  3.65|2018-03-27T10:42:31.7209Z|  0.12|          6|      5    |       |       |   scvsmag
+ 24.6315| Mfd|2.01| 46.29|   7.62|  3.65|2018-03-27T10:42:31.7209Z|  0.12|           |     15    |    345|   0.05|  scfinder
+```
 
 ### Tests
 - Demonstrate all outputs are the same while only MVS is configured in the magnitude type list.
