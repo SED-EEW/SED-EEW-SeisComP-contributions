@@ -34,6 +34,13 @@ This is relying on the separate development (and documentation) of the SED-EEW p
   - Change the logic of magnitude ordering in the `EEW_report/` files for ordering by creation time instead of update number.  
 - Add `--playback` and `-I` options for sequential post-processing of a data file containing events in a real-time manner (respecting the creation times of input elements). 
 
+
+tdiff |Type|Mag.|Lat.  |Lon.   |Depth |creation time (UTC)      |origin time (UTC)        |likeh.|#st.(org.) |#st.(mag.) |Strike |Length |  author
+------------------------------------------------------------------------------------------------------------------------------------------
+ 23.63|MVS |2.01| 46.29|   7.62|  3.65|2018-03-27T10:42:55.3516Z|2018-03-27T10:42:31.7209Z|  0.12|          6|      5    |       |       |    
+ 23.63|Mfd |2.01| 46.29|   7.62|  3.65|2018-03-27T10:42:56.3517Z|2018-03-27T10:42:31.7209Z|  0.12|           |     15    |    345|   0.05|
+
+
 ### Tests
 - Demonstrate all outputs are the same while only MVS is configured in the magnitude type list.
 - Demonstrate all configured outputs are correct while more magnitude types are configured.
