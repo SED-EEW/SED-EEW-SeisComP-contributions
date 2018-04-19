@@ -23,7 +23,7 @@ git checkout release/jakarta
 git submodule add -f https://gitlab.seismo.ethz.ch/SED-EEW/sed-addons.git src/sed-addons
 ```
 
-- If you have already cloned, and just want to update to last version: 
+  - If you have already cloned, and just want to update to last version: 
 ```bash
 cd <Path to your clone of>/seiscomp3
 git pull
@@ -38,10 +38,10 @@ make -f ../Makefile.cvs
 ```
 
   - Configure the **main installation path of seiscomp**
-         - indicate  **where FinDer was installed**, [by default](https://gitlab.seismo.ethz.ch/SED-EEW/FinDer):
-             - `FinDer_INCLUDE_DIR           /usr/local/include/finder`
-             - `FinDer_LIBRARY               /usr/local/lib/libFinder.a`
-         - configure all other requirement for your seiscomp system.
+    - indicate  **where FinDer was installed**, [by default](https://gitlab.seismo.ethz.ch/SED-EEW/FinDer):
+      - `FinDer_INCLUDE_DIR           /usr/local/include/finder`
+      - `FinDer_LIBRARY               /usr/local/lib/libFinder.a`
+    - configure all other requirement for your seiscomp system.
   - Compile and pre-install (this may be long) 
 ```bash
 cd build
