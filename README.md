@@ -31,25 +31,25 @@ cd src/sed-addons
 git pull
 ```
 
-- Start configuration tool  
+  - Start configuration tool  
 ```bash
 cd <Path to your clone of>/seiscomp3
 make -f ../Makefile.cvs
 ```
 
-- Configure the **main installation path of seiscomp**
+  - Configure the **main installation path of seiscomp**
          - indicate  **where FinDer was installed**, [by default](https://gitlab.seismo.ethz.ch/SED-EEW/FinDer):
              - `FinDer_INCLUDE_DIR           /usr/local/include/finder`
              - `FinDer_LIBRARY               /usr/local/lib/libFinder.a`
          - configure all other requirement for your seiscomp system.
-- Compile and pre-install (this may be long) 
+  - Compile and pre-install (this may be long) 
 ```bash
 cd build
 make 
 ```
 
-- If fails  : use `make -j 4`  for debug.
-- If passes : install, your previous install (if any) is still untouched but new executables are ready to be installed, to install them do: 
+  - If fails  : use `make -j 4`  for debug.
+  - If passes : install, your previous install (if any) is still untouched but new executables are ready to be installed, to install them do: 
 ```bash
 make install
 seiscomp restart [scfinder]
