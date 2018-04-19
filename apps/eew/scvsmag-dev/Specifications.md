@@ -59,9 +59,10 @@ Tdiff   |Type|Mag.|Lat.  |Lon.   |Depth |origin time (UTC)        |likeh.|#st.(o
   - Add the capacity to use libeewenv instead of scenvelop (or `sceewenv`).
   - Add a parameter to switch from using a `sc*env*` module to `libeewenv`.
   - Add required default `*eewenv` parameters for the use of libeewenv (e.i. `vsfndr.enable = true`, `envelopeInterval = 1`).
+- write pdf of Mvs in database.  
 - logic:
   - Add the capacity to evaluate Mvs on last preferred origin with pick when preferred origin has no pick (e.g. scfinder)
-  - Add a parameter to switch the use of last preferred origin with picks.
+  - Add a parameter to control the use of last preferred origin with picks.
 
 ### Tests
 - Demonstrate that the configuration of envelope processing is correct.
