@@ -24,7 +24,7 @@ SET(EEWLOG_TARGET sceewlog)
 SET(EEWLOG_FILES sceewlog.py)
 
 SC_ADD_PYTHON_EXECUTABLE(EEWLOG)
-SC_INSTALL_INIT(${EEWLOG_TARGET} ../../../trunk/apps/templates/initd.py)
+SC_INSTALL_INIT(${EEWLOG_TARGET} ../../../../trunk/apps/templates/initd.py)
 
 IF(SC_GLOBAL_PYTHON_WRAPPER)
 # UD interface

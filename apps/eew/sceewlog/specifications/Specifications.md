@@ -42,7 +42,7 @@ These specifications are required for all SED' EEW modules:
 - Develop with git using <http://gitlab.seismo.ethz.ch/SED-EEW/sed-addons>.
 - Include the full descriptions (name, type, default value and usage) of all the parameters in the SeisComP3-compatible description file i.e. <http://gitlab.seismo.ethz.ch/SED-EEW/sed-addons/eew/sceewlog/sceewlog.xml>.
  
- ### Reading notes
+### Reading notes
 - Some of the required tasks below are actually already fullfiled. These are indicated with the prefix: `|Done|`. 
 - The new parameters suggested in the next section are already listed in <http://gitlab.seismo.ethz.ch/SED-EEW/sed-addons/eew/sceewlog/sceewlog.xml>, direct links to suggested parameters are provided inline.
 - Some of the new codes suggested in the next section are already drafted in <http://gitlab.seismo.ethz.ch/SED-EEW/sed-addons/eew/sceewlog.py>, direct links to suggested codes are provided inline.
@@ -51,7 +51,7 @@ These specifications are required for all SED' EEW modules:
 - Keep all existing capacities of scvsmaglog (see <http://seiscomp3.org/doc/jakarta/current/apps/scvsmaglog.html>):
   - `|Done|` Move `scvsmaglog` to its own directory inside the SED-EEW package and develop in <http://gitlab.seismo.ethz.ch/SED-EEW/sed-addons/apps/eew/sceewlog/>
   - `|Done|` Reuse the code of `scvsmaglog` and rename as sceewlog and adapt the names of all related files (e.g. `VS_reports` becomes `EEW_reports`). This is given as a parameter (`name="directory" type="dir" default="~/.seiscomp3/log/EEW_reports"`, see <https://gitlab.seismo.ethz.ch/SED-EEW/sed-addons/blob/master/apps/eew/sceewlog/descriptions/sceewlog.xml#L95>)
-  - `|Done|` Edit <CMakeLists.txt> as required so `sceewlog` is compiled within SeisComP3.
+  - `|Done|` Edit <https://gitlab.seismo.ethz.ch/SED-EEW/sed-addons/blob/master/apps/eew/sceewlog/CMakeLists.txt> as required so `sceewlog` is compiled within SeisComP3.
 - Add the capacity to log specific magnitude type or types and improve compatibility with other magnitude types than MVS:
   - Add a parameter to configure the list of magnitude types to be logged (e.g. `name="magTypes" type="list:string" default="MVS, Mfd"`, see <https://gitlab.seismo.ethz.ch/SED-EEW/sed-addons/blob/master/apps/eew/sceewlog/descriptions/sceewlog.xml#L78>). 
   - Add codes to pass only the configured magnitude types (see <https://gitlab.seismo.ethz.ch/SED-EEW/sed-addons/blob/master/apps/eew/sceewlog/sceewlog.py#L247>)
