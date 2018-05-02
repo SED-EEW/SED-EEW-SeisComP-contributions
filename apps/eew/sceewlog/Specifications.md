@@ -5,7 +5,7 @@ In the following we outline the technical specifications for  `sceewlog` , the n
 
 ### EEW plans at SED
 The  `scvsmaglog`  and `sceewlog` programs are part of the SED-EEW package. This has been first introduced to implement the Virtual Seismologist in SeisComP3 in 2014 in parallel to SED' compagnion EEW display software (EEWD). The SED-EEW package has been extended in 2016 with the implementation of FinDer in private addons. The developemnt of `sceewlog` is part of a renewed effort since 2018 to bring both VS and FinDer warnings into EEWD.  The overall scheme of EEW plans at SED is given below.
-![eew plans illustrated](https://gitlab.seismo.ethz.ch/SED-EEW/sed-addons/raw/master/apps/eew/sceewlog/eewplan.svg)
+![eew plans illustrated](https://gitlab.seismo.ethz.ch/SED-EEW/sed-addons/raw/master/apps/eew/sceewlog/eewplan.png)
 
 
 ### Design
