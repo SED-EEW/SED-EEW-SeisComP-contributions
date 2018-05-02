@@ -1,16 +1,16 @@
-SET(PROG_TARGET scvsmag-dev)
+#SET(PROG_TARGET scvsmag-dev)
 
-SET(
-	PROG_SOURCES
-		scvsmag.cpp
-		util.cpp
-		timeline.cpp
-		equations.cpp
-		qualitycontrol.cpp
-		Vs30Mapping.cpp
-		VsSiteCondition.cpp
-		main.cpp
-)
+#SET(
+#	PROG_SOURCES
+#		scvsmag.cpp
+#		util.cpp
+#		timeline.cpp
+#		equations.cpp
+#		qualitycontrol.cpp
+#		Vs30Mapping.cpp
+#		VsSiteCondition.cpp
+#		main.cpp
+#)
 
 #ADD_DEFINITIONS(-DVSSC)
 #SC_ADD_EXECUTABLE(PROG ${PROG_TARGET})

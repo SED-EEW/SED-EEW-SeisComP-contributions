@@ -92,7 +92,7 @@
 					Time in seconds that events and the related objects are buffered.
 					</description>
 				</parameter>
-				<parameter name="directory" type="dir" default="~/.seiscomp3/log/VS_reports">
+				<parameter name="directory" type="dir" default="~/.seiscomp3/log/EEW_reports">
 					<description>
 					Directory to save reports to.
 					</description>

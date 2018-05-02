@@ -71,7 +71,7 @@ class Listener(seiscomp3.Client.Application):
         self.password = None
         self.auth = False
         self.magThresh = 0.0
-	self.magTypes = ['MVS','Mfd']
+        self.magTypes = ['MVS','Mfd']
         # UserDisplay interface
         self.udevt = None
 
