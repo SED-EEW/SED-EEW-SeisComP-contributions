@@ -3,6 +3,11 @@
 ## Introduction
 In the following we outline the technical specifications for  `sceewlog` , the next version of `scvsmaglog` which will be compatible with FinDer and any other magnitudes.
 
+### EEW plans at SED
+The  `scvsmaglog`  and `sceewlog` programs are part of the SED-EEW package. This has been first introduced to implement the Virtual Seismologist in SeisComP3 in 2014 in parallel to SED' compagnion EEW display software (EEWD). The SED-EEW package has been extended in 2016 with the implementation of FinDer in private addons. The developemnt of `sceewlog` is part of a renewed effort since 2018 to bring both VS and FinDer warnings into EEWD.  The overall scheme of EEW plans at SED is given below.
+![eew plans illustrated](hhttps://drive.google.com/uc?export=download&id=1GCg69TE4KkYr-cLRZTeMbG3IAc1cBMsc)
+
+
 ### Design
 The  `scvsmaglog`  and `sceewlog` programs are SeisComP3 modules developed by SED-ETHZ to:
 - receive magnitudes-related metadata,
@@ -24,6 +29,10 @@ The implementation of   `scvsmaglog` will require to get rid of these limitation
 - sceewenv (already existing, see <https://gitlab.seismo.ethz.ch/SED-EEW/sed-addons>)
 - scfinder (already existing, see <https://gitlab.seismo.ethz.ch/SED-EEW/sed-addons>)
 - sceewlog (to do)
+
+
+
+
 
 ### Note
 This is relying on the separate development (and documentation) of the SED-EEW package and of sceewenv.
