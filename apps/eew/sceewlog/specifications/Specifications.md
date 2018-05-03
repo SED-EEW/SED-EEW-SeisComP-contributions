@@ -17,7 +17,7 @@ The  `scvsmaglog`  and `sceewlog` programs are SeisComP3 modules developed by SE
 - convert magnitudes-related metadata into quakeml-rt or shakealert  if requested, 
 - save a summary report of the magnitude(s) evolution report to disk if requested,
 - send the report though email if requested.
-`sceewlog`  will incorportate all existing material from  `scvsmaglog`, see <http://seiscomp3.org/doc/jakarta/current/apps/scvsmaglog.html> for a full description.
+`sceewlog`  will incorportate all existing material from  `scvsmaglog`, see <https://www.seiscomp3.org/doc/jakarta/current/apps/scvsmaglog.html> for a full description.
 
 ### Implementation note
 After filtering only MVS magnitudes, the last version of the `scvsmaglog`  program requires three things for a magnitude to be logged:
