@@ -811,6 +811,8 @@ class App : public Client::StreamApplication {
 			}
 #endif
 			if ( _testMode ) {
+				org->add(mag.get());
+
 				IO::XMLArchive ar;
 				ar.create("-");
 				ar.setFormattedOutput(true);
@@ -823,21 +825,21 @@ class App : public Client::StreamApplication {
 			else if ( connection() ) {
 				NotifierMessagePtr msg;
 
-				msg = new NotifierMessage;
-				msg->attach(new Notifier("EventParameters", OP_ADD, org.get()));
-
-				connection()->send(msg.get());
-
-				msg = new NotifierMessage;
-				msg->attach(new Notifier(org->publicID(), OP_ADD, mag.get()));
-
-				connection()->send(_magnitudeGroup, msg.get());
-
 				{
 					Notifier::SetEnabled(true);
 
-#if SC_API_VERSION >= SC_API_VERSION_CHECK(11,0,0)
 					EventParameters ep;
+
+					ep.add(org.get());
+					msg = Notifier::GetMessage();
+					connection()->send(msg.get());
+
+					org->add(mag.get());
+					msg = Notifier::GetMessage();
+
+					connection()->send(_magnitudeGroup, msg.get());
+
+#if SC_API_VERSION >= SC_API_VERSION_CHECK(11,0,0)
 					ep.add(centroid.get());
 
 #endif
