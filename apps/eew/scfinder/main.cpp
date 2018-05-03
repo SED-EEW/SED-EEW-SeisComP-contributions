@@ -725,6 +725,11 @@ class App : public Client::StreamApplication {
 			org->setDepth(RealQuantity(finder->get_depth()));
 			org->setEvaluationMode(EvaluationMode(AUTOMATIC));
 			org->setTime(TimeQuantity(Core::Time(finder->get_origin_time())));
+			SEISCOMP_DEBUG("FinDer epicenter (lat: %f lon:%f dep: %f) wrapped in origin: %s", 
+					epicenter.get_lat(), 
+					epicenter.get_lon(), 
+					finder->get_depth(),
+					org->publicID().c_str()); 
 
 			OriginQuality qual;
 			qual.setUsedStationCount(finder->get_Nstat_used());
@@ -736,6 +741,27 @@ class App : public Client::StreamApplication {
 			mag->setCreationInfo(_creationInfo);
 			mag->setMagnitude(RealQuantity(finder->get_mag(), finder->get_mag_uncer(), Core::None, Core::None, Core::None));
 			mag->setType("Mfd");
+			SEISCOMP_DEBUG("FinDer magnitude (Mfd: %f, likelihood: %f) wrapped in magnitude %s", 
+					finder->get_mag(),
+					finder->get_likelihood_estimate(),
+					mag->publicID().c_str());
+
+			MagnitudePtr magr = Magnitude::Create();
+                        magr->setCreationInfo(_creationInfo);
+                        magr->setMagnitude(RealQuantity(finder->get_mag_reg(), Core::None, Core::None, Core::None, Core::None));
+                        magr->setType("Mfdr");
+			SEISCOMP_DEBUG("FinDer regression magnitude (Mfdr: %f) wrapped in magnitude %s", 
+					finder->get_mag_reg(),
+					magr->publicID().c_str());
+
+			MagnitudePtr magl = Magnitude::Create();
+                        magl->setCreationInfo(_creationInfo);
+                        magl->setMagnitude(RealQuantity(finder->get_mag_FD(), Core::None, Core::None, Core::None, Core::None));
+                        magl->setType("Mfdl");
+			SEISCOMP_DEBUG("FinDer fault length magnitude (Mfdl: %f) wrapped in magnitude %s", 
+					finder->get_mag_FD(),
+					magl->publicID().c_str());
+
 
 			CommentPtr comment = new Comment();
 			comment->setId("likelihood");
@@ -834,6 +860,8 @@ class App : public Client::StreamApplication {
 					msg = Notifier::GetMessage();
 					connection()->send(msg.get());
 
+					org->add(magr.get());
+					org->add(magl.get());
 					org->add(mag.get());
 					msg = Notifier::GetMessage();
 
