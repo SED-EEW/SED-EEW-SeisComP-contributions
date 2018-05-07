@@ -7,7 +7,7 @@ In the following we outline the technical specifications for the  `sceewlog` sof
 The  `scvsmaglog`  and `sceewlog` programs are part of the SED-EEW package. This package first introduced in 2014 a SeisComP3 implementation of the Virtual Seismologist compatible with SED' EEW display software ([EEWD code repository link](https://gitlab.seismo.ethz.ch/SED-EEW/EEWD). The SED-EEW package has been extended in 2016 with the implementation of FinDer in private addons. Since 2018 the development of `sceewlog` is part of a renewed effort  to use the envelope processor developed for FinDer and to bring both VS and FinDer early warnings into EEWD using SeisComP3.  
 
 The overall scheme of EEW plans at SED is illustrated below.
-![eew plans illustrated](eewplan.png)
+![EEW plans at SED](eewplan.png)
 
 ### Package structure 
 `sceewlog` will be developed inside the SED-EEW package and  pushed to the main SeisComP3 repository when ready. The SED-EEW  package is in `sed-addons/apps/eew` and can be included in `SeisComP3/src/sed/` for seamless compilation within SeisComP3. When `sceewlog` will be ready for open-source distribution it will be included inside `SeisComP3/src/sed/eew/`.
@@ -63,10 +63,11 @@ These specifications are required for all SED-EEW modules:
 As `scvsmaglog`, `sceewlog` generates a report once an event has timed out. An example of the format of the reports from `sceewlog`  is given below:
 
 ```
-Tdiff   |Type|Mag.|Lat.  |Lon.   |Depth |origin time (UTC)        |likeh.|#st.(org.) |#st.(mag.) |Strike |Length |author    |      creation time (UTC) 
-------------------------------------------------------------------------------------------------------------------------------------------------------
- 23.6324| MVS|2.01| 46.29|   7.62|  3.65|2018-03-27T10:42:31.7209Z|  0.12|          6|      5    |       |       |   scvsmag|2018-03-27T10:42:52.7209Z
- 24.6315| Mfd|2.01| 46.29|   7.62|  3.65|2018-03-27T10:42:31.7209Z|  0.99|           |     15    |    345|   0.05|  scfinder|2018-03-27T10:42:53.7209Z
+                                                                  |#St.   |
+Tdiff |Type|Mag.|Lat.  |Lon.   |Depth |Origin time (UTC)     |Lik.|Or.|Ma.|Str.|Len. |Author   |Creation t.
+-----------------------------------------------------------------------------------------------------------
+ 23.63| MVS|2.01| 46.29|   7.62|  3.65|2018-03-27T10:42:31.72|0.12|  6|  5|    |     |  scvsmag|10:42:52.72
+ 24.63| Mfd|2.01| 46.29|   7.62|  3.65|2018-03-27T10:42:31.72|0.99|   | 15| 345| 0.05| scfinder|10:42:53.72
 ```
 
 ### Further functionalities
