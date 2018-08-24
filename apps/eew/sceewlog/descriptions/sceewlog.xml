@@ -5,6 +5,18 @@
 		Logs EEW magnitude messages.
 		</description>
 		<configuration>
+			<parameter name="magTypes" type="list:string" default="MVS, Mfd">
+				<description>
+				The list of magnitude types handled by sceewlog
+				</description>
+			</parameter>
+			<parameter name="generateReportTimeout" type="int" default="5">
+				<description>
+					Timeout after which a report is generated. The timer is started on
+					magnitude reception and restarted whenerver a new magnitude is
+					received for the same event.
+				</description>
+			</parameter>
 			<group name="email">
 				<parameter name="activate" type="boolean" default="true">
 					<description>
@@ -73,11 +85,6 @@
 				<parameter name="magThresh" type="double" default="0.0">
 					<description>
 					Only send a notification email if the magnitude threshold is exceeded.
-					</description>
-				</parameter>
-				<parameter name="magTypes" type="list:string" default="MVS, Mfd">
-					<description>
-					A list of magnitude types to log.
 					</description>
 				</parameter>
 			</group>

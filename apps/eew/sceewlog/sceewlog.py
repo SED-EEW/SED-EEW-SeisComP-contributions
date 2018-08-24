@@ -22,7 +22,7 @@ Copyright (C) 2006-2013 by Swiss Seismological Service
 import sys, traceback, seiscomp3.Client
 from seiscomp3.DataModel import PublicObjectTimeSpanBuffer, EventParameters
 from seiscomp3.Core import TimeSpan, Time
-from seiscomp3 import Config, System
+from seiscomp3 import Config, System, Utils
 import smtplib
 from email.mime.text import MIMEText
 import os
@@ -50,6 +50,7 @@ class Listener(seiscomp3.Client.Application):
         self.event_lookup = {}
         self.latest_event = Time.Null
         # report settings
+        self.storeReport=False
         self.ei = System.Environment.Instance()
         self.report_head = "Mag.|Lat.  |Lon.   |tdiff |Depth |creation time (UTC)" + " "*6 + "|"
         self.report_head += "origin time (UTC)" + " "*8 + "|likeh." + "|#st.(org.) "
@@ -72,6 +73,7 @@ class Listener(seiscomp3.Client.Application):
         self.auth = False
         self.magThresh = 0.0
         self.magTypes = ['MVS','Mfd']
+        self.generateReportTimeout = 5 # seconds
         # UserDisplay interface
         self.udevt = None
 
@@ -115,6 +117,12 @@ class Listener(seiscomp3.Client.Application):
             return False
 
         try:
+            self.magTypes = self.configGetStrings("magTypes")
+            self.generateReportTimeout = self.configGetInt("generateReportTimeout")
+        except Exception, e:
+            pass
+
+        try:
             self.sendemail = self.configGetBool("email.activate")
             self.smtp_server = self.configGetString("email.smtpserver")
             self.email_port = self.configGetInt("email.port")
@@ -135,7 +143,6 @@ class Listener(seiscomp3.Client.Application):
             self.email_subject = self.configGetString("email.subject")
             self.hostname = self.configGetString("email.host")
             self.magThresh = self.configGetDouble("email.magThresh")
-            self.magTypes = self.configGetStrings("email.magTypes")
         except Exception, e:
             seiscomp3.Logging.info('Some configuration parameters could not be read: %s' % e)
             self.sendemail = False
@@ -157,6 +164,17 @@ class Listener(seiscomp3.Client.Application):
             self.report_directory = self.ei.absolutePath(self.configGetString("report.directory"))
         except:
             pass
+
+        if not self.sendemail:
+            seiscomp3.Logging.info('Sending email has been disabled.')
+        else:
+            self.sendMail({}, '', test=True)
+
+        if self.storeReport:
+            seiscomp3.Logging.info("Reports are stored in %s" % self.report_directory)
+        else:
+            seiscomp3.Logging.info("Saving reports to disk has been DISABLED!")
+
         return True
 
     def init(self):
@@ -165,20 +183,10 @@ class Listener(seiscomp3.Client.Application):
         """
         if not seiscomp3.Client.Application.init(self):
             return False
-
-        if not self.sendemail:
-            seiscomp3.Logging.info('Sending email has been disabled.')
-        else:
-            self.sendMail({}, '', test=True)
-
         self.cache.setTimeSpan(TimeSpan(self.expirationtime))
         if self.isDatabaseEnabled():
             self.cache.setDatabaseArchive(self.query());
             seiscomp3.Logging.info('Cache connected to database.')
-        if self.storeReport:
-            seiscomp3.Logging.info("Reports are stored in %s" % self.report_directory)
-        else:
-            seiscomp3.Logging.info("Saving reports to disk has been DISABLED!")
         try:
             import ud_interface
             self.udevt = ud_interface.CoreEventInfo(self.amqHost, self.amqPort,
@@ -213,13 +221,10 @@ class Listener(seiscomp3.Client.Application):
             sout += "%6.2f|" % ed['depth']
             sout += "%s|" % ed['ts']
             sout += "%s|" % ed['ot']
-            
-            #######################################################
-            sout += "%6.2f|" % ed['likelihood'] 
-            # DOES FINDER HAS SOMETHING EQUIVALENT TO LIKELYHOOD ? 
-            # See more discussion elements further down
-            #######################################################
-            
+            if 'likelihood' in ed:
+                sout += "%6.2f|" % ed['likelihood'] 
+            else:
+                sout += "      |"
             sout += "%11d|" % ed['nstorg']
             sout += "%10d\n" % ed['nstmag']
 
@@ -237,21 +242,102 @@ class Listener(seiscomp3.Client.Application):
             self.sendMail(self.event_dict[evID], evID)
         self.event_dict[evID]['published'] = True
 
+    def generateReportAttempt(self, magID):
+        """
+        Gather all the information required to generate a report and set up the 
+        generateReport timer. If no other magnitudes are received before the
+        timer expires, a report is generated
+        """
+        seiscomp3.Logging.debug("Start report generation timer for magnitude %s " % magID)
+        orgID = self.origin_lookup[magID]
+        if orgID not in self.event_lookup:
+            seiscomp3.Logging.debug("Event not received yet for magnitude %s " % magID)
+            return
+        evID = self.event_lookup[orgID]
+        org = self.cache.get(seiscomp3.DataModel.Origin, orgID)
+        if not org:
+            # error messages
+            not_in_cache = "Object %s not found in cache!\n" % orgID
+            not_in_cache += "Is the cache size big enough?\n"
+            not_in_cache += "Have you subscribed to all necessary message groups?"
+            seiscomp3.Logging.warning(not_in_cache)
+            return
+        mag = self.cache.get(seiscomp3.DataModel.Magnitude, magID)
+        if not mag:
+            # error messages
+            not_in_cache = "Object %s not found in cache!\n" % magID
+            not_in_cache += "Is the cache size big enough?\n"
+            not_in_cache += "Have you subscribed to all necessary message groups?"
+            seiscomp3.Logging.warning(not_in_cache)
+            return
+
+        # use creation time as update number
+        updateno = mag.creationInfo().creationTime();
+        if updateno in self.event_dict[evID]['updates'].keys():
+            # error messages
+            err_msg = "Magnitude %s has the same creation time of an " % magID
+            err_msg += "already received magnitude!\n"
+            err_msg += "This should not happen, please check the code logic."
+            seiscomp3.Logging.warning(err_msg)
+            return
+
+        # Check if the report has been already generated
+        if self.event_dict[evID]['published']:
+            # error messages
+            err_msg = "A report has been already generated for magnitude %s." % magID
+            err_msg += "This probably means the report timer expired before"
+            err_msg += "the magnitude was received by sceewlog."
+            seiscomp3.Logging.error(err_msg)
+            return
+
+        # stop the generateReport timer if that was started already by a previous magnitude
+        timer = self.event_dict[evID]['report_timer']
+        if timer.isActive():
+            timer.stop()
+
+        self.event_dict[evID]['updates'][updateno] = {}
+        self.event_dict[evID]['updates'][updateno]['magnitude'] = mag.magnitude().value()
+        self.event_dict[evID]['updates'][updateno]['lat'] = org.latitude().value()
+        self.event_dict[evID]['updates'][updateno]['lon'] = org.longitude().value()
+        self.event_dict[evID]['updates'][updateno]['depth'] = org.depth().value()
+        self.event_dict[evID]['updates'][updateno]['nstorg'] = org.arrivalCount()
+        self.event_dict[evID]['updates'][updateno]['nstmag'] = mag.stationCount()
+        try:
+            self.event_dict[evID]['updates'][updateno]['ts'] = \
+            mag.creationInfo().modificationTime().toString("%FT%T.%4fZ")
+            difftime = mag.creationInfo().modificationTime() - org.time().value()
+        except:
+            self.event_dict[evID]['updates'][updateno]['ts'] = \
+            mag.creationInfo().creationTime().toString("%FT%T.%4fZ")
+            difftime = mag.creationInfo().creationTime() - org.time().value()
+        self.event_dict[evID]['updates'][updateno]['diff'] = difftime
+        self.event_dict[evID]['updates'][updateno]['ot'] = \
+        org.time().value().toString("%FT%T.%4fZ")
+        seiscomp3.Logging.info("updatenumber: %s" % updateno)
+        seiscomp3.Logging.info("lat: %f; lon: %f; mag: %f; ot: %s" % \
+                               (org.latitude().value(),
+                                org.longitude().value(),
+                                mag.magnitude().value(),
+                                org.time().value().toString("%FT%T.%4fZ")))
+
+        # Start generateReport timer
+        timer.setSingleShot(True)
+        timer.setTimeout(self.generateReportTimeout)
+        def callback():
+            self.generateReport(evID)
+            return None
+        timer.setCallback(callback)
+        timer.start()
+
     def handleMagnitude(self, magnitude, parentID):
         """
         Generate an origin->magnitude lookup table.
         """
         try:
-            
-            ################################
-            if magnitude.type() in self.magTypes: # == 'MVS':
-                # ADD Mfd CASE HERE (DONE)
-                # it shouldnt be different ?
-                ############################
-                
+            if magnitude.type() in self.magTypes:
                 seiscomp3.Logging.debug("Received %s magnitude for origin %s" % (magnitude.type(),parentID))
                 self.origin_lookup[magnitude.publicID()] = parentID
-                
+                self.generateReportAttempt(magnitude.publicID())
         except:
             info = traceback.format_exception(*sys.exc_info())
             for i in info: sys.stderr.write(i)
@@ -271,13 +357,6 @@ class Listener(seiscomp3.Client.Application):
         """
         Add picks to the cache.
         """
-        
-        #############################################################################
-        # NO PICKS IN SCFINDER (SEE FURTHER DOWN)
-        # double that won't be a problem for EEWD (it should be for scvsmaglog)
-        # or add picks to scfinder (with large uncertaincies and envelope amplitudes)
-        #############################################################################
-        
         try:
             seiscomp3.Logging.debug("Received pick %s" % pk.publicID())
             self.cache.feed(pk)
@@ -314,8 +393,15 @@ class Listener(seiscomp3.Client.Application):
                 evt.creationInfo().creationTime()
             if self.event_dict[evID]['timestamp'] > self.latest_event:
                 self.latest_event = self.event_dict[evID]['timestamp']
+            self.event_dict[evID]['report_timer'] = Utils.Timer()
         # delete old events
         self.garbageCollector()
+
+        # check if we have already received magnitudes for this event,
+        # if so try to generate a report
+        for _magID, _evID in self.origin_lookup.iteritems():
+            if evID == _evID:
+                self.generateReportAttempt(_magID)
 
     def sendMail(self, evt, evID, test=False):
         """
@@ -356,67 +442,9 @@ class Listener(seiscomp3.Client.Application):
 
     def handleComment(self, comment, parentID):
         """
-        Update or publish events based on incoming MVS magnitude comments.
+        Update events based on incoming MVS magnitude comments.
         """
         try:
-            if comment.id() == 'update':
-                seiscomp3.Logging.debug("update comment received for magnitude %s " % parentID)
-                magID = parentID
-                orgID = self.origin_lookup[magID]
-                evID = self.event_lookup[orgID]
-                org = self.cache.get(seiscomp3.DataModel.Origin, orgID)
-                if not org:
-                    # error messages
-                    not_in_cache = "Object %s not found in cache!\n" % orgID
-                    not_in_cache += "Is the cache size big enough?\n"
-                    not_in_cache += "Have you subscribed to all necessary message groups?"
-                    seiscomp3.Logging.warning(not_in_cache)
-                    return
-                mag = self.cache.get(seiscomp3.DataModel.Magnitude, magID)
-                if not mag:
-                    # error messages
-                    not_in_cache = "Object %s not found in cache!\n" % magID
-                    not_in_cache += "Is the cache size big enough?\n"
-                    not_in_cache += "Have you subscribed to all necessary message groups?"
-                    seiscomp3.Logging.warning(not_in_cache)
-                    return
-                updateno = int(comment.text())
-                if updateno in self.event_dict[evID]['updates'].keys():
-                    if not self.event_dict[evID]['published']:
-                        self.generateReport(evID)
-                    else:
-                        seiscomp3.Logging.info("event %s has already been published" % evID)
-                else:
-                    self.event_dict[evID]['updates'][updateno] = {}
-                    self.event_dict[evID]['updates'][updateno]['magnitude'] = mag.magnitude().value()
-                    self.event_dict[evID]['updates'][updateno]['lat'] = org.latitude().value()
-                    self.event_dict[evID]['updates'][updateno]['lon'] = org.longitude().value()
-                    self.event_dict[evID]['updates'][updateno]['depth'] = org.depth().value()
-                    self.event_dict[evID]['updates'][updateno]['nstorg'] = org.arrivalCount()
-                    
-                    ##################################################
-                    self.event_dict[evID]['updates'][updateno]['nstmag'] = mag.stationCount()
-                    # CHECK IF THIS FIELD IS POPULATED, SUSPECTING YES
-                    ##################################################
-                    
-                    try:
-                        self.event_dict[evID]['updates'][updateno]['ts'] = \
-                        mag.creationInfo().modificationTime().toString("%FT%T.%4fZ")
-                        difftime = mag.creationInfo().modificationTime() - org.time().value()
-                    except:
-                        self.event_dict[evID]['updates'][updateno]['ts'] = \
-                        mag.creationInfo().creationTime().toString("%FT%T.%4fZ")
-                        difftime = mag.creationInfo().creationTime() - org.time().value()
-                    self.event_dict[evID]['updates'][updateno]['diff'] = difftime
-                    self.event_dict[evID]['updates'][updateno]['ot'] = \
-                    org.time().value().toString("%FT%T.%4fZ")
-                    seiscomp3.Logging.info("updatenumber: %d" % updateno)
-                    seiscomp3.Logging.info("lat: %f; lon: %f; mag: %f; ot: %s" % \
-                                           (org.latitude().value(),
-                                            org.longitude().value(),
-                                            mag.magnitude().value(),
-                                            org.time().value().toString("%FT%T.%4fZ")))
-
             if comment.id() == 'likelihood':
                 seiscomp3.Logging.debug("likelihood comment received for magnitude %s " % parentID)
                 ep = EventParameters()
@@ -446,16 +474,7 @@ class Listener(seiscomp3.Client.Application):
                     self.event_dict[evID]['updates'][idx]['likelihood'] = float(comment.text())
                     if self.udevt is not None:
                         self.udevt.send(self.udevt.message_encoder(ep))
-                        
-        ######################################################################################
         except:
-            # TWO POSSIBILITIES:
-            # 1 - CHANGE THE CODE TO LOG WITHOUT LIKELYHOOD 
-            #     any incoming magnitudes will be logged if they are fast enough
-            # 2 - OR ADD LIKEHOOD TO SCFINDER's ORIGINS
-            #     could be done using finder's PDF?
-            ##################################################################################
-            
             info = traceback.format_exception(*sys.exc_info())
             for i in info: seiscomp3.Logging.error(i)
 
