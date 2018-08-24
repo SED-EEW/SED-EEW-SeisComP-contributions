@@ -74,11 +74,16 @@ class Listener(seiscomp3.Client.Application):
         self.magThresh = 0.0
         self.magTypes = ['MVS','Mfd']
         self.generateReportTimeout = 5 # seconds
+        self.hb = None
+        self.hb_timer = Utils.StopWatch(False)
         # UserDisplay interface
         self.udevt = None
 
     def handleTimeout(self):
-        self.hb.send_hb()
+        self.checkExpiredTimers()
+        if self.hb_timer.isActive() and self.hb_timer.elapsed().seconds() > 5:
+            self.hb.send_hb()
+            self.hb_timer.reset()
 
     def validateParameters(self):
         try:
@@ -187,6 +192,7 @@ class Listener(seiscomp3.Client.Application):
         if self.isDatabaseEnabled():
             self.cache.setDatabaseArchive(self.query());
             seiscomp3.Logging.info('Cache connected to database.')
+        self.enableTimer(1)
         try:
             import ud_interface
             self.udevt = ud_interface.CoreEventInfo(self.amqHost, self.amqPort,
@@ -196,7 +202,7 @@ class Listener(seiscomp3.Client.Application):
             self.hb = ud_interface.HeartBeat(self.amqHost, self.amqPort,
                                              self.amqHbTopic, self.amqUser,
                                              self.amqPwd, self.amqMsgFormat)
-            self.enableTimer(5)
+            self.hb_timer.restart()
             seiscomp3.Logging.info('ActiveMQ interface is running.')
         except Exception, e:
             seiscomp3.Logging.warning('ActiveMQ interface cannot be loaded: %s' % e)
@@ -207,6 +213,7 @@ class Listener(seiscomp3.Client.Application):
         Generate a report for an event, write it to disk and optionally send
         it as an email.
         """
+        seiscomp3.Logging.info("Generating report for event %s " % evID)
         sout = self.report_head
         threshold_exceeded = False
         for _i in sorted(self.event_dict[evID]['updates'].keys()):
@@ -242,7 +249,17 @@ class Listener(seiscomp3.Client.Application):
             self.sendMail(self.event_dict[evID], evID)
         self.event_dict[evID]['published'] = True
 
-    def generateReportAttempt(self, magID):
+    def checkExpiredTimers(self):
+        for evID, evDict in self.event_dict.iteritems():
+            timer = evDict['report_timer']
+            if not timer.isActive():
+                continue
+            seiscomp3.Logging.debug("There is an active timer for event %s (elapsed %s seconds)" % (evID, timer.elapsed()))
+            if timer.elapsed().seconds() > self.generateReportTimeout:
+                self.generateReport(evID)
+                timer.reset()
+
+    def setupGenerateReportTimer(self, magID):
         """
         Gather all the information required to generate a report and set up the 
         generateReport timer. If no other magnitudes are received before the
@@ -293,7 +310,7 @@ class Listener(seiscomp3.Client.Application):
         # stop the generateReport timer if that was started already by a previous magnitude
         timer = self.event_dict[evID]['report_timer']
         if timer.isActive():
-            timer.stop()
+            timer.reset()
 
         self.event_dict[evID]['updates'][updateno] = {}
         self.event_dict[evID]['updates'][updateno]['magnitude'] = mag.magnitude().value()
@@ -321,13 +338,7 @@ class Listener(seiscomp3.Client.Application):
                                 org.time().value().toString("%FT%T.%4fZ")))
 
         # Start generateReport timer
-        timer.setSingleShot(True)
-        timer.setTimeout(self.generateReportTimeout)
-        def callback():
-            self.generateReport(evID)
-            return None
-        timer.setCallback(callback)
-        timer.start()
+        timer.restart()
 
     def handleMagnitude(self, magnitude, parentID):
         """
@@ -337,7 +348,7 @@ class Listener(seiscomp3.Client.Application):
             if magnitude.type() in self.magTypes:
                 seiscomp3.Logging.debug("Received %s magnitude for origin %s" % (magnitude.type(),parentID))
                 self.origin_lookup[magnitude.publicID()] = parentID
-                self.generateReportAttempt(magnitude.publicID())
+                self.setupGenerateReportTimer(magnitude.publicID())
         except:
             info = traceback.format_exception(*sys.exc_info())
             for i in info: sys.stderr.write(i)
@@ -393,15 +404,14 @@ class Listener(seiscomp3.Client.Application):
                 evt.creationInfo().creationTime()
             if self.event_dict[evID]['timestamp'] > self.latest_event:
                 self.latest_event = self.event_dict[evID]['timestamp']
-            self.event_dict[evID]['report_timer'] = Utils.Timer()
-        # delete old events
-        self.garbageCollector()
-
+            self.event_dict[evID]['report_timer'] = Utils.StopWatch(False)
         # check if we have already received magnitudes for this event,
         # if so try to generate a report
         for _magID, _evID in self.origin_lookup.iteritems():
             if evID == _evID:
-                self.generateReportAttempt(_magID)
+                self.setupGenerateReportTimer(_magID)
+        # delete old events
+        self.garbageCollector()
 
     def sendMail(self, evt, evID, test=False):
         """
