@@ -254,7 +254,8 @@ class Listener(seiscomp3.Client.Application):
             timer = evDict['report_timer']
             if not timer.isActive():
                 continue
-            seiscomp3.Logging.debug("There is an active timer for event %s (elapsed %s seconds)" % (evID, timer.elapsed()))
+            seiscomp3.Logging.debug("There is an active timer for event %s (%s sec elapsed) "
+                    % (evID, timer.elapsed().seconds()))
             if timer.elapsed().seconds() > self.generateReportTimeout:
                 self.generateReport(evID)
                 timer.reset()
@@ -289,7 +290,7 @@ class Listener(seiscomp3.Client.Application):
             return
 
         # use creation time as update number
-        updateno = mag.creationInfo().creationTime();
+        updateno = mag.creationInfo().creationTime().iso() # e.g. "1970-01-01T00:00:00.0000Z"
         if updateno in self.event_dict[evID]['updates'].keys():
             # error messages
             err_msg = "Magnitude %s has the same creation time of an " % magID
@@ -303,7 +304,7 @@ class Listener(seiscomp3.Client.Application):
             # error messages
             err_msg = "A report has been already generated for magnitude %s." % magID
             err_msg += "This probably means the report timer expired before"
-            err_msg += "the magnitude was received by sceewlog."
+            err_msg += "this new magnitude was received by sceewlog."
             seiscomp3.Logging.error(err_msg)
             return
 
