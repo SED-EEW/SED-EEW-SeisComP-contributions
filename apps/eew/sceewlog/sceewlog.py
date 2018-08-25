@@ -293,11 +293,10 @@ class Listener(seiscomp3.Client.Application):
         updateno = mag.creationInfo().creationTime().iso() # e.g. "1970-01-01T00:00:00.0000Z"
         if updateno in self.event_dict[evID]['updates'].keys():
             # error messages
-            err_msg = "Magnitude %s has the same creation time of an " % magID
-            err_msg += "already received magnitude!\n"
-            err_msg += "This should not happen, please check the code logic."
+            err_msg = "Magnitude (%s) has the same creation time of an " % magID
+            err_msg += "already received magnitude (%s)!\n" %self.event_dict[evID]['updates'][updateno]['magID'] 
+            err_msg += "Have we received an update for the same magnitude?"
             seiscomp3.Logging.warning(err_msg)
-            return
 
         # Check if the report has been already generated
         if self.event_dict[evID]['published']:
@@ -314,6 +313,7 @@ class Listener(seiscomp3.Client.Application):
             timer.reset()
 
         self.event_dict[evID]['updates'][updateno] = {}
+        self.event_dict[evID]['updates'][updateno]['magID'] = magID
         self.event_dict[evID]['updates'][updateno]['magnitude'] = mag.magnitude().value()
         self.event_dict[evID]['updates'][updateno]['lat'] = org.latitude().value()
         self.event_dict[evID]['updates'][updateno]['lon'] = org.longitude().value()
