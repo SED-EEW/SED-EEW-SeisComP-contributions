@@ -15,8 +15,8 @@ You should have received a copy of the SED Public License for Seiscomp
 Contributions with VS. If not, you can find it at
 http://www.seismo.ethz.ch/static/seiscomp_contrib/license.txt
 
-Author of the Software: Yannik Behr
-Copyright (C) 2006-2013 by Swiss Seismological Service
+Author of the Software: Yannik Behr, Luca Scarabello
+Copyright (C) 2006-2018 by Swiss Seismological Service
 """
 
 import sys, traceback, seiscomp3.Client
