@@ -52,10 +52,9 @@ class Listener(seiscomp3.Client.Application):
         # report settings
         self.storeReport=False
         self.ei = System.Environment.Instance()
-        self.report_head = "Mag.|Lat.  |Lon.   |tdiff |Depth |creation time (UTC)" + " "*6 + "|"
-        self.report_head += "origin time (UTC)" + " "*8 + "|likeh." + "|#st.(org.) "
-        self.report_head += "|#st.(mag.)" + "\n"
-        self.report_head += "-"*114 + "\n"
+        self.report_head =  "                                                                   |#St.   |                                \n"
+        self.report_head += "Tdiff |Type|Mag.|Lat.  |Lon.   |Depth |origin time (UTC)      |Lik.|Or.|Ma.|Str.|Len. |Author   |Creation t.\n"
+        self.report_head += "-"*109 + "\n"
         self.report_directory = os.path.join(self.ei.logDir(), 'VS_reports')
         # email settings
         self.sendemail = True
@@ -216,19 +215,30 @@ class Listener(seiscomp3.Client.Application):
             mag = ed['magnitude']
             if mag > self.magThresh:
                 threshold_exceeded = True
+
+            sout += "%6.2f|" % ed['diff']
+            sout += "%4s|"   % ed['type']
             sout += "%4.2f|" % mag
             sout += "%6.2f|" % ed['lat']
             sout += "%7.2f|" % ed['lon']
-            sout += "%6.2f|" % ed['diff'].toDouble()
             sout += "%6.2f|" % ed['depth']
-            sout += "%s|" % ed['ts']
             sout += "%s|" % ed['ot']
             if 'likelihood' in ed:
-                sout += "%6.2f|" % ed['likelihood'] 
+                sout += "%4.2f|" % ed['likelihood'] 
             else:
-                sout += "      |"
-            sout += "%11d|" % ed['nstorg']
-            sout += "%10d\n" % ed['nstmag']
+                sout += "    |"
+            sout += "%3d|" % ed['nstorg']
+            sout += "%3d|" % ed['nstmag']
+            if 'strength' in ed:
+                sout += "%4d|" % ed['strenght']
+            else:
+                sout += "    |"
+            if 'length' in ed:
+                sout += "%5.2f|" % ed['length']
+            else:
+                sout += "     |"
+            sout += "%9s|" % ed['author'][:9]
+            sout += "%s\n" % ed['ts']
 
         if self.storeReport:
             self.event_dict[evID]['report'] = sout
@@ -322,6 +332,8 @@ class Listener(seiscomp3.Client.Application):
 
         self.event_dict[evID]['updates'][updateno] = {}
         self.event_dict[evID]['updates'][updateno]['magID'] = magID
+        self.event_dict[evID]['updates'][updateno]['type'] = mag.type()
+        self.event_dict[evID]['updates'][updateno]['author'] = mag.creationInfo().author()
         self.event_dict[evID]['updates'][updateno]['magnitude'] = mag.magnitude().value()
         self.event_dict[evID]['updates'][updateno]['lat'] = org.latitude().value()
         self.event_dict[evID]['updates'][updateno]['lon'] = org.longitude().value()
@@ -330,16 +342,16 @@ class Listener(seiscomp3.Client.Application):
         self.event_dict[evID]['updates'][updateno]['nstmag'] = mag.stationCount()
         try:
             self.event_dict[evID]['updates'][updateno]['ts'] = \
-            mag.creationInfo().modificationTime().toString("%FT%T.%4fZ")
+            mag.creationInfo().modificationTime().toString("%FT%T.%2fZ")
             difftime = mag.creationInfo().modificationTime() - org.time().value()
         except:
             self.event_dict[evID]['updates'][updateno]['ts'] = \
-            mag.creationInfo().creationTime().toString("%FT%T.%4fZ")
+            mag.creationInfo().creationTime().toString("%FT%T.%2fZ")
             difftime = mag.creationInfo().creationTime() - org.time().value()
-        self.event_dict[evID]['updates'][updateno]['diff'] = difftime
+        self.event_dict[evID]['updates'][updateno]['diff'] = difftime.length()
         self.event_dict[evID]['updates'][updateno]['ot'] = \
-        org.time().value().toString("%FT%T.%4fZ")
-        seiscomp3.Logging.info("updatenumber: %s" % updateno)
+        org.time().value().toString("%FT%T.%2fZ")
+        seiscomp3.Logging.info("Number of updates %d for event %s" % (len(self.event_dict[evID]['updates']), evID))
         seiscomp3.Logging.info("lat: %f; lon: %f; mag: %f; ot: %s" % \
                                (org.latitude().value(),
                                 org.longitude().value(),
@@ -350,12 +362,7 @@ class Listener(seiscomp3.Client.Application):
         timer.restart()
 
         # Send an allert for those magnitudes that don't have a 'likelihood' comment
-        magnitude = self.cache.get(seiscomp3.DataModel.Magnitude, magID)
-        if not magnitude:
-            seiscomp3.Logging.error("Cannot find magnitude %s in cache." % magID)
-            return
-
-        if magnitude.type() not in self.magLikelihoodTypes:
+        if mag.type() not in self.magLikelihoodTypes:
             self.sendAlert(magID)
 
     def sendAlert(self, magID):
