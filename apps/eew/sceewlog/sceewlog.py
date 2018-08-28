@@ -73,17 +73,12 @@ class Listener(seiscomp3.Client.Application):
         self.auth = False
         self.magThresh = 0.0
         self.magTypes = ['MVS','Mfd']
+        self.magLikelihoodTypes = ['MVS','Mfd']
         self.generateReportTimeout = 5 # seconds
         self.hb = None
-        self.hb_timer = Utils.StopWatch(False)
+        self.hb_seconds = None
         # UserDisplay interface
         self.udevt = None
-
-    def handleTimeout(self):
-        self.checkExpiredTimers()
-        if self.hb_timer.isActive() and self.hb_timer.elapsed().seconds() > 5:
-            self.hb.send_hb()
-            self.hb_timer.reset()
 
     def validateParameters(self):
         try:
@@ -202,7 +197,7 @@ class Listener(seiscomp3.Client.Application):
             self.hb = ud_interface.HeartBeat(self.amqHost, self.amqPort,
                                              self.amqHbTopic, self.amqUser,
                                              self.amqPwd, self.amqMsgFormat)
-            self.hb_timer.restart()
+            self.hb_seconds = 1
             seiscomp3.Logging.info('ActiveMQ interface is running.')
         except Exception, e:
             seiscomp3.Logging.warning('ActiveMQ interface cannot be loaded: %s' % e)
@@ -249,6 +244,15 @@ class Listener(seiscomp3.Client.Application):
             self.sendMail(self.event_dict[evID], evID)
         self.event_dict[evID]['published'] = True
 
+    def handleTimeout(self):
+        self.checkExpiredTimers()
+        # send heartbeat every 5 seconds
+        if self.hb_seconds is not None:
+            self.hb_seconds -= 1
+            if self.hb_seconds <= 0:
+                self.hb.send_hb()
+                self.hb_seconds = 5
+
     def checkExpiredTimers(self):
         for evID, evDict in self.event_dict.iteritems():
             timer = evDict['report_timer']
@@ -289,14 +293,18 @@ class Listener(seiscomp3.Client.Application):
             seiscomp3.Logging.warning(not_in_cache)
             return
 
-        # use creation time as update number
-        updateno = mag.creationInfo().creationTime().iso() # e.g. "1970-01-01T00:00:00.0000Z"
+        # use modification time if available, otherwise go for creation time
+        try:
+            updateno = mag.creationInfo().modificationTime().iso() # e.g. "1970-01-01T00:00:00.0000Z"
+        except:
+            updateno = mag.creationInfo().creationTime().iso() # e.g. "1970-01-01T00:00:00.0000Z"
+
         if updateno in self.event_dict[evID]['updates'].keys():
             # error messages
-            err_msg = "Magnitude (%s) has the same creation time of an " % magID
-            err_msg += "already received magnitude (%s)!\n" %self.event_dict[evID]['updates'][updateno]['magID'] 
-            err_msg += "Have we received an update for the same magnitude?"
+            err_msg = "Magnitude (%s) has the same creation/modficiaton time of an " % magID
+            err_msg += "already received magnitude (%s)!\n" %self.event_dict[evID]['updates'][updateno]['magID']
             seiscomp3.Logging.warning(err_msg)
+            return
 
         # Check if the report has been already generated
         if self.event_dict[evID]['published']:
@@ -341,6 +349,50 @@ class Listener(seiscomp3.Client.Application):
         # Start generateReport timer
         timer.restart()
 
+        # Send an allert for those magnitudes that don't have a 'likelihood' comment
+        magnitude = self.cache.get(seiscomp3.DataModel.Magnitude, magID)
+        if not magnitude:
+            seiscomp3.Logging.error("Cannot find magnitude %s in cache." % magID)
+            return
+
+        if magnitude.type() not in self.magLikelihoodTypes:
+            self.sendAlert(magID)
+
+    def sendAlert(self, magID):
+        """
+        Send an alert to a UserDisplay, if one is configured
+        """
+        if self.udevt is None:
+            return
+
+        seiscomp3.Logging.debug("Sending an alert for magnitude %s " % magID)
+        orgID = self.origin_lookup[magID]
+        evID = self.event_lookup[orgID]
+
+        # if there are not updates yet, return
+        if self.event_dict[evID]['updates']:
+            return
+
+        ep = EventParameters()
+        evt = self.cache.get(seiscomp3.DataModel.Event, evID)
+        if evt:
+            ep.add(evt)
+        else:
+            seiscomp3.Logging.debug("Cannot find event %s in cache." % evID)
+        org = self.cache.get(seiscomp3.DataModel.Origin, orgID)
+        if org:
+            ep.add(org)
+            for _ia in xrange(org.arrivalCount()):
+                pk = self.cache.get(seiscomp3.DataModel.Pick, org.arrival(_ia).pickID())
+                if not pk:
+                    seiscomp3.Logging.debug("Cannot find pick %s in cache." % org.arrival(_ia).pickID())
+                else:
+                    ep.add(pk)
+        else:
+            seiscomp3.Logging.debug("Cannot find origin %s in cache." % orgID)
+
+        self.udevt.send(self.udevt.message_encoder(ep))
+
     def handleMagnitude(self, magnitude, parentID):
         """
         Generate an origin->magnitude lookup table.
@@ -348,6 +400,7 @@ class Listener(seiscomp3.Client.Application):
         try:
             if magnitude.type() in self.magTypes:
                 seiscomp3.Logging.debug("Received %s magnitude for origin %s" % (magnitude.type(),parentID))
+                self.cache.feed(magnitude)
                 self.origin_lookup[magnitude.publicID()] = parentID
                 self.setupGenerateReportTimer(magnitude.publicID())
         except:
@@ -451,40 +504,28 @@ class Listener(seiscomp3.Client.Application):
             seiscomp3.Logging.warning('Email could not be sent: %s' % e)
         s.quit()
 
-    def handleComment(self, comment, parentID):
+
+    def handleComment(self, comment, magID):
         """
-        Update events based on incoming MVS magnitude comments.
+        Update events based on incoming 'likelihood' comments.
         """
         try:
             if comment.id() == 'likelihood':
-                seiscomp3.Logging.debug("likelihood comment received for magnitude %s " % parentID)
-                ep = EventParameters()
-                magID = parentID
+                seiscomp3.Logging.debug("likelihood comment received for magnitude %s " % magID)
                 orgID = self.origin_lookup[magID]
                 evID = self.event_lookup[orgID]
                 evt = self.cache.get(seiscomp3.DataModel.Event, evID)
                 if evt:
-                    evt.setPreferredMagnitudeID(parentID)
+                    evt.setPreferredMagnitudeID(magID)
                     ep.add(evt)
                 else:
                     seiscomp3.Logging.debug("Cannot find event %s in cache." % evID)
-                org = self.cache.get(seiscomp3.DataModel.Origin, orgID)
-                if org:
-                    ep.add(org)
-                    for _ia in xrange(org.arrivalCount()):
-                        pk = self.cache.get(seiscomp3.DataModel.Pick, org.arrival(_ia).pickID())
-                        if not pk:
-                            seiscomp3.Logging.debug("Cannot find pick %s in cache." % org.arrival(_ia).pickID())
-                        else:
-                            ep.add(pk)
-                else:
-                    seiscomp3.Logging.debug("Cannot find origin %s in cache." % orgID)
+
                 # if there are updates attach the likelihood to the most recent one
-                if len(self.event_dict[evID]['updates'].keys()) > 0:
+                if self.event_dict[evID]['updates']:
                     idx = sorted(self.event_dict[evID]['updates'].keys())[-1]
                     self.event_dict[evID]['updates'][idx]['likelihood'] = float(comment.text())
-                    if self.udevt is not None:
-                        self.udevt.send(self.udevt.message_encoder(ep))
+                    self.sendAlert(magID)
         except:
             info = traceback.format_exception(*sys.exc_info())
             for i in info: seiscomp3.Logging.error(i)
