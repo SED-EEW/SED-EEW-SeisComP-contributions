@@ -117,6 +117,7 @@ class Listener(seiscomp3.Client.Application):
 
         try:
             self.magTypes = self.configGetStrings("magTypes")
+            self.magLikelihoodTypes = self.configGetStrings("magLikelihoodTypes")
             self.generateReportTimeout = self.configGetInt("generateReportTimeout")
         except Exception, e:
             pass
@@ -164,6 +165,15 @@ class Listener(seiscomp3.Client.Application):
         except:
             pass
 
+        return True
+
+    def init(self):
+        """
+        Initialization.
+        """
+        if not seiscomp3.Client.Application.init(self):
+            return False
+
         if not self.sendemail:
             seiscomp3.Logging.info('Sending email has been disabled.')
         else:
@@ -174,14 +184,6 @@ class Listener(seiscomp3.Client.Application):
         else:
             seiscomp3.Logging.info("Saving reports to disk has been DISABLED!")
 
-        return True
-
-    def init(self):
-        """
-        Initialization.
-        """
-        if not seiscomp3.Client.Application.init(self):
-            return False
         self.cache.setTimeSpan(TimeSpan(self.expirationtime))
         if self.isDatabaseEnabled():
             self.cache.setDatabaseArchive(self.query());
@@ -229,8 +231,8 @@ class Listener(seiscomp3.Client.Application):
                 sout += "    |"
             sout += "%3d|" % ed['nstorg']
             sout += "%3d|" % ed['nstmag']
-            if 'strength' in ed:
-                sout += "%4d|" % ed['strenght']
+            if 'strike' in ed:
+                sout += "%4d|" % ed['strike']
             else:
                 sout += "    |"
             if 'length' in ed:
@@ -407,7 +409,6 @@ class Listener(seiscomp3.Client.Application):
         try:
             if magnitude.type() in self.magTypes:
                 seiscomp3.Logging.debug("Received %s magnitude for origin %s" % (magnitude.type(),parentID))
-                self.cache.feed(magnitude)
                 self.origin_lookup[magnitude.publicID()] = parentID
                 self.setupGenerateReportTimer(magnitude.publicID())
         except:
@@ -510,7 +511,6 @@ class Listener(seiscomp3.Client.Application):
         except Exception, e:
             seiscomp3.Logging.warning('Email could not be sent: %s' % e)
         s.quit()
-
 
     def handleComment(self, comment, magID):
         """
