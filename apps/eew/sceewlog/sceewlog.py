@@ -72,7 +72,6 @@ class Listener(seiscomp3.Client.Application):
         self.auth = False
         self.magThresh = 0.0
         self.magTypes = ['MVS','Mfd']
-        self.magLikelihoodTypes = ['MVS','Mfd']
         self.generateReportTimeout = 5 # seconds
         self.hb = None
         self.hb_seconds = None
@@ -117,7 +116,6 @@ class Listener(seiscomp3.Client.Application):
 
         try:
             self.magTypes = self.configGetStrings("magTypes")
-            self.magLikelihoodTypes = self.configGetStrings("magLikelihoodTypes")
             self.generateReportTimeout = self.configGetInt("generateReportTimeout")
         except Exception, e:
             pass
@@ -365,9 +363,8 @@ class Listener(seiscomp3.Client.Application):
         # Start generateReport timer
         timer.restart()
 
-        # Send an allert for those magnitudes that don't have a 'likelihood' comment
-        if mag.type() not in self.magLikelihoodTypes:
-            self.sendAlert(magID)
+        # Send an alert
+        self.sendAlert(magID)
 
     def sendAlert(self, magID):
         """
@@ -554,7 +551,6 @@ class Listener(seiscomp3.Client.Application):
                     self.event_dict[evID][updateno]['rupture-strike'] = float(comment.text())
                 elif comment.id() == 'rupture-length':
                     self.event_dict[evID][updateno]['rupture-length'] = float(comment.text())
-                    self.sendAlert(magID)
 
         except:
             info = traceback.format_exception(*sys.exc_info())

@@ -10,11 +10,6 @@
 				The list of magnitude types handled by sceewlog
 				</description>
 			</parameter>
-			<parameter name="magLikelihoodTypes" type="list:string" default="MVS, Mfd">
-				<description>
-                The list of magnitude types which have a likelihood comment message
-				</description>
-			</parameter>					
 			<parameter name="generateReportTimeout" type="int" default="5">
 				<description>
 					Timeout after which a report is generated. The timer is started on
