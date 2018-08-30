@@ -529,11 +529,27 @@ class Listener(seiscomp3.Client.Application):
                 else:
                     seiscomp3.Logging.debug("Cannot find event %s in cache." % evID)
 
-                # if there are updates attach the likelihood to the most recent one
-                if self.event_dict[evID]['updates']:
-                    idx = sorted(self.event_dict[evID]['updates'].keys())[-1]
-                    self.event_dict[evID]['updates'][idx]['likelihood'] = float(comment.text())
+                # Attach the likelihood to the right update
+                updateno = None
+                for _updateno, _update_dict in self.event_dict[evID]['updates'].iteritems():
+                    if magID != _update_dict['magID']:
+                        continue
+                    if updateno is None:
+                        updateno = _updateno
+                        continue
+                    msg = 'Found multiple updates with magID %s for the same' % magID
+                    msg += 'likelihood comment. Choosing the most recent one'
+                    seiscomp3.Logging.warning(msg)
+                    if updateno < _updateno:
+                        updateno = _updateno
+
+                if updateno is None:
+                    msg = 'Could not find parent magnitude %s for likelihood comment' % magID
+                    seiscomp3.Logging.error(msg)
+                else:
+                    self.event_dict[evID][updateno]['likelihood'] = float(comment.text())
                     self.sendAlert(magID)
+
         except:
             info = traceback.format_exception(*sys.exc_info())
             for i in info: seiscomp3.Logging.error(i)
