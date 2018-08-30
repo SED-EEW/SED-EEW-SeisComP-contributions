@@ -524,7 +524,6 @@ class Listener(seiscomp3.Client.Application):
                 evt = self.cache.get(seiscomp3.DataModel.Event, evID)
                 if evt:
                     evt.setPreferredMagnitudeID(magID)
-                    ep.add(evt)
                 else:
                     seiscomp3.Logging.debug("Cannot find event %s in cache." % evID)
 
@@ -543,14 +542,18 @@ class Listener(seiscomp3.Client.Application):
                         updateno = _updateno
 
                 if updateno is None:
-                    msg = 'Could not find parent magnitude %s for %s comment' % (magID, comment.id())
+                    msg = 'Could not find parent magnitude %s for %s comment' \
+                            % (magID, comment.id())
                     seiscomp3.Logging.error(msg)
                 elif comment.id() == 'likelihood':
-                    self.event_dict[evID][updateno]['likelihood'] = float(comment.text())
+                    self.event_dict[evID]['updates'][updateno]['likelihood'] = \
+                            float(comment.text())
                 elif comment.id() == 'rupture-strike':
-                    self.event_dict[evID][updateno]['rupture-strike'] = float(comment.text())
+                    self.event_dict[evID]['updates'][updateno]['rupture-strike'] = \
+                            float(comment.text())
                 elif comment.id() == 'rupture-length':
-                    self.event_dict[evID][updateno]['rupture-length'] = float(comment.text())
+                    self.event_dict[evID]['updates'][updateno]['rupture-length'] = \
+                            float(comment.text())
 
         except:
             info = traceback.format_exception(*sys.exc_info())
