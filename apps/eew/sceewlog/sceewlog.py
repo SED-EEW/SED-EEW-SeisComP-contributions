@@ -512,12 +512,13 @@ class Listener(seiscomp3.Client.Application):
             seiscomp3.Logging.warning('Email could not be sent: %s' % e)
         s.quit()
 
-    def handleComment(self, comment, magID):
+    def handleComment(self, comment, parentID):
         """
         Update events based on incoming 'likelihood' comments.
         """
         try:
             if comment.id() == 'likelihood':
+                magID = parentID
                 seiscomp3.Logging.debug("likelihood comment received for magnitude %s " % magID)
                 orgID = self.origin_lookup[magID]
                 evID = self.event_lookup[orgID]
