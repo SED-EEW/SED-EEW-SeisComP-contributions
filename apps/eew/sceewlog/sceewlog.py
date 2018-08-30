@@ -174,6 +174,8 @@ class Listener(seiscomp3.Client.Application):
         if not seiscomp3.Client.Application.init(self):
             return False
 
+        seiscomp3.Logging.info("Listening to magnitude types %s" % str(self.magTypes))
+
         if not self.sendemail:
             seiscomp3.Logging.info('Sending email has been disabled.')
         else:
@@ -231,12 +233,12 @@ class Listener(seiscomp3.Client.Application):
                 sout += "    |"
             sout += "%3d|" % ed['nstorg']
             sout += "%3d|" % ed['nstmag']
-            if 'strike' in ed:
-                sout += "%4d|" % ed['strike']
+            if 'rupture-strike' in ed:
+                sout += "%4d|" % ed['rupture-strike']
             else:
                 sout += "    |"
-            if 'length' in ed:
-                sout += "%5.2f|" % ed['length']
+            if 'rupture-length' in ed:
+                sout += "%5.2f|" % ed['rupture-length']
             else:
                 sout += "     |"
             sout += "%9s|" % ed['author'][:9]
@@ -313,8 +315,8 @@ class Listener(seiscomp3.Client.Application):
 
         if updateno in self.event_dict[evID]['updates'].keys():
             # error messages
-            err_msg = "Magnitude (%s) has the same creation/modficiaton time of an " % magID
-            err_msg += "already received magnitude (%s)!\n" %self.event_dict[evID]['updates'][updateno]['magID']
+            err_msg = "Magnitude (%s) has the same creation/modifcaton time of an " % magID
+            err_msg += "already received magnitude (%s)! Ignoring it.\n" %self.event_dict[evID]['updates'][updateno]['magID']
             seiscomp3.Logging.warning(err_msg)
             return
 
@@ -517,9 +519,9 @@ class Listener(seiscomp3.Client.Application):
         Update events based on incoming 'likelihood' comments.
         """
         try:
-            if comment.id() == 'likelihood':
+            if comment.id() in ('likelihood','rupture-strike','rupture-length'):
                 magID = parentID
-                seiscomp3.Logging.debug("likelihood comment received for magnitude %s " % magID)
+                seiscomp3.Logging.debug("%s comment received for magnitude %s " % (comment.id(), magID))
                 orgID = self.origin_lookup[magID]
                 evID = self.event_lookup[orgID]
                 evt = self.cache.get(seiscomp3.DataModel.Event, evID)
@@ -538,16 +540,20 @@ class Listener(seiscomp3.Client.Application):
                         updateno = _updateno
                         continue
                     msg = 'Found multiple updates with magID %s for the same' % magID
-                    msg += 'likelihood comment. Choosing the most recent one'
+                    msg += '%s comment. Choosing the most recent one' % comment.id()
                     seiscomp3.Logging.warning(msg)
                     if updateno < _updateno:
                         updateno = _updateno
 
                 if updateno is None:
-                    msg = 'Could not find parent magnitude %s for likelihood comment' % magID
+                    msg = 'Could not find parent magnitude %s for %s comment' % (magID, comment.id())
                     seiscomp3.Logging.error(msg)
-                else:
+                elif comment.id() == 'likelihood':
                     self.event_dict[evID][updateno]['likelihood'] = float(comment.text())
+                elif comment.id() == 'rupture-strike':
+                    self.event_dict[evID][updateno]['rupture-strike'] = float(comment.text())
+                elif comment.id() == 'rupture-length':
+                    self.event_dict[evID][updateno]['rupture-length'] = float(comment.text())
                     self.sendAlert(magID)
 
         except:
