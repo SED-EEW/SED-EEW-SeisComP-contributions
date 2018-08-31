@@ -453,20 +453,25 @@ class Listener(seiscomp3.Client.Application):
         """
         evID = evt.publicID()
         seiscomp3.Logging.debug("Received event %s" % evID)
-        self.event_lookup[evt.preferredOriginID()] = evID
-        if evID not in self.event_dict.keys():
-            self.event_dict[evID] = {}
-            self.event_dict[evID]['published'] = False
-            self.event_dict[evID]['updates'] = {}
-            try:
-                self.event_dict[evID]['timestamp'] = \
-                evt.creationInfo().modificationTime()
-            except:
-                self.event_dict[evID]['timestamp'] = \
-                evt.creationInfo().creationTime()
-            if self.event_dict[evID]['timestamp'] > self.latest_event:
-                self.latest_event = self.event_dict[evID]['timestamp']
-            self.event_dict[evID]['report_timer'] = Utils.StopWatch(False)
+
+        for i in range(evt.originReferenceCount()):
+            originID = evt.originReference(i).originID()
+            self.event_lookup[originID] = evID
+
+            if evID not in self.event_dict.keys():
+                self.event_dict[evID] = {}
+                self.event_dict[evID]['published'] = False
+                self.event_dict[evID]['updates'] = {}
+                try:
+                    self.event_dict[evID]['timestamp'] = \
+                    evt.creationInfo().modificationTime()
+                except:
+                    self.event_dict[evID]['timestamp'] = \
+                    evt.creationInfo().creationTime()
+                if self.event_dict[evID]['timestamp'] > self.latest_event:
+                    self.latest_event = self.event_dict[evID]['timestamp']
+                self.event_dict[evID]['report_timer'] = Utils.StopWatch(False)
+
         # check if we have already received magnitudes for this event,
         # if so try to generate a report
         for _magID, _evID in self.origin_lookup.iteritems():
