@@ -378,7 +378,7 @@ class Listener(seiscomp3.Client.Application):
         evID = self.event_lookup[orgID]
 
         # if there are not updates yet, return
-        if self.event_dict[evID]['updates']:
+        if not self.event_dict[evID]['updates']:
             return
 
         ep = EventParameters()
