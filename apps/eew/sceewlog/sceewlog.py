@@ -285,7 +285,7 @@ class Listener(seiscomp3.Client.Application):
         seiscomp3.Logging.debug("Start report generation timer for magnitude %s " % magID)
         orgID = self.origin_lookup[magID]
         if orgID not in self.event_lookup:
-            seiscomp3.Logging.debug("Event not received yet for magnitude %s " % magID)
+            seiscomp3.Logging.debug("Event not received yet for magnitude %s (setupGenerateReportTimer)" % magID)
             return
         evID = self.event_lookup[orgID]
         org = self.cache.get(seiscomp3.DataModel.Origin, orgID)
@@ -379,6 +379,7 @@ class Listener(seiscomp3.Client.Application):
 
         # if there are not updates yet, return
         if not self.event_dict[evID]['updates']:
+            seiscomp3.Logging.debug("Cannot send alert, no updates for ev %s (mag %s) " % (evID,magID))
             return
 
         ep = EventParameters()
@@ -520,12 +521,16 @@ class Listener(seiscomp3.Client.Application):
                 magID = parentID
                 seiscomp3.Logging.debug("%s comment received for magnitude %s " % (comment.id(), magID))
                 orgID = self.origin_lookup[magID]
+                if orgID not in self.event_lookup:
+                    seiscomp3.Logging.debug("Event not received yet for magnitude %s (handleComment)" % magID)
+                    return
                 evID = self.event_lookup[orgID]
-                evt = self.cache.get(seiscomp3.DataModel.Event, evID)
-                if evt:
-                    evt.setPreferredMagnitudeID(magID)
-                else:
-                    seiscomp3.Logging.debug("Cannot find event %s in cache." % evID)
+                if comment.id() == 'likelihood':
+                    evt = self.cache.get(seiscomp3.DataModel.Event, evID)
+                    if evt:
+                        evt.setPreferredMagnitudeID(magID)
+                    else:
+                        seiscomp3.Logging.debug("Cannot find event %s in cache." % evID)
 
                 # Attach the likelihood to the right update
                 updateno = None
