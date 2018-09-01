@@ -48,6 +48,7 @@ class Listener(seiscomp3.Client.Application):
         self.event_dict = {}
         self.origin_lookup = {}
         self.event_lookup = {}
+        self.received_comments = []
         self.latest_event = Time.Null
         # report settings
         self.storeReport=False
@@ -283,6 +284,9 @@ class Listener(seiscomp3.Client.Application):
         timer expires, a report is generated
         """
         seiscomp3.Logging.debug("Start report generation timer for magnitude %s " % magID)
+
+        self.processComments()
+
         orgID = self.origin_lookup[magID]
         if orgID not in self.event_lookup:
             seiscomp3.Logging.debug("Event not received yet for magnitude %s (setupGenerateReportTimer)" % magID)
@@ -457,6 +461,7 @@ class Listener(seiscomp3.Client.Application):
         for i in range(evt.originReferenceCount()):
             originID = evt.originReference(i).originID()
             self.event_lookup[originID] = evID
+            seiscomp3.Logging.debug("originId %s -> event %s" % (originID, evID))
 
             if evID not in self.event_dict.keys():
                 self.event_dict[evID] = {}
@@ -517,18 +522,30 @@ class Listener(seiscomp3.Client.Application):
             seiscomp3.Logging.warning('Email could not be sent: %s' % e)
         s.quit()
 
-    def handleComment(self, comment, parentID):
+    def processComments(self):
         """
-        Update events based on incoming 'likelihood' comments.
+        Process received comments not yet associated to the corresponding event
         """
-        try:
+        comments_to_keep = []
+
+        for comment, parentID in self.received_comments:
+
+            seiscomp3.Logging.debug("Processing comment %s for magnitude %s " \
+                    % (comment.id(), parentID))
+
             if comment.id() in ('likelihood','rupture-strike','rupture-length'):
                 magID = parentID
-                seiscomp3.Logging.debug("%s comment received for magnitude %s " % (comment.id(), magID))
+                if magID not in self.origin_lookup:
+                    # comment belonging to an expired magnitude/event
+                    continue
+
                 orgID = self.origin_lookup[magID]
                 if orgID not in self.event_lookup:
-                    seiscomp3.Logging.debug("Event not received yet for magnitude %s (handleComment)" % magID)
-                    return
+                    comments_to_keep.append( (comment, parentID) )
+                    seiscomp3.Logging.debug("Event not received yet for magnitude %s \
+                            origin %s(handleComment)" % (magID,orgID))
+                    continue
+
                 evID = self.event_lookup[orgID]
                 if comment.id() == 'likelihood':
                     evt = self.cache.get(seiscomp3.DataModel.Event, evID)
@@ -552,10 +569,13 @@ class Listener(seiscomp3.Client.Application):
                         updateno = _updateno
 
                 if updateno is None:
+                    comments_to_keep.append( (comment, parentID) )
                     msg = 'Could not find parent magnitude %s for %s comment' \
                             % (magID, comment.id())
                     seiscomp3.Logging.error(msg)
-                elif comment.id() == 'likelihood':
+                    continue
+
+                if comment.id() == 'likelihood':
                     self.event_dict[evID]['updates'][updateno]['likelihood'] = \
                             float(comment.text())
                 elif comment.id() == 'rupture-strike':
@@ -565,9 +585,16 @@ class Listener(seiscomp3.Client.Application):
                     self.event_dict[evID]['updates'][updateno]['rupture-length'] = \
                             float(comment.text())
 
-        except:
-            info = traceback.format_exception(*sys.exc_info())
-            for i in info: seiscomp3.Logging.error(i)
+        self.received_comments = comments_to_keep
+
+    def handleComment(self, comment, parentID):
+        """
+        Update events based on special magnitude comments.
+        """
+        if comment.id() in ('likelihood','rupture-strike','rupture-length'):
+            seiscomp3.Logging.debug("%s comment received for magnitude %s " % (comment.id(), parentID))
+            self.received_comments.append( (comment, parentID) )
+            self.processComments()
 
     def updateObject(self, parentID, object):
         """
