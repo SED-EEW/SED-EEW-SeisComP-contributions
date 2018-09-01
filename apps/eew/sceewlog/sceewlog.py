@@ -231,7 +231,7 @@ class Listener(seiscomp3.Client.Application):
             else:
                 sout += "    |"
             sout += "%3d|" % ed['nstorg']
-            sout += "%3d|" % ed['nstmag']
+            sout += "%3s|" % ed['nstmag']
             if 'rupture-strike' in ed:
                 sout += "%4d|" % ed['rupture-strike']
             else:
@@ -284,9 +284,6 @@ class Listener(seiscomp3.Client.Application):
         timer expires, a report is generated
         """
         seiscomp3.Logging.debug("Start report generation timer for magnitude %s " % magID)
-
-        self.processComments()
-
         orgID = self.origin_lookup[magID]
         if orgID not in self.event_lookup:
             seiscomp3.Logging.debug("Event not received yet for magnitude %s (setupGenerateReportTimer)" % magID)
@@ -345,7 +342,10 @@ class Listener(seiscomp3.Client.Application):
         self.event_dict[evID]['updates'][updateno]['lon'] = org.longitude().value()
         self.event_dict[evID]['updates'][updateno]['depth'] = org.depth().value()
         self.event_dict[evID]['updates'][updateno]['nstorg'] = org.arrivalCount()
-        self.event_dict[evID]['updates'][updateno]['nstmag'] = mag.stationCount()
+        try:
+            self.event_dict[evID]['updates'][updateno]['nstmag'] = str(mag.stationCount())
+        except:
+            self.event_dict[evID]['updates'][updateno]['nstmag'] = ''
         try:
             self.event_dict[evID]['updates'][updateno]['ts'] = \
             mag.creationInfo().modificationTime().toString("%FT%T.%2fZ")
@@ -366,6 +366,9 @@ class Listener(seiscomp3.Client.Application):
 
         # Start generateReport timer
         timer.restart()
+
+        # Make sure to attached additional information for this ev/mag
+        self.processComments()
 
         # Send an alert
         self.sendAlert(magID)
