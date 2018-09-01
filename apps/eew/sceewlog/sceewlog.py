@@ -445,10 +445,27 @@ class Listener(seiscomp3.Client.Application):
         """
         Remove outdated events from the event dictionary.
         """
+        eventsRemoved = set()
         tcutoff = self.latest_event - TimeSpan(self.expirationtime)
         for evID in self.event_dict.keys():
             if self.event_dict[evID]['timestamp'] < tcutoff:
                 self.event_dict.pop(evID)
+                eventsRemoved.add(evID)
+                seiscomp3.Logging.debug("Expired event %s" % evID)
+
+        originsRemoved = set()
+        if eventsRemoved:
+            for _orgID, _evID in self.event_lookup.items():
+                if _evID in eventsRemoved:
+                    self.event_lookup.pop(_orgID)
+                    originsRemoved.add(_orgID)
+                    seiscomp3.Logging.debug("Expired origin %s (ev %s)" % (_orgID, _evID))
+
+        if originsRemoved:
+            for _magID, _orgID in self.origin_lookup.items():
+                if _orgID in originsRemoved:
+                    self.origin_lookup.pop(_magID)
+                    seiscomp3.Logging.debug("Expired mag %s (org %s)" % (_magID, _orgID))
 
     def handleEvent(self, evt):
         """
@@ -479,9 +496,11 @@ class Listener(seiscomp3.Client.Application):
 
         # check if we have already received magnitudes for this event,
         # if so try to generate a report
-        for _magID, _evID in self.origin_lookup.iteritems():
+        for _orgID, _evID in self.event_lookup.items():
             if evID == _evID:
-                self.setupGenerateReportTimer(_magID)
+                for _magID, _orgID2 in self.origin_lookup.items():
+                    if _orgID == _orgID2:
+                        self.setupGenerateReportTimer(_magID)
         # delete old events
         self.garbageCollector()
 

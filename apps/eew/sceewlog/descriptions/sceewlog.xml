@@ -94,7 +94,7 @@
 					Save reports to disk.
 					</description>
 				</parameter>
-				<parameter name="eventbuffer" type="int" default="3600" unit="s">
+				<parameter name="eventbuffer" type="int" default="600" unit="s">
 					<description>
 					Time in seconds that events and the related objects are buffered.
 					</description>
