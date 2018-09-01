@@ -818,6 +818,12 @@ class App : public Client::StreamApplication {
 				}
 
 				smRupture->setLength(ruptureLength);
+
+				CommentPtr comment = new Comment();
+				comment->setId("rupture-length");
+				comment->setText(Core::toString(finder->get_rupture_length()));
+				comment->setCreationInfo(_creationInfo);
+				mag->add(comment.get());
 			}
 
 #endif
@@ -834,6 +840,12 @@ class App : public Client::StreamApplication {
 				}
 
 				smRupture->setStrike(ruptureStrike);
+
+				CommentPtr comment = new Comment();
+				comment->setId("rupture-strike");
+				comment->setText(Core::toString(finder->get_rupture_azimuth()));
+				comment->setCreationInfo(_creationInfo);
+				mag->add(comment.get());
 			}
 #endif
 			if ( _testMode ) {
