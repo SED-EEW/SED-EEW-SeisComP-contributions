@@ -56,7 +56,7 @@ class Listener(seiscomp3.Client.Application):
         self.report_head =  "                                                                   |#St.   |                                \n"
         self.report_head += "Tdiff |Type|Mag.|Lat.  |Lon.   |Depth |origin time (UTC)      |Lik.|Or.|Ma.|Str.|Len. |Author   |Creation t.\n"
         self.report_head += "-"*109 + "\n"
-        self.report_directory = os.path.join(self.ei.logDir(), 'VS_reports')
+        self.report_directory = os.path.join(self.ei.logDir(), 'EEW_reports')
         # email settings
         self.sendemail = True
         self.smtp_server = None
@@ -512,8 +512,8 @@ class Listener(seiscomp3.Client.Application):
         Email reports.
         """
         if test:
-            msg = MIMEText('scvsmaglog was started.')
-            msg['Subject'] = 'scvsmaglog startup message'
+            msg = MIMEText('sceewlog was started.')
+            msg['Subject'] = 'sceewlog startup message'
         else:
             msg = MIMEText(evt['report'])
             subject = self.email_subject + ' / %s / ' % self.hostname
