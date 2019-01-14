@@ -15,7 +15,7 @@ You should have received a copy of the SED Public License for Seiscomp
 Contributions with VS. If not, you can find it at
 http://www.seismo.ethz.ch/static/seiscomp_contrib/license.txt
 
-Author of the Software: Yannik Behr, Luca Scarabello
+Author of the Software: Yannik Behr, Fred Massin, Luca Scarabello
 Copyright (C) 2006-2018 by Swiss Seismological Service
 """
 
@@ -53,9 +53,9 @@ class Listener(seiscomp3.Client.Application):
         # report settings
         self.storeReport=False
         self.ei = System.Environment.Instance()
-        self.report_head =  "                                                                   |#St.   |                                \n"
-        self.report_head += "Tdiff |Type|Mag.|Lat.  |Lon.   |Depth |origin time (UTC)      |Lik.|Or.|Ma.|Str.|Len. |Author   |Creation t.\n"
-        self.report_head += "-"*109 + "\n"
+        self.report_head =  "                                                                   |#St.   |                                                              \n"
+        self.report_head += "Tdiff |Type|Mag.|Lat.  |Lon.   |Depth |origin time (UTC)      |Lik.|Or.|Ma.|Str.|Len. |Author   |Creation t.            |Tdiff(current o.)\n"
+        self.report_head += "-"*int(len(self.report_head)/2-1) + "\n"
         self.report_directory = os.path.join(self.ei.logDir(), 'EEW_reports')
         # email settings
         self.sendemail = True
@@ -211,15 +211,23 @@ class Listener(seiscomp3.Client.Application):
         it as an email.
         """
         seiscomp3.Logging.info("Generating report for event %s " % evID)
+ 
+	prefindex = sorted(self.event_dict[evID]['updates'].keys())[-1] 
         sout = self.report_head
         threshold_exceeded = False
+        self.event_dict[evID]['diff'] = 9999
         for _i in sorted(self.event_dict[evID]['updates'].keys()):
             ed = self.event_dict[evID]['updates'][_i]
             mag = ed['magnitude']
             if mag > self.magThresh:
                 threshold_exceeded = True
 
-            sout += "%6.2f|" % ed['diff']
+            difftime = ed['tsobject'] - \
+            self.event_dict[evID]['updates'][prefindex]['tsobject'] 
+            ed['difftopref'] = difftime.length() 
+            ed['difftopref'] += self.event_dict[evID]['updates'][prefindex]['diff']
+            sout += "%6.2f|" % ed['difftopref']
+ 
             sout += "%4s|"   % ed['type']
             sout += "%4.2f|" % mag
             sout += "%6.2f|" % ed['lat']
@@ -241,7 +249,11 @@ class Listener(seiscomp3.Client.Application):
             else:
                 sout += "     |"
             sout += "%9s|" % ed['author'][:9]
-            sout += "%s\n" % ed['ts']
+            sout += "%s|" % ed['ts']
+            sout += "%6.2f\n" % ed['diff']
+ 
+            if ed['diff']< self.event_dict[evID]['diff']:
+                self.event_dict[evID]['diff'] = ed['diff']
 
         if self.storeReport:
             self.event_dict[evID]['report'] = sout
@@ -251,6 +263,7 @@ class Listener(seiscomp3.Client.Application):
                                   '%s_report.txt' % evID.replace('/', '_')), 'w')
             f.writelines(self.event_dict[evID]['report'])
             f.close()
+        self.event_dict[evID]['type'] = ed['type']
         self.event_dict[evID]['magnitude'] = ed['magnitude']
         seiscomp3.Logging.info("\n" + sout)
         if self.sendemail and threshold_exceeded:
@@ -350,13 +363,17 @@ class Listener(seiscomp3.Client.Application):
             self.event_dict[evID]['updates'][updateno]['ts'] = \
             mag.creationInfo().modificationTime().toString("%FT%T.%2fZ")
             difftime = mag.creationInfo().modificationTime() - org.time().value()
+            reftime = mag.creationInfo().modificationTime()
         except:
             self.event_dict[evID]['updates'][updateno]['ts'] = \
             mag.creationInfo().creationTime().toString("%FT%T.%2fZ")
             difftime = mag.creationInfo().creationTime() - org.time().value()
+            reftime = mag.creationInfo().creationTime()
+        self.event_dict[evID]['updates'][updateno]['tsobject'] = reftime
         self.event_dict[evID]['updates'][updateno]['diff'] = difftime.length()
         self.event_dict[evID]['updates'][updateno]['ot'] = \
         org.time().value().toString("%FT%T.%2fZ")
+
         seiscomp3.Logging.info("Number of updates %d for event %s" % (len(self.event_dict[evID]['updates']), evID))
         seiscomp3.Logging.info("lat: %f; lon: %f; mag: %f; ot: %s" % \
                                (org.latitude().value(),
@@ -515,9 +532,12 @@ class Listener(seiscomp3.Client.Application):
             msg = MIMEText('sceewlog was started.')
             msg['Subject'] = 'sceewlog startup message'
         else:
-            msg = MIMEText(evt['report'])
-            subject = self.email_subject + ' / %s / ' % self.hostname
-            subject += '%.2f / %s' % (evt['magnitude'], evID)
+            msg = MIMEText(evt['report']) 
+            subject = self.email_subject
+            subject += ' / %s%.2f' % (evt['type'],evt['magnitude'])
+            subject += ' / %.2fs' % evt['diff'] 
+            subject += ' / %s'   % self.hostname
+            subject += ' / %s'   % evID
             msg['Subject'] = subject
         msg['From'] = self.email_sender
         msg['To'] = self.email_recipients[0]
