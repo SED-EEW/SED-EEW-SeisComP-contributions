@@ -24,10 +24,13 @@ The overall scheme of EEW plans at SED is illustrated below.
   - Add the capacity to use libeewenv instead of scenvelop (or `sceewenv`).
   - Add a parameter to switch from using a `sc*env*` module to `libeewenv`.
   - Add required default `*eewenv` parameters for the use of libeewenv (e.i. `vsfndr.enable = true`, `envelopeInterval = 1`).
-- write PDF of Mvs in database.  
-- logic:
-  - Add the capacity to evaluate Mvs on last preferred origin with pick when preferred origin has no pick (e.g. scfinder)
-  - Add a parameter to control the use of last preferred origin with picks.
+- Write in database:
+  - PDF of Mvs in database.  
+  - both GMPE and GM-ratio based station magnitudes (in a sublevel of [station] magnitude).
+- Extend logic: 
+  - Add a parameter to control the use of [most likely,last preferred] origin from list of [author, method].
+  - Exclude detect and exclude outlying station magnitudes  
+  - Add a method without depencies on picks that could be desactivated.
 
 ### Tests
 - Demonstrate that the configuration of envelope processing is correct.
