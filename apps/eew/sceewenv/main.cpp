@@ -134,16 +134,16 @@ class App : public Client::StreamApplication {
 			_eewProc.setConfiguration(eewCfg);
 			_eewProc.setEnvelopeCallback(boost::bind(&App::handleEnvelope, this, _1, _2, _3, _4));
 			_eewProc.setInventory(Client::Inventory::Instance()->inventory());
-
+ 
+			if ( !_eewProc.init(configuration(), "eewenv.") )
+				return false;
+ 
 			_eewProc.showConfig();
 			_eewProc.showRules();
 
 			if ( commandline().hasOption("dump-config") )
 				return true;
-
-			if ( !_eewProc.init(configuration(), "eewenv.") )
-				return false;
-
+ 
 			if ( _startTime.valid() ) recordStream()->setStartTime(_startTime);
 			if ( _endTime.valid() ) recordStream()->setEndTime(_endTime);
 

@@ -720,6 +720,7 @@ class App : public Client::StreamApplication {
 
 			OriginPtr org = Origin::Create();
 			org->setCreationInfo(_creationInfo);
+			org->setMethodID("FinDer");
 			org->setLatitude(RealQuantity(epicenter.get_lat(), epicenter_uncertainty.get_lat(), Core::None, Core::None, Core::None));
 			org->setLongitude(RealQuantity(epicenter.get_lon(), epicenter_uncertainty.get_lon(), Core::None, Core::None, Core::None));
 			org->setDepth(RealQuantity(finder->get_depth()));
@@ -739,6 +740,7 @@ class App : public Client::StreamApplication {
 
 			MagnitudePtr mag = Magnitude::Create();
 			mag->setCreationInfo(_creationInfo);
+			mag->setMethodID("FinDer");
 			mag->setMagnitude(RealQuantity(finder->get_mag(), finder->get_mag_uncer(), Core::None, Core::None, Core::None));
 			mag->setType("Mfd");
 			SEISCOMP_DEBUG("FinDer magnitude (Mfd: %f, likelihood: %f) wrapped in magnitude %s", 
@@ -747,17 +749,19 @@ class App : public Client::StreamApplication {
 					mag->publicID().c_str());
 
 			MagnitudePtr magr = Magnitude::Create();
-                        magr->setCreationInfo(_creationInfo);
-                        magr->setMagnitude(RealQuantity(finder->get_mag_reg(), Core::None, Core::None, Core::None, Core::None));
-                        magr->setType("Mfdr");
+			magr->setCreationInfo(_creationInfo);
+			magr->setMethodID("FinDer (regression)");
+			magr->setMagnitude(RealQuantity(finder->get_mag_reg(), Core::None, Core::None, Core::None, Core::None));
+			magr->setType("Mfdr");
 			SEISCOMP_DEBUG("FinDer regression magnitude (Mfdr: %f) wrapped in magnitude %s", 
 					finder->get_mag_reg(),
 					magr->publicID().c_str());
 
 			MagnitudePtr magl = Magnitude::Create();
-                        magl->setCreationInfo(_creationInfo);
-                        magl->setMagnitude(RealQuantity(finder->get_mag_FD(), Core::None, Core::None, Core::None, Core::None));
-                        magl->setType("Mfdl");
+			magl->setCreationInfo(_creationInfo);
+			magl->setMethodID("FinDer (length)");
+			magl->setMagnitude(RealQuantity(finder->get_mag_FD(), Core::None, Core::None, Core::None, Core::None));
+			magl->setType("Mfdl");
 			SEISCOMP_DEBUG("FinDer fault length magnitude (Mfdl: %f) wrapped in magnitude %s", 
 					finder->get_mag_FD(),
 					magl->publicID().c_str());
