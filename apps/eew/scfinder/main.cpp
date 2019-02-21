@@ -411,6 +411,13 @@ class App : public Client::StreamApplication {
 			}
 			#endif
 
+			SEISCOMP_DEBUG("FinDer version is %s",
+			               Finder::Get_alg_version().c_str());
+
+			// This doesn't seems to work but doesn't hurt neither, fix on FinDer side?
+			SEISCOMP_DEBUG("GMT version is: %s",
+			               Finder::Get_GMT_runtime_version().c_str());
+
 			// ­Set the static variable NFinder = 0.  This will be automatically
 			// incremented in the Finder class constructor and decremented in
 			// the Finder class destructor.
