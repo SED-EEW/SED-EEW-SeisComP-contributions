@@ -34,7 +34,7 @@ git pull
   - Start configuration tool  
 ```bash
 cd <Path to your clone of>/seiscomp3
-make -f ../Makefile.cvs
+make -f Makefile.cvs
 ```
 
   - Configure the **main installation path of seiscomp**
