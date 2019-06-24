@@ -21,6 +21,11 @@
  *                                                                            *
  ******************************************************************************/
 
+/**
+ * To do : 
+ * - log PGA
+ * - add station contribution regression ? 
+ */
 
 #define SEISCOMP_COMPONENT SCFINDER
 
