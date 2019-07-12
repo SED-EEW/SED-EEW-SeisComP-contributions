@@ -730,6 +730,8 @@ class App : public Client::StreamApplication {
 
 			Coordinate epicenter = finder->get_epicenter();
 			Coordinate epicenter_uncertainty = finder->get_epicenter_uncer();
+
+			double deltalon,deltalat, azi1, azi2;
 			Math::Geo::delazi_wgs84(epicenter.get_lat(),
 			                  epicenter.get_lon(), 
 			                  epicenter.get_lat()+epicenter_uncertainty.get_lat(),
@@ -961,7 +963,6 @@ class App : public Client::StreamApplication {
 
 
 	private:
-		double deltalon,deltalat, azi1, azi2;
 		struct Amplitude {
 			Amplitude() {}
 			Amplitude(double v, const Core::Time &ts, const std::string &cha) : value(v), timestamp(ts), channel(cha) {}
