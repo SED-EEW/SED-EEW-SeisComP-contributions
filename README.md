@@ -58,3 +58,8 @@ seiscomp restart [scfinder]
  ```bash
 seiscomp exec [scfinder] -u testuser --debug
 ```
+
+# Cheatlist
+ - for scfinder to include GMT: `LD_LIBRARY_PATH=/usr/<gmt path>:$LD_LIBRARY_PATH` (.profile)
+ - for scfinder to include libgmt and libpostscriptlight: `c++ ... -lgmt -lpostscriptlight` (seiscomp' make)
+ - for FinDer to include libgmt: `g++  ... -lgmt` (libfinder' make)
