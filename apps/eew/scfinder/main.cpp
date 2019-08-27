@@ -41,6 +41,7 @@
 #include <seiscomp3/datamodel/strongmotion/strongmotionparameters_package.h>
 #include <seiscomp3/io/archive/xmlarchive.h>
 #include <seiscomp3/processing/eewamps/processor.h>
+#include <seiscomp3/math/geo.h>
 
 #include "finder.h"
 #include "finite_fault.h"
@@ -730,17 +731,32 @@ class App : public Client::StreamApplication {
 			Coordinate epicenter = finder->get_epicenter();
 			Coordinate epicenter_uncertainty = finder->get_epicenter_uncer();
 
+			double deltalon,deltalat, azi1, azi2;
+			Math::Geo::delazi_wgs84(epicenter.get_lat(),
+			                  epicenter.get_lon(), 
+			                  epicenter.get_lat()+epicenter_uncertainty.get_lat(),
+			                  epicenter.get_lon(),
+			                  &deltalat, &azi1, &azi2);
+			Math::Geo::delazi_wgs84(epicenter.get_lat(),
+			                  epicenter.get_lon(),
+			                  epicenter.get_lat(),
+			                  epicenter.get_lon()+epicenter_uncertainty.get_lon(),
+			                  &deltalon, &azi1, &azi2);
+			deltalon = Math::Geo::deg2km(deltalon);
+			deltalat = Math::Geo::deg2km(deltalat);
+
 			OriginPtr org = Origin::Create();
 			org->setCreationInfo(_creationInfo);
 			org->setMethodID("FinDer");
-			org->setLatitude(RealQuantity(epicenter.get_lat(), epicenter_uncertainty.get_lat(), Core::None, Core::None, Core::None));
-			org->setLongitude(RealQuantity(epicenter.get_lon(), epicenter_uncertainty.get_lon(), Core::None, Core::None, Core::None));
+
+			org->setLatitude(RealQuantity(epicenter.get_lat(), deltalat, Core::None, Core::None, Core::None));
+			org->setLongitude(RealQuantity(epicenter.get_lon(), deltalon, Core::None, Core::None, Core::None));
 			org->setDepth(RealQuantity(finder->get_depth()));
 			org->setEvaluationMode(EvaluationMode(AUTOMATIC));
 			org->setTime(TimeQuantity(Core::Time(finder->get_origin_time())));
-			SEISCOMP_DEBUG("FinDer epicenter (lat: %f lon:%f dep: %f) wrapped in origin: %s", 
-					epicenter.get_lat(), 
-					epicenter.get_lon(), 
+			SEISCOMP_DEBUG("FinDer epicenter (lat: %f +- %f km lon:%f +- %f km  dep: %f) wrapped in origin: %s", 
+					epicenter.get_lat(), deltalat,
+					epicenter.get_lon(), deltalon,
 					finder->get_depth(),
 					org->publicID().c_str()); 
 
@@ -798,10 +814,22 @@ class App : public Client::StreamApplication {
 			org->setEvaluationMode(EvaluationMode(AUTOMATIC));
 			centroid->setType(OriginType(CENTROID));
 			centroid->setTime(TimeQuantity(Core::Time(finder->get_origin_time())));
+
+			Math::Geo::delazi_wgs84(finder->get_finder_centroid().get_lat(),
+			                  finder->get_finder_centroid().get_lon(),
+			                  finder->get_finder_centroid().get_lat()+finder->get_finder_centroid_uncer().get_lat(), 
+			                  finder->get_finder_centroid().get_lon(), 
+			                  &deltalat, &azi1, &azi2);
+			Math::Geo::delazi_wgs84(finder->get_finder_centroid().get_lat(),
+			                  finder->get_finder_centroid().get_lon(), 
+			                  finder->get_finder_centroid().get_lat(), 
+			                  finder->get_finder_centroid().get_lon()+finder->get_finder_centroid_uncer().get_lon(), 
+			                  &deltalat, &azi1, &azi2);
+
 			centroid->setLatitude(RealQuantity(finder->get_finder_centroid().get_lat(),
-			                                   finder->get_finder_centroid_uncer().get_lat()));
+			                                   Math::Geo::deg2km(deltalat)));
 			centroid->setLongitude(RealQuantity(finder->get_finder_centroid().get_lon(),
-			                                    finder->get_finder_centroid_uncer().get_lon()));
+			                                    Math::Geo::deg2km(deltalon)));
 
 			{
 				centroid->latitude().setPdf(RealPDF1D());

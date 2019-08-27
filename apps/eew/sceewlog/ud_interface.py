@@ -98,11 +98,11 @@ class CoreEventInfo(UDConnection):
         ei = seiscomp3.System.Environment.Instance()
         self.transform = None
         if format == 'qml1.2-rt':
-            xslt = ET.parse(os.path.join(ei.shareDir(), 'scvsmaglog',
+            xslt = ET.parse(os.path.join(ei.shareDir(), 'sceewlog',
                                          'sc3ml_0.7__quakeml_1.2-RT_eewd.xsl'))
             self.transform = ET.XSLT(xslt)
         elif format == 'shakealert':
-            xslt = ET.parse(os.path.join(ei.shareDir(), 'scvsmaglog',
+            xslt = ET.parse(os.path.join(ei.shareDir(), 'sceewlog',
                             'sc3ml_0.7__shakealert.xsl'))
             self.transform = ET.XSLT(xslt)
         elif format == 'sc3ml':

@@ -41,16 +41,25 @@ make -f Makefile.cvs
     - indicate  **where FinDer was installed**, [by default](https://gitlab.seismo.ethz.ch/SED-EEW/FinDer):
       - `FinDer_INCLUDE_DIR           /usr/local/include/finder`
       - `FinDer_LIBRARY               /usr/local/lib/libFinder.a`
-    - configure all other requirement for your seiscomp system.
+    - configure all other requirement for your seiscomp system (e.i. type `c` until you are allowed to type `g`).
   - Compile and pre-install (this may be long) 
 ```bash
 cd build
 make 
 ```
 
-  - If fails  : use `make -j 4`  for debug.
+  - Faster compilation: use `make -j 4`.
   - If passes : install, your previous install (if any) is still untouched but new executables are ready to be installed, to install them do: 
 ```bash
 make install
 seiscomp restart [scfinder]
 ```
+  - To check sanity of a particular module (e.g. scfinder) with its full outputs, use the following and stop it with `CRT+c`:
+ ```bash
+seiscomp exec [scfinder] -u testuser --debug
+```
+
+# Cheatlist
+ - for scfinder to include GMT: `LD_LIBRARY_PATH=/usr/<gmt path>:$LD_LIBRARY_PATH` (.profile)
+ - for scfinder to include libgmt and libpostscriptlight: `c++ ... -lgmt -lpostscriptlight` (seiscomp' make)
+ - for FinDer to include libgmt: `g++  ... -lgmt` (libfinder' make)
