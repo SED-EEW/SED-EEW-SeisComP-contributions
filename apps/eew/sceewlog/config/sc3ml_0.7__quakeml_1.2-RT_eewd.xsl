@@ -235,14 +235,13 @@
                     </xsl:element>
                 </xsl:for-each>
             </xsl:for-each>
-
             <!-- Add the MVS likelihood as child of event -->
             <xsl:for-each select="../scs:origin/scs:magnitude/scs:type[.='MVS']">
             	<xsl:for-each select="../scs:comment/scs:id[.='likelihood']">
-            		<xsl:element name='vs:likelihood'>
-	            		<xsl:value-of select="../scs:text"/>
-	            	</xsl:element>
-	            </xsl:for-each>
+                    <xsl:element name='vs:likelihood'>
+                        <xsl:value-of select="../scs:text"/>
+                    </xsl:element>
+                </xsl:for-each>
             </xsl:for-each>
             <!-- Add the Mfd likelihood as child of event -->
             <xsl:for-each select="../scs:origin/scs:magnitude/scs:type[.='Mfd']">
