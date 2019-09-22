@@ -128,7 +128,7 @@
  ********************************************************************** -->
 <xsl:stylesheet version="1.0"
         xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-        xmlns:scs="http://geofon.gfz-potsdam.de/ns/seiscomp3-schema/0.9"
+        xmlns:scs="http://geofon.gfz-potsdam.de/ns/seiscomp3-schema/0.10"
         xmlns:qml="http://quakeml.org/xmlns/quakeml/1.0"
         xmlns="http://quakeml.org/xmlns/bed-rt/1.2"
 	xmlns:vs="http://quakeml.org/xmlns/vstypes/0.1"
@@ -235,37 +235,38 @@
                     </xsl:element>
                 </xsl:for-each>
             </xsl:for-each>
+
             <!-- Add the MVS likelihood as child of event -->
             <xsl:for-each select="../scs:origin/scs:magnitude/scs:type[.='MVS']">
             	<xsl:for-each select="../scs:comment/scs:id[.='likelihood']">
-                    <xsl:element name='vs:likelihood'>
-                        <xsl:value-of select="../scs:text"/>
-                    </xsl:element>
-                </xsl:for-each>
+            		<xsl:element name='vs:likelihood'>
+	            		<xsl:value-of select="../scs:text"/>
+	            	</xsl:element>
+	            </xsl:for-each>
             </xsl:for-each>
-            <!-- Add the Mfd likelihood as child of event -->
+            <!-- Add the MVS likelihood as child of event -->
             <xsl:for-each select="../scs:origin/scs:magnitude/scs:type[.='Mfd']">
-                <xsl:for-each select="../scs:comment/scs:id[.='likelihood']">
-                    <xsl:element name='fd:likelihood'>
-                        <xsl:value-of select="../scs:text"/>
-                    </xsl:element>
-                </xsl:for-each>
+            	<xsl:for-each select="../scs:comment/scs:id[.='likelihood']">
+            		<xsl:element name='vs:likelihood'>
+	            		<xsl:value-of select="../scs:text"/>
+	            	</xsl:element>
+	            </xsl:for-each>
             </xsl:for-each>
             <!-- Add the Mfd rupture-strike as child of event -->
             <xsl:for-each select="../scs:origin/scs:magnitude/scs:type[.='Mfd']">
-                <xsl:for-each select="../scs:comment/scs:id[.='rupture-strike']">
-                    <xsl:element name='fd:rupture-strike'>
-                        <xsl:value-of select="../scs:text"/>
-                    </xsl:element>
-                </xsl:for-each>
+            	<xsl:for-each select="../scs:comment/scs:id[.='rupture-strike']">
+            		<xsl:element name='vs:rupture-strike'>
+	            		<xsl:value-of select="../scs:text"/>
+	            	</xsl:element>
+	            </xsl:for-each>
             </xsl:for-each>
             <!-- Add the Mfd rupture-length as child of event -->
             <xsl:for-each select="../scs:origin/scs:magnitude/scs:type[.='Mfd']">
-                <xsl:for-each select="../scs:comment/scs:id[.='rupture-length']">
-                    <xsl:element name='fd:rupture-length'>
-                        <xsl:value-of select="../scs:text"/>
-                    </xsl:element>
-                </xsl:for-each>
+            	<xsl:for-each select="../scs:comment/scs:id[.='rupture-length']">
+            		<xsl:element name='vs:rupture-length'>
+	            		<xsl:value-of select="../scs:text"/>
+	            	</xsl:element>
+	            </xsl:for-each>
             </xsl:for-each>
         </xsl:element>
     </xsl:template>
