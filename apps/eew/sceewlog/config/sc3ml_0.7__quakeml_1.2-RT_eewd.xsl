@@ -254,16 +254,16 @@
             </xsl:for-each>
             <!-- Add the Mfd rupture-strike as child of event -->
             <xsl:for-each select="../scs:origin/scs:magnitude/scs:type[.='Mfd']">
-            	<xsl:for-each select="../scs:comment/scs:id[.='rupturestrike']">
-            		<xsl:element name='vs:rupturestrike'>
+            	<xsl:for-each select="../scs:comment/scs:id[.='rupture-strike']">
+            		<xsl:element name='vs:rupture-strike'>
 	            		<xsl:value-of select="../scs:text"/>
 	            	</xsl:element>
 	            </xsl:for-each>
             </xsl:for-each>
             <!-- Add the Mfd rupture-length as child of event -->
             <xsl:for-each select="../scs:origin/scs:magnitude/scs:type[.='Mfd']">
-            	<xsl:for-each select="../scs:comment/scs:id[.='rupturelength']">
-            		<xsl:element name='vs:rupturelength'>
+            	<xsl:for-each select="../scs:comment/scs:id[.='rupture-length']">
+            		<xsl:element name='vs:rupture-length'>
 	            		<xsl:value-of select="../scs:text"/>
 	            	</xsl:element>
 	            </xsl:for-each>
