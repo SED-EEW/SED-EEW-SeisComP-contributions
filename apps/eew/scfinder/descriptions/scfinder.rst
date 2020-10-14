@@ -8,6 +8,20 @@ input for the FinDer API.
 This module requires FinDer to be installed and SeisComP to be compiled from
 source. The source code for FinDer is distributed separatly by SED.
 
+FinDer provides probabilistic estimates of the rupture length and strike. These
+are attached by *scfinder* within a derived object so-called *strong motion origin*,
+using the strong motion database extension. In order to save the strong motion 
+origin in the database and to provide them to other modules, the messaging system
+must to be able to handle these messages. Therefore, the plugins *dmsm* must
+be available to :ref:`scmaster`.
+
+The plugins can be most easily **added** through the configuration parameters
+in :file:`global.cfg`:
+
+.. code-block:: sh
+
+   plugins = dmsm
+
 scevent configuration
 =====================
 
