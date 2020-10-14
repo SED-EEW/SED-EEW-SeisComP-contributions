@@ -11,7 +11,7 @@ source. The source code for FinDer is distributed separatly by SED.
 scevent configuration
 =====================
 
-scfinder can produce an origin as soons as the seismic waves reach 4 stations. 
+*scfinder* can produce an origin as soons as the seismic waves reach 4 stations. 
 For :ref:`scevent` to create an event from an origin with 4 phases requires the
 following setting:
 
@@ -24,8 +24,8 @@ following setting:
 .. note::
 
    :ref:`scvsmag` uses the preferred origin for VS magnitude computation, and it
-   should not run on a FinDer origin. In order to run scfinder and :ref:`scvsmag`
-   on the same system, scfinder should be excluded from the list of potential
+   should not run on a FinDer origin. In order to run *scfinder* and :ref:`scvsmag`
+   on the same system, *scfinder* should be excluded from the list of potential
    preferred origins. One way to do this is to exclude the FinDer # *methodID* 
    from preferred origins in the configuration of :ref:`scevent`:
 
