@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <seiscomp>
-	<module name="sceewlog" category="Processing" author="Swiss Seismological Service">
+	<module name="sceewlog" category="EEW" author="Swiss Seismological Service">
 		<description>
 		Logs EEW magnitude messages.
 		</description>

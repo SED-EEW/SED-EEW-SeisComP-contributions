@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <seiscomp>
-	<module name="sceewenv" category="Processing" author="Swiss Seismological Service">
-		<description>Computes continuous envelope values used by scvsmag and scfinder.</description>
+	<module name="sceewenv" category="EEW" author="Swiss Seismological Service">
+		<description>Computes continuous envelope values used by scvsmag. It uses the same library than scfinder.</description>
 		<configuration>
 			<group name="eewenv">
+				<description>
+					sceewenv sends messages of type "VS" which requires all modules receiving these
+					messages to be configured with the plugin "dmvs" (see parameter "plugins" in global
+					configuration).
+				</description>
 				<parameter name="saturationThreshold" type="double" default="80" unit="percent">
 					<description>
 						Relative saturation threshold in percent. If the absolute raw amplitude
@@ -30,7 +35,7 @@
 						(in seconds with fractional part). The default is 60s.
 					</description>
 				</parameter>
-				<parameter name="taperLength" type="double"  unit="s">
+				<parameter name="taperLength" type="double" default="60" unit="s">
 					<description>
 						Length in seconds of the taper that is applied to the beginning of the
 						trace.
@@ -69,17 +74,17 @@
 							data interval and declared as envelope value. The intervals do not overlap.
 						</description>
 					</parameter>
-					<parameter name="filterAcc" type="bool" default="false">
+					<parameter name="filterAcc" type="boolean" default="false">
 						<description>
 							Enable acceleration 3s lo-pass filter, default is false.
 						</description>
 					</parameter>
-					<parameter name="filterVel" type="bool" default="false">
+					<parameter name="filterVel" type="boolean" default="false">
 						<description>
 							Enable velocity 3s lo-pass filter, default is false.
 						</description>
 					</parameter>
-					<parameter name="filterDisp" type="bool" default="true">
+					<parameter name="filterDisp" type="boolean" default="true">
 						<description>
 							Enable displacement 3s lo-pass filter, default is true.
 						</description>

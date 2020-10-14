@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <seiscomp>
-	<module name="scfinder" category="Processing">
-		<description>EEW locator</description>
+	<module name="scfinder" category="EEW" author="Swiss Seismological Service">
+		<description>Wrapper module for the Finite fault rupture Detector (FinDer).</description>
 		<configuration>
 			<parameter name="saturationThreshold" type="double" default="80" unit="percent">
 				<description>
