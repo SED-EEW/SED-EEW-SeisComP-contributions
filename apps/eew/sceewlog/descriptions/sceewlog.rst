@@ -54,21 +54,22 @@ Below is an example of the first few lines of a report file:
 
 .. code-block:: sh
 
-   Type|Mag.|Lat.  |Lon.  |tdiff |Depth |creation time (UTC)      |origin time (UTC)        |likeh.|#st.(org.) |#st.(mag.)
-   -----------------------------------------------------------------------------------------------------------------------
-    MVS|3.42| 47.15|  8.52| 12.73| 25.32|2012-02-11T22:45:39.0000Z|2012-02-11T22:45:26.2729Z|  0.99|          6|         6
-    MVS|3.43| 47.15|  8.52| 13.73| 25.32|2012-02-11T22:45:40.0000Z|2012-02-11T22:45:26.2729Z|  0.99|          6|         6
-    MVS|3.56| 47.15|  8.54| 14.70| 25.73|2012-02-11T22:45:41.0000Z|2012-02-11T22:45:26.3032Z|  0.99|         10|        10
-    MVS|3.64| 47.16|  8.54| 15.58| 24.32|2012-02-11T22:45:42.0000Z|2012-02-11T22:45:26.4178Z|  0.99|         12|        12
-    MVS|3.54| 47.16|  8.53| 16.45| 22.40|2012-02-11T22:45:43.0000Z|2012-02-11T22:45:26.5547Z|  0.99|         14|        14
-    MVS|3.67| 47.15|  8.54| 17.29| 20.40|2012-02-11T22:45:44.0000Z|2012-02-11T22:45:26.7142Z|  0.99|         16|        16
-    MVS|3.66| 47.16|  8.54| 18.34| 21.31|2012-02-11T22:45:45.0000Z|2012-02-11T22:45:26.6562Z|  0.99|         18|        18
-    MVS|3.75| 47.16|  8.54| 19.27| 19.91|2012-02-11T22:45:46.0000Z|2012-02-11T22:45:26.7326Z|  0.99|         19|        19
-
+                                                                      |#St.   |                                                              
+   Tdiff |Type|Mag.|Lat.  |Lon.   |Depth |origin time (UTC)      |Lik.|Or.|Ma.|Str.|Len. |Author   |Creation t.            |Tdiff(current o.)
+   ------------------------------------------------------------------------------------------------------------------------------------------
+     5.24| MVS|2.40| 46.05|   6.89| 20.53|2020-06-23T06:25:38.55Z|0.40|  4|  2|    |     |scvsmag2@|2020-06-23T06:25:45.99Z|  7.44
+     6.24| MVS|3.69| 46.05|   6.89| 20.53|2020-06-23T06:25:38.55Z|0.40|  4|  4|    |     |scvsmag2@|2020-06-23T06:25:46.99Z|  8.45
+     6.79| MVS|3.71| 46.05|   6.89| 20.53|2020-06-23T06:25:38.55Z|0.40|  4|  3|    |     |scvsmag@s|2020-06-23T06:25:47.54Z|  8.99
+     7.24| MVS|3.65| 46.05|   6.89| 22.30|2020-06-23T06:25:38.33Z|0.99|  6|  5|    |     |scvsmag2@|2020-06-23T06:25:48.00Z|  9.67
+     7.79| MVS|3.53| 46.05|   6.89| 22.30|2020-06-23T06:25:38.33Z|0.99|  6|  5|    |     |scvsmag@s|2020-06-23T06:25:48.54Z| 10.21
+     8.24| MVS|3.61| 46.05|   6.89| 22.30|2020-06-23T06:25:38.33Z|0.99|  6|  5|    |     |scvsmag2@|2020-06-23T06:25:48.99Z| 10.66
+     8.62| Mfd|4.00| 46.04|   6.88|  5.00|2020-06-23T06:25:41.93Z|0.88|  0|   |  80| 0.28|scfdalpin|2020-06-23T06:25:49.37Z|  7.44
+     8.62| Mfd|3.90| 46.04|   6.88| 12.00|2020-06-23T06:25:40.29Z|0.85|  0|   | 140| 0.38|scfdforel|2020-06-23T06:25:49.37Z|  9.07
+ 
 *Creation time* is the time the VS magnitude message was generated, *tdiff* is the
-time difference between *creation time* and *origin time* in seconds, *likeh* is the
-likelihood that this event is a real event (see documentation of :ref:`scvsmag`), # *st.(org)*
-is the number of stations that contributed to the origin and # *st.(mag)* the number of envelope streams
-that contributed to the magnitude.
+time difference between *creation time* and last *origin time* in seconds, *likeh* is the
+likelihood that this event is a real event (see documentation of :ref:`scvsmag`), # *#st.(Or.)*
+is the number of stations that contributed to the origin and # *St.(Ma.)* the number of envelope streams
+that contributed to the magnitude. # *Str.* and # *Len.* are fault line strike and length provided by :ref:scfinder.
 
 
