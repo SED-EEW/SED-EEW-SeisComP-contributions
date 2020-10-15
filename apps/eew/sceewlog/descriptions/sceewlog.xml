@@ -2,12 +2,12 @@
 <seiscomp>
 	<module name="sceewlog" category="EEW" author="Swiss Seismological Service">
 		<description>
-		Logs EEW magnitude messages.
+			Logs EEW magnitude messages.
 		</description>
 		<configuration>
 			<parameter name="magTypes" type="list:string" default="MVS, Mfd">
 				<description>
-				The list of magnitude types handled by sceewlog
+					The list of magnitude types handled by sceewlog
 				</description>
 			</parameter>
 			<parameter name="generateReportTimeout" type="int" default="5">

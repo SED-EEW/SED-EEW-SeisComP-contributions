@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <seiscomp>
 	<module name="sceewenv" category="EEW" author="Swiss Seismological Service">
-		<description>Computes continuous envelope values used by scvsmag. It uses the same library than scfinder.</description>
+		<description>
+			Computes continuous envelope values used by scvsmag.
+			sceewenv sends messages of type "VS" which requires all modules receiving these
+			messages to be configured with the plugin "dmvs" (see parameter "plugins" in global
+			configuration).
+		</description>
 		<configuration>
 			<group name="eewenv">
-				<description>
-					sceewenv sends messages of type "VS" which requires all modules receiving these
-					messages to be configured with the plugin "dmvs" (see parameter "plugins" in global
-					configuration).
-				</description>
 				<parameter name="saturationThreshold" type="double" default="80" unit="percent">
 					<description>
 						Relative saturation threshold in percent. If the absolute raw amplitude

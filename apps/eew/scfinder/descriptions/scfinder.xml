@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <seiscomp>
 	<module name="scfinder" category="EEW" author="Swiss Seismological Service">
-		<description>Wrapper module for the Finite fault rupture Detector (FinDer).</description>
+		<description>
+			Wrapper module for the Finite fault rupture Detector (FinDer). scfinder sends origins
+			of type "strong motion" including a source definition as a fault line. It requires all
+			modules receiving these messages to be configured with the plugin "dmsm" (see parameter
+			"plugins" in global configuration).
+		</description>
 		<configuration>
 			<parameter name="saturationThreshold" type="double" default="80" unit="percent">
 				<description>
