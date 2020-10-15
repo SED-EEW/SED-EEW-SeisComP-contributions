@@ -19,8 +19,8 @@
 // again!
 
 
-#ifndef __SEISCOMP_DATAMODEL_VS_ENVELOPE_H__
-#define __SEISCOMP_DATAMODEL_VS_ENVELOPE_H__
+#ifndef SEISCOMP_DATAMODEL_VS_ENVELOPE_H
+#define SEISCOMP_DATAMODEL_VS_ENVELOPE_H
 
 
 #include <seiscomp/core/datetime.h>
@@ -112,8 +112,8 @@ class SC_VS_API Envelope : public PublicObject {
 		Seiscomp::Core::Time timestamp() const;
 
 		void setCreationInfo(const OPT(CreationInfo)& creationInfo);
-		CreationInfo& creationInfo() throw(Seiscomp::Core::ValueException);
-		const CreationInfo& creationInfo() const throw(Seiscomp::Core::ValueException);
+		CreationInfo& creationInfo();
+		const CreationInfo& creationInfo() const;
 
 	
 	// ------------------------------------------------------------------

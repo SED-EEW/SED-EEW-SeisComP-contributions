@@ -19,8 +19,8 @@
 // again!
 
 
-#ifndef __SEISCOMP_DATAMODEL_VS_VS_H__
-#define __SEISCOMP_DATAMODEL_VS_VS_H__
+#ifndef SEISCOMP_DATAMODEL_VS_VS_H
+#define SEISCOMP_DATAMODEL_VS_VS_H
 
 
 #include <vector>

@@ -18,8 +18,8 @@
 // Do not modify the contents. Change the definition and run the generator
 // again!
 
-#ifndef __SEISCOMP_DATAMODEL_STRONGMOTION_DATABASEREADER_H__
-#define __SEISCOMP_DATAMODEL_STRONGMOTION_DATABASEREADER_H__
+#ifndef SEISCOMP_DATAMODEL_STRONGMOTION_DATABASEREADER_H
+#define SEISCOMP_DATAMODEL_STRONGMOTION_DATABASEREADER_H
 
 
 #include <seiscomp/datamodel/object.h>

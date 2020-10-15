@@ -19,8 +19,8 @@
 // again!
 
 
-#ifndef __SEISCOMP_DATAMODEL_VS_TYPES_H__
-#define __SEISCOMP_DATAMODEL_VS_TYPES_H__
+#ifndef SEISCOMP_DATAMODEL_VS_TYPES_H
+#define SEISCOMP_DATAMODEL_VS_TYPES_H
 
 
 #include <seiscomp/core/enumeration.h>

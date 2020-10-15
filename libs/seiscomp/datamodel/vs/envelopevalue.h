@@ -19,8 +19,8 @@
 // again!
 
 
-#ifndef __SEISCOMP_DATAMODEL_VS_ENVELOPEVALUE_H__
-#define __SEISCOMP_DATAMODEL_VS_ENVELOPEVALUE_H__
+#ifndef SEISCOMP_DATAMODEL_VS_ENVELOPEVALUE_H
+#define SEISCOMP_DATAMODEL_VS_ENVELOPEVALUE_H
 
 
 #include <seiscomp/datamodel/vs/types.h>
@@ -91,7 +91,7 @@ class SC_VS_API EnvelopeValue : public Object {
 		const std::string& type() const;
 
 		void setQuality(const OPT(EnvelopeValueQuality)& quality);
-		EnvelopeValueQuality quality() const throw(Seiscomp::Core::ValueException);
+		EnvelopeValueQuality quality() const;
 
 	
 	// ------------------------------------------------------------------

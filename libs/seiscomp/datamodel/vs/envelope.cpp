@@ -217,7 +217,7 @@ void Envelope::setCreationInfo(const OPT(CreationInfo)& creationInfo) {
 
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-CreationInfo& Envelope::creationInfo() throw(Seiscomp::Core::ValueException) {
+CreationInfo& Envelope::creationInfo() {
 	if ( _creationInfo )
 		return *_creationInfo;
 	throw Seiscomp::Core::ValueException("Envelope.creationInfo is not set");
@@ -228,7 +228,7 @@ CreationInfo& Envelope::creationInfo() throw(Seiscomp::Core::ValueException) {
 
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-const CreationInfo& Envelope::creationInfo() const throw(Seiscomp::Core::ValueException) {
+const CreationInfo& Envelope::creationInfo() const {
 	if ( _creationInfo )
 		return *_creationInfo;
 	throw Seiscomp::Core::ValueException("Envelope.creationInfo is not set");

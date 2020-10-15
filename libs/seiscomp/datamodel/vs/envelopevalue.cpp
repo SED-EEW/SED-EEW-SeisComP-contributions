@@ -176,7 +176,7 @@ void EnvelopeValue::setQuality(const OPT(EnvelopeValueQuality)& quality) {
 
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-EnvelopeValueQuality EnvelopeValue::quality() const throw(Seiscomp::Core::ValueException) {
+EnvelopeValueQuality EnvelopeValue::quality() const {
 	if ( _quality )
 		return *_quality;
 	throw Seiscomp::Core::ValueException("EnvelopeValue.quality is not set");

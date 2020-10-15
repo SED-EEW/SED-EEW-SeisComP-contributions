@@ -19,8 +19,8 @@
 // again!
 
 
-#ifndef __SEISCOMP_DATAMODEL_VS_VS_PACKAGE_H__
-#define __SEISCOMP_DATAMODEL_VS_VS_PACKAGE_H__
+#ifndef SEISCOMP_DATAMODEL_VS_VS_PACKAGE_H
+#define SEISCOMP_DATAMODEL_VS_VS_PACKAGE_H
 
 
 #include <seiscomp/datamodel/vs/envelopevalue.h>
