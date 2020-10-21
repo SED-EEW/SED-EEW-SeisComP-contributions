@@ -1,6 +1,6 @@
 Part of the :ref:`VS` package.
 
-sceewenv is part of the SeisComP implementation of the
+*sceewenv* is part of the SeisComP implementation of the
 `Virtual Seismologist`_ (VS) Earthquake
 Early Warning algorithm (Cua, 2005; Cua and Heaton, 2007) released
 under the `SED Public License for SeisComP Contributions`_. It generates
@@ -14,26 +14,25 @@ The processing procedure is as follows:
 
 #. gain correction
 #. baseline correction
-#. high-pass filter with a corner frequency of 3 s period
+#. combination of the two horizontal components to a root-mean-squared horizontal component
 #. integration or differentiation to velocity, acceleration and displacement
+#. high-pass filter with a corner frequency of 3 s period
 #. computation of the absolute value within 1 s intervals
 
 The resulting envelope values are sent as messages to the messaging system via the
-"VS" message group. Depending
-on the number of streams that are processed this can result in a significant
-number of messages (#streams/s).
+"VS" message group. Depending on the number of streams that are processed this can
+result in a significant number of messages (#streams/s).
 
-In order to save the messages in the database
-and to provide them to other modules, the messaging system must to be able
-to handle these messages. Therefore, the plugins *dmvs* must be available to
-:ref:`scmaster` and the "VS" group must be added.
+In order to save the messages in the database and to provide them to other modules, 
+the messaging system must to be able to handle these messages. Therefore, the plugins 
+*dmvs* must be available to :ref:`scmaster` and the "VS" group must be added.
 
 The plugins can be most easily **added** through the configuration parameters
 in :file:`global.cfg`:
 
 .. code-block:: sh
 
-   plugins = dmvs
+   plugins = dmvsi, ...
 
 **Add** the "VS" group the the other message groups defined by :ref:`scmaster` in :file:`scmaster.cfg`:
 
@@ -41,7 +40,7 @@ in :file:`global.cfg`:
 
    msgGroups = VS, ...
 
-and let sceewenv send the messages to the "VS" group instead of "AMPLITUDE".
+and let *sceewenv* send the messages to the "VS" group instead of "AMPLITUDE".
 Adjust :file:`sceewenv.cfg`:
 
 .. code-block:: sh

@@ -1,6 +1,6 @@
 Part of the :ref:`VS` package.
 
-*scvsmaglog* is part of a new SeisComP implementation of the
+*sceewlog* is part of the SeisComP implementation of the
 `Virtual Seismologist`_
 (VS) Earthquake Early Warning algorithm (Cua, 2005; Cua and Heaton, 2007) released
 under the `SED Public License for SeisComP Contributions`_. It requires
@@ -18,7 +18,7 @@ an OpenSource user interface developed within the
 European REAKT project and based on the
 the `UserDisplay`_.
 The UserDisplay is not openly available, however, people with permission to run
-the UserDisplay can use it to receive alert messages from *scvsmaglog*.
+the UserDisplay can use it to receive alert messages from *sceewlog*.
 
 To receive alerts with the EEWD set the format to *qml1.2-rt*, to receive alerts
 with the UserDisplay set the format to *shakealert*. There are currently no clients 
@@ -30,7 +30,7 @@ The real-time ActiveMQ interface requires the Python packages
 be installed.
 
 It is beyond the scope of this documentation to explain the complete setup of an
-ActiveMQ broker. However, since scvsmaglog uses the STOMP protocol to send
+ActiveMQ broker. However, since sceewlog uses the STOMP protocol to send
 messages to the broker it is essential to add the following line
 to configuration of the ActiveMQ broker.
 
