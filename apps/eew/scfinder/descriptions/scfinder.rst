@@ -1,17 +1,17 @@
-*scfinder* is a wrapper for the `Finite fault rupture Detector`_ 
+*scfinder* is a wrapper for the `Finite-Fault Rupture Detector`_ 
 (FinDer) Earthquake Early Warning algorithm (Böse et al., 2012; Böse et al., 
 2015; Böse et al., 2018). *scfinder* is released under the 
 `SED Public License for SeisComP Contributions`_. It uses the same library 
-than :ref:`sceewenv` to compute acceleration envelope values provided as 
+as :ref:`sceewenv` to compute acceleration envelope values provided as 
 input for the FinDer API.
 
 This module requires FinDer to be installed and SeisComP to be compiled from
-source. The source code for FinDer is distributed separatly by SED.
+source. The source code for FinDer is distributed separately by the SED.
 
-FinDer provides probabilistic estimates of the rupture length and strike. These
-are attached by *scfinder* within a derived object so-called *strong motion origin*,
-using the strong motion database extension. In order to save the strong motion 
-origin in the database and to provide them to other modules, the messaging system
+FinDer provides estimates of the rupture centroid, length and strike. These values
+are attached by *scfinder* within a derived object called *strong motion origin*,
+which uses the strong motion database extension. In order to save the strong motion 
+origins to the database and to provide them to other modules, the messaging system
 must to be able to handle these messages. Therefore, the plugins *dmsm* must
 be available to :ref:`scmaster`.
 
@@ -25,7 +25,7 @@ in :file:`global.cfg`:
 scevent configuration
 =====================
 
-*scfinder* can produce an origin as soons as the seismic waves reach 4 stations. 
+*scfinder* can produce an origin as soon as seismic waves have reached a minimum number of stations as configured in finder.config. 
 For :ref:`scevent` to create an event from an origin with 4 phases requires the
 following setting:
 
@@ -63,5 +63,5 @@ Böse, M., Smith, D., Felizardo, C., Meier, M.-A., Heaton, T. H., & Clinton, J. 
 
 .. target-notes::
 
-.. _`Finite fault rupture Detector` : http://www.seismo.ethz.ch/en/research-and-teaching/products-software/EEW/finite-fault-rupture-detector-finder/
+.. _`Finite-Fault Rupture Detector` : http://www.seismo.ethz.ch/en/research-and-teaching/products-software/EEW/finite-fault-rupture-detector-finder/
 .. _`SED Public License for SeisComP Contributions` : http://www.seismo.ethz.ch/static/seiscomp_contrib/license.txt
