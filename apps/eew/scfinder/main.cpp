@@ -38,7 +38,14 @@
 #include <seiscomp3/datamodel/eventparameters.h>
 #include <seiscomp3/datamodel/origin.h>
 #include <seiscomp3/datamodel/magnitude.h>
-#include <seiscomp3/datamodel/strongmotion/strongmotionparameters_package.h>
+
+#if SC_API_VERSION < SC_API_VERSION_CHECK(14,0,0)
+    #include <seiscomp3/datamodel/strongmotion/strongmotionparameters_package.h>
+#else
+    #include <seiscomp/datamodel/strongmotion/strongmotionparameters_package.h>
+#endif
+
+
 #include <seiscomp3/io/archive/xmlarchive.h>
 #include <seiscomp3/processing/eewamps/processor.h>
 #include <seiscomp3/math/geo.h>
