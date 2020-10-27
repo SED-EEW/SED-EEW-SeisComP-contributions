@@ -31,7 +31,14 @@
 #include <seiscomp3/io/records/mseedrecord.h>
 #include <seiscomp3/io/archive/xmlarchive.h>
 #include <seiscomp3/processing/eewamps/processor.h>
-#include <seiscomp3/datamodel/vs/vs_package.h>
+
+// This is required as datamodel/vs now resides in contrib-sed
+#if SC_API_VERSION < SC_API_VERSION_CHECK(14,0,0)
+	#include <seiscomp3/datamodel/vs/vs_package.h>
+#else
+	#include <seiscomp/datamodel/vs/vs_package.h>
+#endif
+
 #include <string>
 
 
@@ -184,9 +191,13 @@ class App : public Client::StreamApplication {
 						// Request a sync token every 100 messages
 						if ( _sentMessages > 100 ) {
 							_sentMessages = 0;
+
 							// Tell the record acquisition to request synchronization and to
-							// stop sending records until the sync is completed.
-							requestSync();
+							// stop sending records until the sync is completed. Only required
+							// for API versions lower than 14.0.0
+							#if SC_API_VERSION < SC_API_VERSION_CHECK(14,0,0)
+							    requestSync();
+							#endif
 						}
 					}
 				}
