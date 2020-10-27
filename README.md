@@ -29,8 +29,8 @@ git clone https://github.com/SeisComP3/seiscomp3.git .
 Make sure your select the branch of the last release and add the *sed-addons* as a submodule
 
 ```bash
-git checkout release/jakarta
 cd seiscomp3
+git checkout release/jakarta
 git submodule add -f https://gitlab.seismo.ethz.ch/SED-EEW/sed-addons.git src/sed-addons
 ```
 
