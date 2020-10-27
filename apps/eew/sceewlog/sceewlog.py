@@ -252,8 +252,8 @@ class Listener(seiscomp3.Client.Application):
             sout += "%s|" % ed['ts']
             sout += "%6.2f\n" % ed['diff']
  
-            if ed['diff']< self.event_dict[evID]['diff']:
-                self.event_dict[evID]['diff'] = ed['diff']
+            if ed['difftopref']< self.event_dict[evID]['diff']:
+                self.event_dict[evID]['diff'] = ed['difftopref']
 
         if self.storeReport:
             self.event_dict[evID]['report'] = sout
