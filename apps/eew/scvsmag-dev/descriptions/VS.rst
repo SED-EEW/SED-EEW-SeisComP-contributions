@@ -1,8 +1,8 @@
 The  `Virtual Seismologist`_ in SeisComP (VS(SC)) provides near instantaneous
-estimates of earthquake magnitude as soon as SeisComP origins are available. With a
-well-configured SeisComP system running on a dense network, magnitudes for
-local events can be available within 10-20 s of origin time. VS(SC) can be a key
-component of an earthquake early warning system, and can be used to provide
+estimates of earthquake magnitude as soon as SeisComP origins are available.
+With a well-configured SeisComP system running on a dense network, magnitudes
+for local events can be available within 10-20 s of origin time. VS(SC) can be a
+key component of an earthquake early warning system, and can be used to provide
 rapid earthquake notifications. With the capability to estimate magnitude
 (given a location estimate) with 3-seconds of P-wave information at a single
 station, VS(SC) magnitude estimates are tens of seconds faster than
@@ -19,8 +19,8 @@ can be computed with as little as 3 seconds of envelope data at a single
 station (i.e., 3 seconds after trigger time at a single station). Typically,
 usable envelope data is available at numerous stations by the time the first
 SeisComP origin is available. The VS magnitude estimates are then updated every
-second for 30 seconds (configurable). The SeisComP implementation allows for use of
-broadband high-gain seismometers (with clipping value selected) as well as
+second for 30 seconds (configurable). The SeisComP implementation allows for use
+of broadband high-gain seismometers (with clipping value selected) as well as
 strong motion data. For co-located stations, VS magnitudes are calculated using
 the strong motion channels if the broadband channels saturate.
 VS magnitudes in SeisComP are called MVS.
@@ -63,17 +63,17 @@ In 2012/13, with funding from the EU projects NERA ("Network of European
 Research Infrastructures for Earthquake Risk Assessment and Mitigation") and
 REAKT ("Strategies and Tools for Real-Time EArthquake RisK ReducTion"), VS was
 integrated into SeisComP by the Seismic Network group at the SED in ETH
-Zurich and gempa GmbH. Both real-time VS implementations (Binder- and SeisComP-based)
-focus on real-time processing of available pick and envelope data. Prior
+Zurich and gempa GmbH. Both real-time VS implementations (Binder- and SeisComP-
+based) focus on real-time processing of available pick and envelope data. Prior
 information is not included.
 
 VS and SeisComP
 ---------------
 
 Although the codes were effectively re-written, the basic architecture used in
-the original Earthworm-based implementation is used in SeisComP. The SeisComP modules
-scautopick, scautoloc, and scevent replace the Earthworm Binder module for
-providing location estimates. Two new VS-specific modules were developed to
+the original Earthworm-based implementation is used in SeisComP. The SeisComP
+modules scautopick, scautoloc, and scevent replace the Earthworm Binder module
+for providing location estimates. Two new VS-specific modules were developed to
 continuously calculate envelope amplitudes and to calculate and update VS
 magnitudes (MVS) once a SeisComP origin is available.
 
@@ -82,8 +82,8 @@ magnitudes (MVS) once a SeisComP origin is available.
 
 MVS is calculated and updated (with updates attached to the preferred origin)
 each second for 30 seconds (unless configured differently) after it is first
-invoked by the availability of a new SeisComP event. If configured, Ml can also be
-calculated for these events.
+invoked by the availability of a new SeisComP event. If configured, Ml can also
+be calculated for these events.
 
 An additional module, :ref:`sceewlog`, creates log output and mails solutions
 once a new event is fully processed. It also provides an interface to send
@@ -93,17 +93,16 @@ Configuring and optimizing VS(SC) for EEW
 -----------------------------------------
 
 The performance of VS(SC) is strongly dependent on: 1) the quality and
-density of the seismic network; 2) the configuration of the general SeisComP system.
-scautoloc requires at least 6 triggers to create an origin. Given the network
-geometry, maps of when VS estimates would be first available
+density of the seismic network; 2) the configuration of the general SeisComP
+system. scautoloc requires at least 6 triggers to create an origin. Given the
+network geometry, maps of when VS estimates would be first available
 (indicative of the size of the blind zone as a function of earthquake location
-relative to stations) can be generated for regions where EEW is of interest. VS(SC)
-uses scautoloc, which was not built for EEW, so an
-additional delay of at most a few seconds is required for origin processing. VS
-magnitudes (MVS) can be expected within 1-2 seconds after a SeisComP origin is
-available. In the densest part of the Swiss network, SeisComP origins are available
-within 10-15 seconds after origin time; MVS is typically available 1-2 seconds
-later.
+relative to stations) can be generated for regions where EEW is of interest.
+VS(SC) uses scautoloc, which was not built for EEW, so an additional delay of at
+most a few seconds is required for origin processing. VS magnitudes (MVS) can be
+expected within 1-2 seconds after a SeisComP origin is available. In the densest
+part of the Swiss network, SeisComP origins are available within 10-15 seconds
+after origin time; MVS is typically available 1-2 seconds later.
 
 The VS magnitude estimation relationships in Cua (2005) were derived from a
 dataset consisting of Southern California waveforms and the NGA strong motion
@@ -139,8 +138,8 @@ The rate of false alarms and missed events is determined by the output of the
 normal SeisComP origin chain (:ref:`scautopick`, :ref:`scautoloc`), and will
 be similar to the performance of the automatic setup for typical network
 operations (i.e. if you do not trust your automatic origins for the network, you
-will not trust them for VS either). A solution quality is independently estimated
-by VS, combining information on location quality and station quality.
+will not trust them for VS either). A solution quality is independently
+estimated by VS, combining information on location quality and station quality.
 See :ref:`scvsmag` on how the VS specific solution quality is computed.
 
 
@@ -148,30 +147,46 @@ VS License
 ----------
 
 The SeisComP VS modules are free and open source, and are part of the SeisComP
-distribution from Seattle v2013.200. They are distributed under the `SED Public
-License for SeisComP Contributions`_.
+distribution from Seattle v2013.200. They are distributed under the GNU Affero
+General Public License (Free Software Foundation, version 3 or later).
 
 
 References
 ----------
 
-Dietz, L., 2002: Notes on configuring BINDER_EW: Earthworm's phase associator, http://folkworm.ceri.memphis.edu/ew-doc/ovr/binder_setup.html (last accessed June 2013)
+Dietz, L., 2002: Notes on configuring BINDER_EW: Earthworm's phase associator, http://folkworm.ceri.memphis.edu/ew-doc/ovr/binder_setup.html (last accessed
+    June 2013)
 
-Cua, G., 2005: Creating the Virtual Seismologist: developments in ground motion characterization and seismic early warning. PhD thesis, California Institute of Technology, Pasadena, California.
+Cua, G., 2005: Creating the Virtual Seismologist: developments in ground motion
+     characterization and seismic early warning. PhD thesis, California
+     Institute of Technology, Pasadena, California.
 
-Cua, G., and T. Heaton, 2007: The Virtual Seismologist (VS) method: a Bayesian approach to earthquake early warning, in Seismic early warning, editors: P. Gasparini, G. Manfredi, J. Zschau, Springer Heidelberg, 85-132.
+Cua, G., and T. Heaton, 2007: The Virtual Seismologist (VS) method: a Bayesian
+     approach to earthquake early warning, in Seismic early warning, editors: P.
+     Gasparini, G. Manfredi, J. Zschau, Springer Heidelberg, 85-132.
 
-Cua, G., M. Fischer, T. Heaton, S. Wiemer, 2009: Real-time performance of the Virtual Seismologist earthquake early warning algorithm in southern California, Seismological Research Letters, September/October 2009; 80: 740 - 747.
+Cua, G., M. Fischer, T. Heaton, S. Wiemer, 2009: Real-time performance of the
+     Virtual Seismologist earthquake early warning algorithm in southern
+     California, Seismological Research Letters, September/October 2009; 80:
+     740 - 747.
 
-Behr, Y., Cua, G., Clinton, J., Heaton, T., 2012: Evaluation of Real-Time Performance of the Virtual Seismologist Earthquake
-Early Warning Algorithm in Switzerland and California. Abstract 1481084 presented at 2012 Fall Meeting, AGU, San Francisco, Calif., 3-7 Dec.
+Behr, Y., Cua, G., Clinton, J., Heaton, T., 2012: Evaluation of Real-Time
+     Performance of the Virtual Seismologist Earthquake Early Warning Algorithm
+     in Switzerland and California. Abstract 1481084 presented at 2012 Fall
+     Meeting, AGU, San Francisco, Calif., 3-7 Dec.
 
-Behr, Y., J. F. Clinton, C. Cauzzi, E. Hauksson, K. Jónsdóttir, C. G. Marius, A. Pinar, J. Salichon, and E. Sokos (2016) The Virtual Seismologist in SeisComP: A New Implementation Strategy for Earthquake Early Warning Algorithms, Seismological Research Letters, March/March 2016, v. 87, p. 363-373, doi:10.1785/0220150235
+Behr, Y., J. F. Clinton, C. Cauzzi, E. Hauksson, K. Jónsdóttir, C. G. Marius, A.
+     Pinar, J. Salichon, and E. Sokos (2016) The Virtual Seismologist in
+     SeisComP: A New Implementation Strategy for Earthquake Early Warning
+     Algorithms, Seismological Research Letters, March/March 2016, v. 87, p.
+     363-373, doi:10.1785/0220150235
 
-Behr, Y., J. Clinton, P. Kästli, C. Cauzzi, R. Racine,  M‐A. Meier (2015) Anatomy of an Earthquake Early Warning (EEW) Alert: Predicting Time Delays for an End‐to‐End EEW System, Seismological Research Letters, May/June 2015, v. 86, p. 830-840, doi:10.1785/0220140179
+Behr, Y., J. Clinton, P. Kästli, C. Cauzzi, R. Racine,  M‐A. Meier (2015)
+     Anatomy of an Earthquake Early Warning (EEW) Alert: Predicting Time Delays
+     for an End‐to‐End EEW System, Seismological Research Letters, May/June
+     2015, v. 86, p. 830-840, doi:10.1785/0220140179
 
 .. target-notes::
 
 .. _`Virtual Seismologist` : http://www.seismo.ethz.ch/en/research-and-teaching/products-software/EEW/Virtual-Seismologist/
 .. _`CISN ShakeAlert EEW system` : http://www.cisn.org/eew/
-.. _`SED Public License for SeisComP Contributions` : http://www.seismo.ethz.ch/static/seiscomp_contrib/license.txt

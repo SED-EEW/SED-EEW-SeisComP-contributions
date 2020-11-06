@@ -1,29 +1,29 @@
 Part of the :ref:`VS` package.
 
 *sceewlog* is part of the SeisComP implementation of the
-`Virtual Seismologist`_
-(VS) Earthquake Early Warning algorithm (Cua, 2005; Cua and Heaton, 2007) released
-under the `SED Public License for SeisComP Contributions`_. It requires
-the Python package `dateutil`_ to be installed.
+`Virtual Seismologist`_ (VS) Earthquake Early Warning algorithm (Cua, 2005; Cua
+and Heaton, 2007) released under the GNU Affero General Public License (Free
+Software Foundation, version 3 or later). It requires the Python package
+`dateutil`_ to be installed.
 
 It logs the VS and FinDer magnitude messages received from :ref:`scvsmag` and 
-:ref:`scfinder` (configurable), and once an event has timed out, generates report 
-files. These report files are saved to disk and can also be sent via email.
+:ref:`scfinder` (configurable), and once an event has timed out, generates
+report files. These report files are saved to disk and can also be sent via
+email.
 
-It also implements an `ActiveMQ`_ interface which
-provides the possibility to send alert messages in real-time. Currently, 
-messages can be sent in three different formats (SeisComPML, QuakeML, ShakeAlertML).
-The recommended client to display these alert messages is the `Earthquake Early Warning Display (EEWD)`_
-an OpenSource user interface developed within the
-European REAKT project and based on the
-the `UserDisplay`_.
-The UserDisplay is not openly available, however, people with permission to run
-the UserDisplay can use it to receive alert messages from *sceewlog*.
+It also implements an `ActiveMQ`_ interface which provides the possibility to
+send alert messages in real-time. Currently, messages can be sent in three
+different formats (SeisComPML, QuakeML, ShakeAlertML). The recommended client to
+display these alert messages is the `Earthquake Early Warning Display (EEWD)`_
+an OpenSource user interface developed within the European REAKT project and
+based on the `UserDisplay`_. The UserDisplay is not openly available, however,
+people with permission to run the UserDisplay can use it to receive alert
+messages from *sceewlog*.
 
 To receive alerts with the EEWD set the format to *qml1.2-rt*, to receive alerts
-with the UserDisplay set the format to *shakealert*. There are currently no clients 
-which can digest SeisComPML. Using pipelines alerts can be sent out in more 
-than one format.
+with the UserDisplay set the format to *shakealert*. There are currently no
+clients which can digest SeisComPML. Using pipelines alerts can be sent out in
+more than one format.
 
 The real-time ActiveMQ interface requires the Python packages 
 `stompy`_ and `lxml`_ to
@@ -62,12 +62,14 @@ Below is an example of the first few lines of a report file:
      8.62| Mfd|4.00| 46.04|   6.88|  5.00|2020-06-23T06:25:41.93Z|0.88|  0|   |  80| 0.28|scfdalpin|2020-06-23T06:25:49.37Z|  7.44
      8.62| Mfd|3.90| 46.04|   6.88| 12.00|2020-06-23T06:25:40.29Z|0.85|  0|   | 140| 0.38|scfdforel|2020-06-23T06:25:49.37Z|  9.07
 
-*Creation time* is the time the VS magnitude message was generated, *tdiff* is the
-time difference between *creation time* and last *origin time* in seconds, *lik.* is the
-likelihood that this event is a real event (see documentation of :ref:`scvsmag`), *#St.(Or.)*
-is the number of stations that contributed to the origin and  *#St.(Ma.)* the number of envelope streams
-that contributed to the magnitude. *Str.* and *Len.* are the strike and length of the fault line provided 
-by :ref:`scfinder`.
+*Creation time* is the time the VS magnitude message was generated, *tdiff* is
+the time difference between *creation time* and last *origin time* in seconds,
+*lik.* is the likelihood that this event is a real event (see documentation of
+:ref:`scvsmag`), *#St.(Or.)* is the number of stations that contributed to the
+origin and  *#St.(Ma.)* the number of envelope streams that contributed to the
+magnitude. *Str.* and *Len.* are the strike and length of the fault line
+provided by :ref:`scfinder`.
+
 
 
 References
@@ -76,15 +78,9 @@ References
 .. target-notes::
 
 .. _`Virtual Seismologist` : http://www.seismo.ethz.ch/en/research-and-teaching/products-software/EEW/Virtual-Seismologist/
-.. _`SED Public License for SeisComP Contributions` : http://www.seismo.ethz.ch/static/seiscomp_contrib/license.txt
 .. _`dateutil` : https://pypi.python.org/pypi/python-dateutil/
 .. _`ActiveMQ` : http://activemq.apache.org/
 .. _`Earthquake Early Warning Display (EEWD)` : http://www.seismo.ethz.ch/en/research-and-teaching/products-software/EEW/earthquake-early-warning-display-eewd/
 .. _`UserDisplay` : http://www.eew.caltech.edu/research/userdisplay.html
 .. _`stompy` : https://pypi.python.org/pypi/stompy/
 .. _`lxml` : http://lxml.de/
-
-
-
-
-

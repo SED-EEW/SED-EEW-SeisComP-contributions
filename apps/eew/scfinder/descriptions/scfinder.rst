@@ -1,19 +1,19 @@
-*scfinder* is a wrapper for the `Finite-Fault Rupture Detector`_ 
-(FinDer) Earthquake Early Warning algorithm (Böse et al., 2012; Böse et al., 
-2015; Böse et al., 2018). *scfinder* is released under the 
-`SED Public License for SeisComP Contributions`_. It uses the same library 
-as :ref:`sceewenv` to compute acceleration envelope values provided as 
-input for the FinDer API.
+*scfinder* is a wrapper for the `Finite-Fault Rupture Detector`_ (FinDer)
+Earthquake Early Warning algorithm (Böse et al., 2012; Böse et al., 2015; Böse
+et al., 2018). *scfinder* is released under the GNU Affero General Public
+License (Free Software Foundation, version 3 or later). It uses the same library
+as :ref:`sceewenv` to compute acceleration envelope values provided as input for
+the FinDer API.
 
 This module requires FinDer to be installed and SeisComP to be compiled from
 source. The source code for FinDer is distributed separately by the SED.
 
-FinDer provides estimates of the rupture centroid, length and strike. These values
-are attached by *scfinder* within a derived object called *strong motion origin*,
-which uses the strong motion database extension. In order to save the strong motion 
-origins to the database and to provide them to other modules, the messaging system
-must to be able to handle these messages. Therefore, the plugins *dmsm* must
-be available to :ref:`scmaster`.
+FinDer provides estimates of the rupture centroid, length and strike. These
+values are attached by *scfinder* within a derived object called *strong motion
+origin*, which uses the strong motion database extension. In order to save the
+strong motion origins to the database and to provide them to other modules, the
+messaging system must to be able to handle these messages. Therefore, the
+plugins *dmsm* must be available to :ref:`scmaster`.
 
 The plugins can be most easily **added** through the configuration parameters
 in :file:`global.cfg`:
@@ -58,13 +58,19 @@ following setting:
 References
 ==========
 
-Böse, M., Heaton, T. H., & Hauksson, E., 2012: Real‐time Finite Fault Rupture Detector (FinDer) for large earthquakes. Geophysical Journal International, 191(2), 803–812. doi:10.1111/j.1365-246X.2012.05657.x
+Böse, M., Heaton, T. H., & Hauksson, E., 2012: Real‐time Finite Fault Rupture
+    Detector (FinDer) for large earthquakes. Geophysical Journal International,
+    191(2), 803–812. doi:10.1111/j.1365-246X.2012.05657.x
 
-Böse, M., Felizardo, C., & Heaton, T. H., 2015: Finite-Fault Rupture Detector ( FinDer): Going Real-Time in Californian ShakeAlertWarning System. Seismological Research Letters, 86(6), 1692–1704. doi:10.1785/0220150154
+Böse, M., Felizardo, C., & Heaton, T. H., 2015: Finite-Fault Rupture Detector
+    (FinDer): Going Real-Time in Californian ShakeAlertWarning System.
+    Seismological Research Letters, 86(6), 1692–1704. doi:10.1785/0220150154
 
-Böse, M., Smith, D., Felizardo, C., Meier, M.-A., Heaton, T. H., & Clinton, J. F., 2017: FinDer v.2: Improved Real-time Ground-Motion Predictions for M2-M9 with Seismic Finite-Source Characterization. Geophysical Journal International.
+Böse, M., Smith, D., Felizardo, C., Meier, M.-A., Heaton, T. H., & Clinton, J.
+    F., 2017: FinDer v.2: Improved Real-time Ground-Motion Predictions for M2-M9
+    with Seismic Finite-Source Characterization. Geophysical Journal
+    International.
 
 .. target-notes::
 
 .. _`Finite-Fault Rupture Detector` : http://www.seismo.ethz.ch/en/research-and-teaching/products-software/EEW/finite-fault-rupture-detector-finder/
-.. _`SED Public License for SeisComP Contributions` : http://www.seismo.ethz.ch/static/seiscomp_contrib/license.txt

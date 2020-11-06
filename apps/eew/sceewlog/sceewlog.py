@@ -1,22 +1,18 @@
 #!/usr/bin/env python
 """
-Copyright
----------
-This file is part of the Virtual Seismologist (VS) software package.
-VS is free software: you can redistribute it and/or modify it under
-the terms of the "SED Public License for Seiscomp Contributions"
+Copyright (C) by ETHZ/SED
 
-VS is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-FOR A PARTICULAR PURPOSE. See the SED Public License for Seiscomp
-Contributions for more details.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-You should have received a copy of the SED Public License for Seiscomp
-Contributions with VS. If not, you can find it at
-http://www.seismo.ethz.ch/static/seiscomp_contrib/license.txt
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
 
-Author of the Software: Yannik Behr, Fred Massin, Luca Scarabello
-Copyright (C) 2006-2018 by Swiss Seismological Service
+Author of the Software: Yannik Behr
 """
 
 import sys, traceback, seiscomp3.Client
