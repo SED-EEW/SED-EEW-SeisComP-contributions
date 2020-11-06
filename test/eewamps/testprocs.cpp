@@ -1,27 +1,29 @@
-/***************************************************************************
- *   Copyright (C) by gempa GmbH                                           *
- *                                                                         *
- *   You can redistribute and/or modify this program under the             *
- *   terms of the SeisComP Public License.                                 *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   SeisComP Public License for more details.                             *
- *                                                                         *
- *   --------------------------------------------------------------------  *
- *                                                                         *
- *   Simple test client that reads inventory and data, removes the gain    *
- *   according to the given inventory and corrects for the baseline. The   *
- *   results are written as MiniSEED records to stdout.                    *
- *                                                                         *
- *   Example: prog -I test.mseed -d db-host > test_out.mseed               *
- *                                                                         *
- *   --------------------------------------------------------------------  *
- *                                                                         *
- *   Author: Jan Becker, gempa GmbH <jabe@gempa.de>                        *
- *                                                                         *
- ***************************************************************************/
+/******************************************************************************
+ *     Copyright (C) by ETHZ/SED                                              *
+ *                                                                            *
+ *   This program is free software: you can redistribute it and/or modify     *
+ *   it under the terms of the GNU Affero General Public License as published *
+ *   by the Free Software Foundation, either version 3 of the License, or     *
+ *   (at your option) any later version.                                      *
+ *                                                                            *
+ *   This program is distributed in the hope that it will be useful,          *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            *
+ *   GNU Affero General Public License for more details.                      *
+ *                                                                            *
+ *   -----------------------------------------------------------------------  *
+ *                                                                            *
+ *   Simple test client that reads inventory and data, removes the gain       *
+ *   according to the given inventory and corrects for the baseline. The      *
+ *   results are written as MiniSEED records to stdout.                       *
+ *                                                                            *
+ *   Example: prog -I test.mseed -d db-host > test_out.mseed                  *
+ *                                                                            *
+ *   -----------------------------------------------------------------------  *
+ *                                                                            *
+ *   Author: Jan Becker, gempa GmbH <jabe@gempa.de>                           *
+ *                                                                            *
+ ******************************************************************************/
 
 
 #define SEISCOMP_COMPONENT TEST
