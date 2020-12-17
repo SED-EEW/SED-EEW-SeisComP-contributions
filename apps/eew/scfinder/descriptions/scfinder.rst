@@ -1,3 +1,5 @@
+Part of the :ref:`EEW` package.
+
 *scfinder* is a wrapper for the `Finite-Fault Rupture Detector`_ (FinDer)
 Earthquake Early Warning algorithm (Böse et al., 2012; Böse et al., 2015; Böse
 et al., 2018). *scfinder* is released under the GNU Affero General Public
@@ -33,7 +35,7 @@ following setting:
 .. code-block:: sh
 
    # Minimum number of Picks for an Origin that is automatic and cannot be
-   # associated with an Event to be allowed to form an new Event.
+   # associated with an Event to be allowed to form a new Event.
    eventAssociation.minimumDefiningPhases = 4
 
 .. note::

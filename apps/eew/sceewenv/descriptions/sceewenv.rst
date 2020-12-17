@@ -1,13 +1,16 @@
-Part of the :ref:`VS` package.
+Part of the :ref:`EEW` package.
 
-*sceewenv* is part of the SeisComP implementation of the `Virtual Seismologist`_
-(VS) Earthquake Early Warning algorithm (Cua, 2005; Cua and Heaton, 2007)
-released under the GNU Affero General Public License (Free Software Foundation,
-version 3 or later). It generates real-time envelope values for horizontal and
-vertical acceleration, velocity and displacement from raw acceleration and
-velocity waveforms. It was implemented to handle the waveform pre-processing
-necessary for the :ref:`scvsmag` module. It provides in effect continuous
-real-time streams of PGA, PGV and PGD values which could also be used
+*sceewenv* was originally part of the SeisComP implementation of the `Virtual
+Seismologist`_(VS) Earthquake Early Warning algorithm (Cua, 2005; Cua and
+Heaton, 2007) and its core library is now integrated into :ref:`scfinder`, the
+wrapper for the `Finite-Fault Rupture Detector`_ (FinDer) Earthquake Early
+Warning algorithm (Böse et al., 2012; Böse et al., 2015; Böse et al., 2018).
+*sceewenv* is released under the GNU Affero General Public License (Free
+Software Foundation, version 3 or later). It generates real-time envelope values
+for horizontal and vertical acceleration, velocity and displacement from raw
+acceleration and velocity waveforms. It was implemented to handle the waveform
+pre-processing necessary for the :ref:`scvsmag` module. It provides in effect
+continuous real-time streams of PGA, PGV and PGD values which could also be used
 independently of :ref:`scvsmag`.
 
 The processing procedure is as follows:
@@ -51,8 +54,8 @@ Adjust :file:`sceewenv.cfg`:
 
 .. note::
 
-   When changing :confval:`connection.primaryGroup`, the "VS" group must also be
-   added to the subscriptions in :ref:`scvsmag`.
+   When changing :confval:`connection.primaryGroup`, the "VS" group must also
+   be added to the subscriptions in :ref:`scvsmag`.
 
 References
 ==========

@@ -1,15 +1,16 @@
-Part of the :ref:`VS` package.
+Part of the :ref:`EEW` package.
 
-scvsmag is part of a new SeisComP implementation of the `Virtual Seismologist`_
-(VS) Earthquake Early Warning algorithm (Cua, 2005; Cua and Heaton, 2007)
-released under the GNU Affero General Public License (Free Software Foundation,
-version 3 or later). For a given origin it estimates single station magnitudes
-and a network magnitude based on  the envelope attenuation relationship and
-ground motion amplitude ratio derived  by Cua (2005). The original VS algorithm
-applies the Bayesian theorem by defining magnitude as the value that maximizes
-the product of a likelihood function and a prior probability density function.
-In the current version of scvsmag only the likelihood function is implemented
-and no prior information is used at this stage.
+*scvsmag* is part of a new SeisComP implementation of the
+`Virtual Seismologist`_(VS) Earthquake Early Warning algorithm (Cua, 2005; Cua
+and Heaton, 2007) released under the GNU Affero General Public License (Free
+Software Foundation, version 3 or later). For a given origin it estimates single
+station magnitudes and a network magnitude based on  the envelope attenuation
+relationship and ground motion amplitude ratio derived  by Cua (2005). The
+original VS algorithm applies the Bayesian theorem by defining magnitude as the
+value that maximizes the product of a likelihood function and a prior
+probability density function. In the current version of scvsmag only the
+likelihood function is implemented and no prior information is used at this
+stage.
 
 Logging
 =======
@@ -160,8 +161,8 @@ failed. If all quality checks succeeded the likelihood is set to 0.99.
 scvsmag configuration
 ---------------------
 
-scvsmag receives the amplitudes from :ref:`scenvelope` via the messaging system.
-When the scenvelope is configured to send the amplitudes to the "VS" group
+scvsmag receives the amplitudes from :ref:`sceewenv` via the messaging system.
+When *sceewenv* is configured to send the amplitudes to the "VS" group
 instead of "AMPLITUDE", the configuration must be adjusted. In this case,
 replace the "AMPLITUDE" group with the "VS" message group in
 :confval:`connection.subscriptions`:
@@ -193,7 +194,7 @@ quickly as possible:
    # between origin updates.
    autoloc.publicationIntervalTimeSlope = 0
 
-   # This is the parameter "b" in the above mentioned equation for the update
+   # This is the parameter "b" in the above-mentioned equation for the update
    # interval Δt.
    autoloc.publicationIntervalTimeIntercept = 0
 
@@ -222,7 +223,7 @@ following setting:
 .. code-block:: sh
 
    # Minimum number of Picks for an Origin that is automatic and cannot be
-   # associated with an Event to be allowed to form an new Event.
+   # associated with an Event to be allowed to form a new Event.
    eventAssociation.minimumDefiningPhases = 6
 
 :ref:`scautoloc` also has a so-called XXL feature that allows you to create a
@@ -230,7 +231,7 @@ location estimate with 4 P-wave detections (otherwise 6 is the minimum).
 Although this feature is reserved for large magnitude events you can, in
 principle, adapt the XXL thresholds to also locate moderate seismicity with the
 first four picks. This may, however, lead to a larger number of false alerts
-and it is, therefore, recommended to used this feature only as intended.
+and it is, therefore, recommended to use this feature only as intended.
 
 .. note::
    If scvsmag receives identical picks from different pipelines, the internal

@@ -1,6 +1,6 @@
-Part of the :ref:`VS` package.
+Part of the :ref:`EEW` package.
 
-*sceewlog* is part of the SeisComP implementation of the
+*sceewlog* was originally part of the SeisComP implementation of the
 `Virtual Seismologist`_ (VS) Earthquake Early Warning algorithm (Cua, 2005; Cua
 and Heaton, 2007) released under the GNU Affero General Public License (Free
 Software Foundation, version 3 or later). It requires the Python package
