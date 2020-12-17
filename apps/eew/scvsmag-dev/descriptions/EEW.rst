@@ -7,13 +7,9 @@ library that generates real-time envelope values for horizontal and vertical
 acceleration, velocity and displacement from raw acceleration and velocity
 waveforms. The envelopes are uses by two EEW algorithms:
 
-- The :ref:`VS` (`Virtual Seismologist`) algorithm, receives envelopes from the
-the :ref:`sceewenv` module, and provides near instantaneous estimates of
-earthquake magnitude as soon as SeisComP origins are available.
-- The :ref:`FinDer` (`Finite-Fault Rupture Detector`) algorithm, is integrated
-in a single module with the envelope and the *finder* libraries, and matches
-emerging patterns of strong motion from the seismic network with most likely
-seismic sources to predict the location and size of finite faults.
+- The :ref:`VS` (`Virtual Seismologist`) algorithm, receives envelopes from the :ref:`sceewenv` module, and provides near instantaneous estimates of earthquake magnitude as soon as SeisComP origins are available.
+
+- The :ref:`FinDer` (`Finite-Fault Rupture Detector`) algorithm, is integrated in a single module with the envelope and the *finder* libraries, and matches emerging patterns of strong motion from the seismic network with most likely seismic sources to predict the location and size of finite faults.
 
 In addition, the :ref:`sceewlog` module creates log output and mails solutions
 once a new event is fully processed. It also provides an interface to send
