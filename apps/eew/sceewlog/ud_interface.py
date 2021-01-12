@@ -122,7 +122,7 @@ class CoreEventInfo(UDConnection):
             pass
         else:
             seiscomp3.Logging.error('Currently supported AMQ message formats \
-            are sc3ml, qml1.2-rt, and shakealert.')
+            are: cap1.2, sc3ml, qml1.2-rt, and shakealert.')
 
     def message_encoder(self, ep, pretty_print=True):
         exp = Exporter.Create('trunk')
