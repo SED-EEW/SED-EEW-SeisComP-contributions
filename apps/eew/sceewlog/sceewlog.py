@@ -25,7 +25,23 @@ import os
 import datetime
 from dateutil import tz
 import random
+from math import log,exp
 
+def ipe(r,       # Distance (km)
+        m,       # magnitude value
+        s = 0 ): # static correction
+    # Allen 2012 (hyp)
+    a = 2.085
+    b = 1.428
+    c = -1.402
+    d = 0.078
+    m1 = -0.209
+    m2 = 2.042
+    rm = m1+m2*exp(m-5)
+    I = a + b*m + c*log((r**2 + rm**2)**.5)+s
+    if r<50:
+        I = a + b*m + c*log((r[i]**2 + rm[i]**2)**.5)+d*log(r/50)+s
+    return I
 
 class Listener(seiscomp3.Client.Application):
 
