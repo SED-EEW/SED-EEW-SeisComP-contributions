@@ -9,13 +9,20 @@
  * the purpose of representing seismological data.
 
  ********************************************************************** -->
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:stylesheet version="1.0"
+        xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+        xmlns:scs="http://geofon.gfz-potsdam.de/ns/seiscomp3-schema/0.11"
+        exclude-result-prefixes="scs xsl">
     <xsl:output method="xml" encoding="UTF-8" indent="yes" omit-xml-declaration="yes"/>
+    <xsl:strip-space elements="*"/>
+
+    <!-- Starting point: Match the root node and select the one and only
+         EventParameters node -->
     <xsl:template match="/">
     <alert xmlns="urn:oasis:names:tc:emergency:cap:1.2">
-        <identifier>2318174</identifier>
-        <sender>SENDER</sender>
-        <sent>2006-09-10T04:26:33.610000Z</sent>
+        <identifier><xsl:value-of select="scs:seiscomp/scs:EventParameters/scs:pick/@publicID"/></identifier>
+        <sender>OVSICORI</sender>
+        <sent><xsl:value-of select="scs:seiscomp/scs:EventParameters/scs:pick/scs:time/scs:value"/></sent>
         <status>Actual</status>
         <msgType>Alert</msgType>
         <scope>Private</scope>
@@ -26,16 +33,9 @@
             <urgency>Immediate</urgency>
             <severity>Extreme</severity>
             <certainty>Observed</certainty>
-            <effective>EFFECTIVE</effective>
-            <expires>EXPIRES</expires>
             <headline>Earthquake Warning issued by OVSICORI</headline>
             <instruction>Stay away from windows and objects that could fall. Go to a safe place and take cover.</instruction> 
-            <area>
-                <areaDesc>AREADESC</areaDesc>
-                <polygon> +9.614, +121.961</polygon> 
-            </area>
         </info>
     </alert>
     </xsl:template>
-
 </xsl:stylesheet>
