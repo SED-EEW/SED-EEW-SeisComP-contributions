@@ -169,7 +169,7 @@ replace the "AMPLITUDE" group with the "VS" message group in
 
 .. code:: sh
 
-   connection.subscriptions = VS, EVENT, LOCATION, PICK
+   connection.subscriptions = EEW, EVENT, LOCATION, PICK
 
 Consider also the remaining
 :ref:`configuration parameters <scvsmag_configuration>`.
