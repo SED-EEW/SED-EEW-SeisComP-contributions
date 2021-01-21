@@ -2,7 +2,7 @@
 <seiscomp>
 	<module name="sceewlog" category="EEW" author="Swiss Seismological Service">
 		<description>
-			Logs EEW magnitude messages.
+			Logs EEW magnitude messages via file, email, and ActiveMQ.
 		</description>
 		<configuration>
 			<parameter name="magTypes" type="list:string" default="MVS, Mfd">

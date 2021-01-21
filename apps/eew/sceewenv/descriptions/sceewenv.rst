@@ -39,24 +39,24 @@ in :file:`global.cfg`:
 
    plugins = dmvs, ...
 
-**Add** the "EEW" group the the other message groups defined by :ref:`scmaster`
-in :file:`scmaster.cfg`:
+**Add** the "ENVELOPE" group the the other message groups defined by
+:ref:`scmaster` in :file:`scmaster.cfg`:
 
 .. code-block:: sh
 
-   msgGroups = EEW, ...
+   msgGroups = ENVELOPE, ...
 
-and let *sceewenv* send the messages to the "EEW" group instead of "AMPLITUDE".
-Adjust :file:`sceewenv.cfg`:
+and let *sceewenv* send the messages to the "ENVELOPE" group instead of
+"AMPLITUDE". Adjust :file:`sceewenv.cfg`:
 
 .. code-block:: sh
 
-   connection.primaryGroup = EEW
+   connection.primaryGroup = ENVELOPE
 
 .. note::
 
-   When changing :confval:`connection.primaryGroup`, the "EEW" group must also
-   be added to the subscriptions in :ref:`scvsmag`.
+   When changing :confval:`connection.primaryGroup`, the "ENVELOPE" group must
+   also be added to the subscriptions in :ref:`scvsmag`.
 
 References
 ==========

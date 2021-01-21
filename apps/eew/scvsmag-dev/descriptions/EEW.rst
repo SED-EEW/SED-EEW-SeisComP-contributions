@@ -3,9 +3,10 @@ The SeisComP EEW modules
 ========================
 
 The architecture of the EEW package is based on a common envelope processing
-library that generates real-time envelope values for horizontal and vertical
-acceleration, velocity and displacement from raw acceleration and velocity
-waveforms. The envelopes are uses by two EEW algorithms:
+library, compiled within the :ref:`sceewenv` module, that generates real-time
+envelope values for horizontal and vertical acceleration, velocity and
+displacement from raw acceleration and velocity waveforms. The envelopes are
+uses by two EEW algorithms:
 
 - The :ref:`VS` (`Virtual Seismologist`) algorithm, receives envelopes from the :ref:`sceewenv` module, and provides near instantaneous estimates of earthquake magnitude as soon as SeisComP origins are available.
 

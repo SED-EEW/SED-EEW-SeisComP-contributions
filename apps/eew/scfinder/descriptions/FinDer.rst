@@ -2,9 +2,10 @@ Part of the :ref:`EEW` package.
 
 The `Finite-Fault Rupture Detector`_ (FinDer) Earthquake Early Warning algorithm
 (Böse et al., 2012; Böse et al., 2015; Böse et al., 2018) has been implemented
-with an API which is used by the *scfinder* wrapper module. The *scfinder*
-module requires FinDer to be installed and SeisComP to be compiled from
-source. The source code for FinDer is distributed separately by the SED.
+with an API which is used by the :ref:`scfinder` wrapper module. The
+:ref:`scfinder` module requires FinDer to be installed and SeisComP to be
+compiled from source. The source code for FinDer is distributed separately by
+the SED.
 
 
 The Finite-Fault Rupture Detector

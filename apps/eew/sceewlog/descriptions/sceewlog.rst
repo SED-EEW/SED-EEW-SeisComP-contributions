@@ -20,14 +20,13 @@ based on the `UserDisplay`_. The UserDisplay is not openly available, however,
 people with permission to run the UserDisplay can use it to receive alert
 messages from *sceewlog*.
 
-To receive alerts with the EEWD set the format to *qml1.2-rt*, to receive alerts
-with the UserDisplay set the format to *shakealert*. There are currently no
-clients which can digest SeisComPML. Using pipelines alerts can be sent out in
+To receive alerts with the EEWD set the format to *qml1.2-rt*. There are
+currently no clients which can digest SeisComPML and the UserDisplay format
+(*shakealert*) is not supported. Using pipelines alerts can be sent out in
 more than one format.
 
 The real-time ActiveMQ interface requires the Python packages 
-`stompy`_ and `lxml`_ to
-be installed.
+`stompy`_ and `lxml`_ to be installed.
 
 It is beyond the scope of this documentation to explain the complete setup of an
 ActiveMQ broker. However, since sceewlog uses the STOMP protocol to send

@@ -28,8 +28,10 @@ scevent configuration
 =====================
 
 *scfinder* can produce an origin as soon as seismic waves have reached a minimum
-number of stations as configured in finder.config. For :ref:`scevent` to create 
-an event from an origin with 4 phases requires the
+number of stations as configured in finder.config. :ref:`FinDer` is not
+pick-based, hence the phase number attached to its origin relates to the
+stations exceeding :ref:`FinDer` ground motion acceleration threshold. For
+:ref:`scevent` to create an event from an origin with 4 phases requires the
 following setting:
 
 .. code-block:: sh

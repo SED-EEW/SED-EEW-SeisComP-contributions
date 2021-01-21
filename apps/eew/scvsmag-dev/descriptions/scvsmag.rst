@@ -162,14 +162,14 @@ scvsmag configuration
 ---------------------
 
 scvsmag receives the amplitudes from :ref:`sceewenv` via the messaging system.
-When *sceewenv* is configured to send the amplitudes to the "VS" group
+When *sceewenv* is configured to send the amplitudes to the "ENVELOPE" group
 instead of "AMPLITUDE", the configuration must be adjusted. In this case,
-replace the "AMPLITUDE" group with the "VS" message group in
+replace the "AMPLITUDE" group with the "ENVELOPE" message group in
 :confval:`connection.subscriptions`:
 
 .. code:: sh
 
-   connection.subscriptions = EEW, EVENT, LOCATION, PICK
+   connection.subscriptions = ENVELOPE, EVENT, LOCATION, PICK
 
 Consider also the remaining
 :ref:`configuration parameters <scvsmag_configuration>`.
