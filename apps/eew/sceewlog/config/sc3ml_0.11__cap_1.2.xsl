@@ -25,6 +25,7 @@
     <xsl:variable name="time" select="scs:seiscomp/scs:EventParameters/scs:pick/scs:time/scs:value"/>
     <xsl:variable name="loc" select="scs:seiscomp/scs:EventParameters/scs:event/scs:description/scs:text"/>
     <xsl:variable name="date" select="substring($time/text(),1,10)"/>
+    <xsl:variable name="new_time" select="substring($time/text(),1,19)"/>
     <xsl:variable name="hour" select="substring($time/text(),12,8)"/>
 
     <!-- Starting point: Match the root node and select the one and only
@@ -32,8 +33,8 @@
     <xsl:template match="/">
     <alert xmlns="urn:oasis:names:tc:emergency:cap:1.2">
         <identifier><xsl:value-of select="$id"/></identifier>
-        <sender>OVSICORI</sender>
-        <sent><xsl:value-of select="$time"/></sent>
+        <sender><xsl:value-of select="$ag"/></sender>
+        <sent><xsl:value-of select="$new_time"/>-00:00</sent>
         <status>Actual</status>
         <msgType>Alert</msgType>
         <scope>Private</scope>
