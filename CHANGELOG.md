@@ -12,13 +12,13 @@
     
  * scfinder
 
-  * New module: combines the EEW envelope and if available, the FinDer libraries for 
-    finite fault-line rupture detection and tracking in real-time
+   * New module: combines the EEW envelope and if available, the FinDer libraries for 
+     finite fault-line rupture detection and tracking in real-time
         
  * sceewlog
 
-  * Upgraded version of scvsmaglog fulfiling the same functionalities with both the new 
-        FinDer, and pre-existing VS magnitudes
+   * Upgraded version of scvsmaglog fulfiling the same functionalities with both the new 
+         FinDer, and pre-existing VS magnitudes
 
 * scvsmag
 
