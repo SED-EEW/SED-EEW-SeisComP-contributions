@@ -3,7 +3,7 @@
  * SC3ML 0.7 to CAP 1.2 stylesheet converter
  * Author  : Felix David Suarez Bonilla
  * Email   : felixdavidsuarezbonilla@gmail.com
- * Version : 0
+ * Version : 1
  * CAP and SC3ML are not similar schemas. They have different purposes. CAP
  * messages are meant for alerting about any emergency events and S3CM has
  * the purpose of representing seismological data.
@@ -45,8 +45,8 @@
             <urgency>Immediate</urgency>
             <severity>Extreme</severity>
             <certainty>Observed</certainty>
-            <headline>M<xsl:value-of select="round($mag*10) div 10"/> Earthquake Warning issued by <xsl:value-of select="$ag"/> on <xsl:value-of select="$date"/> at <xsl:value-of select="$hour"/></headline>
-            <instruction>Stay away from windows and objects that could fall. Go to a safe place and take cover.</instruction> 
+            <headline>M<xsl:value-of select="round($mag*10) div 10"/>Prueba de Alerta de Terremoto emitida por <xsl:value-of select="$ag"/> on <xsl:value-of select="$date"/> at <xsl:value-of select="$hour"/></headline>
+            <instruction>Manténgase alejado de ventanas y objetos que puedan caer. Vaya a un lugar seguro y cúbrase.</instruction> 
             <area>
                 <areaDesc><xsl:value-of select="$loc"/></areaDesc>
             </area>
