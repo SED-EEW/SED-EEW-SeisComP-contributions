@@ -18,7 +18,7 @@ INSTALL(FILES ud_interface.py DESTINATION ${PYTHON_LIBRARY_PATH})
 
 SET(UD_DATA config/sc3ml_0.11__quakeml_1.2-RT_eewd.xsl
 config/sc3ml_0.11__shakealert.xsl
-config/sc3ml_0.11__CAP_1.2.xsl
+config/sc3ml_0.11__cap_1.2.xsl
 )
 SC_INSTALL_DATA(UD ${EEWLOG_TARGET})
 ENDIF(SC_GLOBAL_PYTHON_WRAPPER)
