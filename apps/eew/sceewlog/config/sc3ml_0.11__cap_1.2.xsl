@@ -18,10 +18,9 @@
 
     <!-- Define some global variables -->
 
-    <xsl:variable name="mag" select="scs:seiscomp/scs:EventParameters/scs:amplitude/scs:amplitude/scs:value"/>
+    <xsl:variable name="mag" select="scs:seiscomp/scs:EventParameters/scs:origin/scs:magnitude/scs:magnitude/scs:value"/>
     <xsl:variable name="ag" select="scs:seiscomp/scs:EventParameters/scs:pick/scs:creationInfo/scs:agencyID"/>
-    <xsl:variable name="id" select="scs:seiscomp/scs:EventParameters/scs:pick/@publicID"/>
-    <xsl:variable name="new_id" select="scs:seiscomp/scs:EventParameters/scs:amplitude/@publicID"/>
+    <xsl:variable name="mag_id" select="scs:seiscomp/scs:EventParameters/scs:origin/scs:magnitude/@publicID"/>
     <xsl:variable name="time" select="scs:seiscomp/scs:EventParameters/scs:pick/scs:time/scs:value"/>
     <xsl:variable name="loc" select="scs:seiscomp/scs:EventParameters/scs:event/scs:description/scs:text"/>
     <xsl:variable name="date" select="substring($time/text(),1,10)"/>
@@ -32,7 +31,7 @@
          EventParameters node -->
     <xsl:template match="/">
     <alert xmlns="urn:oasis:names:tc:emergency:cap:1.2">
-        <identifier><xsl:value-of select="$id"/></identifier>
+        <identifier><xsl:value-of select="$mag_id"/></identifier>
         <sender><xsl:value-of select="$ag"/></sender>
         <sent><xsl:value-of select="$new_time"/>-00:00</sent>
         <status>Actual</status>
@@ -45,7 +44,7 @@
             <urgency>Immediate</urgency>
             <severity>Extreme</severity>
             <certainty>Observed</certainty>
-            <headline>M<xsl:value-of select="round($mag*10) div 10"/>Prueba de Alerta de Terremoto emitida por <xsl:value-of select="$ag"/> on <xsl:value-of select="$date"/> at <xsl:value-of select="$hour"/></headline>
+            <headline>M<xsl:value-of select="round($mag*10) div 10"/> Prueba de Alerta de Terremoto emitida por <xsl:value-of select="$ag"/> on <xsl:value-of select="$date"/> at <xsl:value-of select="$hour"/></headline>
             <instruction>Manténgase alejado de ventanas y objetos que puedan caer. Vaya a un lugar seguro y cúbrase.</instruction> 
             <area>
                 <areaDesc><xsl:value-of select="$loc"/></areaDesc>
