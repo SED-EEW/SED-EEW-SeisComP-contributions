@@ -15,15 +15,14 @@ GNU Affero General Public License for more details.
 @author: behry
 """
 
-from stompy.simple import Client
-import cStringIO
+from stomp import Connection 
+from io import BytesIO 
 import datetime
 import time
-import seiscomp3
-from seiscomp3.IO import Exporter, ExportSink
-import cStringIO
-import lxml.etree as ET
 import os
+import lxml.etree as ET
+import seiscomp
+from seiscomp.io import Exporter, ExportSink
 
 
 class UDException(Exception): pass
@@ -51,26 +50,26 @@ class UDConnection:
             self.password = password
             self.host = host
             self.port = port
-            self.stomp = Client(host=self.host, port=self.port)
-            self.stomp.connect(username=self.username, password=self.password)
-        except Exception, e:
+            self.stomp = Connection([(self.host, self.port)]) 
+            self.stomp.connect(self.username, self.password, wait=True) 
+        except Exception as e:
             raise UDException('Cannot connect to message broker (%s@%s:%d): %s.'\
                                % (username, host, port, e))
 
     def send(self, msg):
         try:
-            self.stomp.put(msg, destination=self.topic)
-        except Exception, e:
-            seiscomp3.Logging.error("ActiveMQ connection lost.")
+            self.stomp.send(self.topic, msg) 
+        except Exception as e:
+            seiscomp.logging.error("ActiveMQ connection lost.")
             # Wait for a bit in case the ActiveMQ broker is restarting
             time.sleep(10)
             try:
                 del self.stomp
-                self.stomp = Client(host=self.host, port=self.port)
-                self.stomp.connect(username=self.username, password=self.password)
-            except Exception, e:
+                self.stomp = Connection([(self.host, self.port)]) 
+                self.stomp.connect(self.username, self.password, wait=True) 
+            except Exception as e:
                 raise UDException('Cannot reconnect to server: %s' % e)
-            seiscomp3.Logging.info('Connection re-established.')
+            seiscomp.logging.info('Connection re-established.')
 
 
 class HeartBeat(UDConnection):
@@ -92,7 +91,7 @@ class HeartBeat(UDConnection):
             now = dt.strftime('%a %B %d %H:%M:%S %Y')
         root.set('timestamp', now)
         tree = ET.ElementTree(root)
-        f = cStringIO.StringIO()
+        f = BytesIO() 
         tree.write(f, encoding="UTF-8", xml_declaration=True, method='xml')
         msg = f.getvalue()
         self.send(msg)
@@ -104,7 +103,7 @@ class CoreEventInfo(UDConnection):
     def __init__(self, host, port, topic, username, password,
                  format='qml1.2-rt'):
         UDConnection.__init__(self, host, port, topic, username, password)
-        ei = seiscomp3.System.Environment.Instance()
+        ei = seiscomp.system.Environment.Instance()
         self.transform = None
         if format == 'qml1.2-rt':
             xslt = ET.parse(os.path.join(ei.shareDir(), 'sceewlog',
@@ -121,12 +120,12 @@ class CoreEventInfo(UDConnection):
         elif format == 'sc3ml':
             pass
         else:
-            seiscomp3.Logging.error('Currently supported AMQ message formats \
+            seiscomp.logging.error('Currently supported AMQ message formats \
             are sc3ml, qml1.2-rt, and shakealert.')
 
     def message_encoder(self, ep, pretty_print=True):
         exp = Exporter.Create('trunk')
-        io = cStringIO.StringIO()
+        io = BytesIO() 
         sink = Sink(io)
         exp.write(sink, ep)
         # apply XSLT
