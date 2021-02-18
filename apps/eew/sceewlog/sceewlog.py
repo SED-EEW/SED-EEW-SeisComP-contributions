@@ -23,7 +23,7 @@ import datetime
 from dateutil import tz
 import random
 import seiscomp.client, seiscomp.core
-import seiscomp.config, seiscomp.datamodel, seiscomp.system
+import seiscomp.config, seiscomp.datamodel, seiscomp.system, seiscomp.utils
 
 
 class Listener(seiscomp.client.Application):
@@ -423,7 +423,7 @@ class Listener(seiscomp.client.Application):
                 "Cannot send alert, no updates for ev %s (mag %s) " % (evID, magID))
             return
 
-        ep = EventParameters()
+        ep = seiscomp.datamodel.EventParameters()
         evt = self.cache.get(seiscomp.datamodel.Event, evID)
         if evt:
             ep.add(evt)
@@ -432,7 +432,7 @@ class Listener(seiscomp.client.Application):
         org = self.cache.get(seiscomp.datamodel.Origin, orgID)
         if org:
             ep.add(org)
-            for _ia in xrange(org.arrivalCount()):
+            for _ia in range(org.arrivalCount()):
                 pk = self.cache.get(seiscomp.datamodel.Pick,
                                     org.arrival(_ia).pickID())
                 if not pk:
@@ -538,7 +538,7 @@ class Listener(seiscomp.client.Application):
                         evt.creationInfo().creationTime()
                 if self.event_dict[evID]['timestamp'] > self.latest_event:
                     self.latest_event = self.event_dict[evID]['timestamp']
-                self.event_dict[evID]['report_timer'] = Utils.StopWatch(False)
+                self.event_dict[evID]['report_timer'] = seiscomp.utils.StopWatch(False)
 
         # check if we have already received magnitudes for this event,
         # if so try to generate a report
@@ -626,7 +626,7 @@ class Listener(seiscomp.client.Application):
 
                 # Attach the likelihood to the right update
                 updateno = None
-                for _updateno, _update_dict in self.event_dict[evID]['updates'].iteritems():
+                for _updateno, _update_dict in self.event_dict[evID]['updates'].items():
                     if magID != _update_dict['magID']:
                         continue
                     if updateno is None:

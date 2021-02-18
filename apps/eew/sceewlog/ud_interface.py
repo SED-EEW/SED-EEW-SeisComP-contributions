@@ -16,7 +16,8 @@ GNU Affero General Public License for more details.
 """
 
 from stomp import Connection 
-from io import BytesIO 
+from io import BytesIO
+from twisted.internet import reactor
 import datetime
 import time
 import os
@@ -28,6 +29,9 @@ from seiscomp.io import Exporter, ExportSink
 class UDException(Exception): pass
 
 
+b_str = lambda s: s.encode('utf-8', 'replace')
+
+
 class Sink(ExportSink):
     def __init__(self, buf):
         ExportSink.__init__(self)
@@ -35,7 +39,7 @@ class Sink(ExportSink):
         self.written = 0
 
     def write(self, data, size):
-        self.buf.write(data[:size])
+        self.buf.write(b_str(data[:size]))
         self.written += size
         return size
 
