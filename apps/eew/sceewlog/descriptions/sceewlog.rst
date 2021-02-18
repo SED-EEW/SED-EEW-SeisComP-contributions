@@ -26,7 +26,7 @@ currently no clients which can digest SeisComPML and the UserDisplay format
 more than one format.
 
 The real-time ActiveMQ interface requires the Python packages 
-`stompy`_ and `lxml`_ to be installed.
+`stomp.py`_ and `lxml`_ to be installed.
 
 It is beyond the scope of this documentation to explain the complete setup of an
 ActiveMQ broker. However, since sceewlog uses the STOMP protocol to send
