@@ -22,9 +22,10 @@
     <xsl:variable name="ag" select="scs:seiscomp/scs:EventParameters/scs:pick/scs:creationInfo/scs:agencyID"/>
     <xsl:variable name="mag_id" select="scs:seiscomp/scs:EventParameters/scs:origin/scs:magnitude/@publicID"/>
     <xsl:variable name="time" select="scs:seiscomp/scs:EventParameters/scs:pick/scs:time/scs:value"/>
+    <xsl:variable name="time2" select="scs:seiscomp/scs:EventParameters/scs:origin/scs:magnitude/scs:creationInfo/scs:creationTime"/>
     <xsl:variable name="loc" select="scs:seiscomp/scs:EventParameters/scs:event/scs:description/scs:text"/>
     <xsl:variable name="date" select="substring($time/text(),1,10)"/>
-    <xsl:variable name="new_time" select="substring($time/text(),1,19)"/>
+    <xsl:variable name="new_time" select="substring($time2/text(),1,19)"/>
     <xsl:variable name="hour" select="substring($time/text(),12,8)"/>
 
     <!-- Starting point: Match the root node and select the one and only
@@ -45,7 +46,7 @@
             <severity>Extreme</severity>
             <certainty>Observed</certainty>
             <headline>M<xsl:value-of select="round($mag*10) div 10"/> Prueba de Alerta de Terremoto emitida por <xsl:value-of select="$ag"/> on <xsl:value-of select="$date"/> at <xsl:value-of select="$hour"/></headline>
-            <instruction>Manténgase alejado de ventanas y objetos que puedan caer. Vaya a un lugar seguro y cúbrase.</instruction> 
+            <instruction>Mantengase alejado de ventanas y objetos que puedan caer. Vaya a un lugar seguro y cubrase.</instruction> 
             <area>
                 <areaDesc><xsl:value-of select="$loc"/></areaDesc>
             </area>
