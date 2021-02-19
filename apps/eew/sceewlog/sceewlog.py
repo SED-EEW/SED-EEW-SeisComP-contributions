@@ -492,25 +492,30 @@ class Listener(seiscomp.client.Application):
         tcutoff = self.latest_event - seiscomp.core.TimeSpan(self.expirationtime)
         for evID in self.event_dict.keys():
             if self.event_dict[evID]['timestamp'] < tcutoff:
-                self.event_dict.pop(evID)
                 eventsRemoved.add(evID)
-                seiscomp.logging.debug("Expired event %s" % evID)
+        for evID in eventsRemoved:
+            self.event_dict.pop(evID)
+            seiscomp.logging.debug("Expired event %s" % evID)
 
         originsRemoved = set()
         if eventsRemoved:
             for _orgID, _evID in self.event_lookup.items():
                 if _evID in eventsRemoved:
-                    self.event_lookup.pop(_orgID)
-                    originsRemoved.add(_orgID)
-                    seiscomp.logging.debug(
-                        "Expired origin %s (ev %s)" % (_orgID, _evID))
-
+                    originsRemoved.add((_orgID,_evID))
+            for _orgID,_evID in originsRemoved:
+                self.event_lookup.pop(_orgID)
+                debuglog="Expired origin %s (ev %s)"
+                seiscomp.logging.debug(debuglog % (_orgID, _evID))
+        
+        magnitudesRemoved = set()
         if originsRemoved:
             for _magID, _orgID in self.origin_lookup.items():
                 if _orgID in originsRemoved:
-                    self.origin_lookup.pop(_magID)
-                    seiscomp.logging.debug(
-                        "Expired mag %s (org %s)" % (_magID, _orgID))
+                    magnitudesRemoved.add((_magID, _orgID))
+            for _magID, _orgID in magnitudesRemoved: 
+                self.origin_lookup.pop(_magID)
+                debuglog="Expired mag %s (org %s)"
+                seiscomp.logging.debug(debuglog % (_magID, _orgID))
 
     def handleEvent(self, evt):
         """
