@@ -134,7 +134,7 @@ class Listener(seiscomp.client.Application):
                 self.ssl = False
             self.auth = self.configGetBool("email.authenticate")
             if (self.auth):
-                cf = seiscomp.Config.Config()
+                cf = seiscomp.config.Config()
                 cf.readConfig(self.configGetString("email.credentials"))
                 self.username = cf.getString('username')
                 self.password = cf.getString('password')
