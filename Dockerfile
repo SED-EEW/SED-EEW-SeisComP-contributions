@@ -79,8 +79,8 @@ RUN echo 'force-unsafe-io' | tee /etc/dpkg/dpkg.cfg.d/02apt-speedup \
     libfaketime 
 
 # Install FinDer
-ADD . / $WORK_DIR/FinDer/
-RUN cd $WORK_DIR/FinDer/libsrc \
+RUN git clone git@github.com:FMassin/FinDer.git $WORK_DIR/FinDer/ \
+    && cd $WORK_DIR/FinDer/libsrc \
     && make clean \
     && make \
     && make no_timestamp \
