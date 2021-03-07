@@ -8,8 +8,8 @@ RUN apt-get install -y git
 # add credentials on build
 ARG SSH_PRIVATE_KEY
 RUN mkdir /root/.ssh/
-RUN echo "${SSH_PRIVATE_KEY}" 
-RUN echo "${SSH_PRIVATE_KEY}" > /root/.ssh/id_rsa
+RUN echo "${SSH_PRIVATE_KEY}"|sed 's/NEWLINE/\n/g' 
+RUN echo "${SSH_PRIVATE_KEY}"|sed 's/NEWLINE/\n/g' > /root/.ssh/id_rsa
 
 # make sure your domain is accepted
 RUN touch /root/.ssh/known_hosts
