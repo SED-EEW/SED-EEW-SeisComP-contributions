@@ -70,7 +70,7 @@ RUN echo 'force-unsafe-io' | tee /etc/dpkg/dpkg.cfg.d/02apt-speedup \
     # misc
     git \
     vim \
-    wget
+    wget \
     # FinDer
     gmt \
     libgmt-dev \
