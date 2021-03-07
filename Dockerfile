@@ -1,3 +1,26 @@
+# this is our first build stage, it will not persist in the final image
+FROM debian:buster-slim as intermediate
+
+# install git
+RUN apt-get update
+RUN apt-get install -y git
+
+# add credentials on build
+ARG SSH_PRIVATE_KEY
+RUN mkdir /root/.ssh/
+RUN echo "${SSH_PRIVATE_KEY}" 
+RUN echo "${SSH_PRIVATE_KEY}" > /root/.ssh/id_rsa
+
+# make sure your domain is accepted
+RUN touch /root/.ssh/known_hosts
+RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
+
+RUN chmod 600  /root/.ssh/id_rsa
+RUN chmod 644 /root/.ssh/known_hosts
+
+RUN git clone git@github.com:FMassin/FinDer.git  
+
+#######################
 FROM debian:buster-slim
 
 MAINTAINER Fred Massin  <fmassin@sed.ethz.ch>
@@ -78,9 +101,10 @@ RUN echo 'force-unsafe-io' | tee /etc/dpkg/dpkg.cfg.d/02apt-speedup \
     # playback
     libfaketime 
 
+# copy the repository form the previous image
+COPY --from=intermediate /FinDer $WORK_DIR/FinDer/
 # Install FinDer
-RUN git clone git@github.com:FMassin/FinDer.git $WORK_DIR/FinDer/ \
-    && cd $WORK_DIR/FinDer/libsrc \
+RUN cd $WORK_DIR/FinDer/libsrc \
     && make clean \
     && make \
     && make no_timestamp \
