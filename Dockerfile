@@ -3,12 +3,12 @@ FROM debian:buster-slim as intermediate
 
 # install git
 RUN apt-get update
-RUN apt-get install -y git
+RUN apt-get install -y make g++ git gmt libgmt-dev libopencv-dev
 
 # add credentials on build
 ARG SSH_PRIVATE_KEY
 RUN mkdir /root/.ssh/
-RUN echo "${SSH_PRIVATE_KEY}"|sed 's/NEWLINE/\n/g' 
+# RUN echo "${SSH_PRIVATE_KEY}"|sed 's/NEWLINE/\n/g' 
 RUN echo "${SSH_PRIVATE_KEY}"|sed 's/NEWLINE/\n/g' > /root/.ssh/id_rsa
 
 # make sure your domain is accepted
@@ -18,7 +18,20 @@ RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
 RUN chmod 600  /root/.ssh/id_rsa
 RUN chmod 644 /root/.ssh/known_hosts
 
-RUN git clone git@github.com:FMassin/FinDer.git  
+# Install FinDer
+RUN git clone git@github.com:FMassin/FinDer.git  \
+    && cd /FinDer/libsrc \
+    && git checkout master \
+    && make clean \
+    && make \
+    && make no_timestamp \
+    && make test \
+    && make install \
+    && cd /FinDer/finder_file \
+    && make clean \
+    && make \
+    && make test \
+    && cp finder_run finder_create_mask create_new_mask.sh  /usr/local/include/finder/
 
 #######################
 FROM debian:buster-slim
@@ -94,29 +107,8 @@ RUN echo 'force-unsafe-io' | tee /etc/dpkg/dpkg.cfg.d/02apt-speedup \
     git \
     vim \
     wget \
-    # FinDer
-    gmt \
-    libgmt-dev \
-    libopencv-dev \
     # playback
     libfaketime 
-
-# copy the repository form the previous image
-COPY --from=intermediate /FinDer $WORK_DIR/FinDer/
-# Install FinDer
-RUN cd $WORK_DIR/FinDer/libsrc \
-    && make clean \
-    && make \
-    && make no_timestamp \
-    && make test \
-    && make install \
-    cd $WORK_DIR/FinDer/finder_file \
-    && make clean \
-    && make \
-    && make test \
-    && cp finder_run finder_create_mask create_new_mask.sh ../ \
-    && rm -r $WORK_DIR/FinDer/libsrc \
-    && rm -r $WORK_DIR/FinDer/finder_file
 
 # Install seiscomp
 RUN git clone https://github.com/SeisComP3/seiscomp3.git $WORK_DIR/seiscomp3 \
@@ -132,6 +124,10 @@ RUN git clone https://github.com/SeisComP3/seiscomp3.git $WORK_DIR/seiscomp3 \
        -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
     && make -j $(grep -c processor /proc/cpuinfo) \
     && make install
+
+# copy the repository form the previous image
+COPY --from=intermediate /usr/local/lib/finder  /usr/local/lib/finder 
+COPY --from=intermediate /usr/local/include/finder/libFinder.a /usr/local/include/finder/libFinder.a
 
 # Install addons
 ADD ./ $WORK_DIR/seiscomp3/src/sed-addons/
