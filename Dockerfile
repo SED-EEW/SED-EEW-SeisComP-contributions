@@ -71,7 +71,28 @@ RUN echo 'force-unsafe-io' | tee /etc/dpkg/dpkg.cfg.d/02apt-speedup \
     git \
     vim \
     wget
+    # FinDer
+    gmt \
+    libgmt-dev \
+    libopencv-dev \
+    # playback
+    libfaketime 
 
+# Install FinDer
+ADD . / $WORK_DIR/FinDer/
+RUN cd $WORK_DIR/FinDer/libsrc \
+    && make clean \
+    && make \
+    && make no_timestamp \
+    && make test \
+    && make install \
+    cd $WORK_DIR/FinDer/finder_file \
+    && make clean \
+    && make \
+    && make test \
+    && cp finder_run finder_create_mask create_new_mask.sh ../ \
+    && rm -r $WORK_DIR/FinDer/libsrc \
+    && rm -r $WORK_DIR/FinDer/finder_file
 
 # Install seiscomp
 RUN git clone https://github.com/SeisComP3/seiscomp3.git $WORK_DIR/seiscomp3 \
@@ -98,6 +119,8 @@ RUN cd $WORK_DIR/seiscomp3/build \
        -DSC_TRUNK_DB_POSTGRESQL=ON \
        -DSC_TRUNK_DB_SQLITE3=ON \
        -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
+       -DFinDer_INCLUDE_DIR=/usr/local/include/finder \
+       -DFinDer_LIBRARY=/usr/local/lib/libFinder.a \
     && make -j $(grep -c processor /proc/cpuinfo) \
     && make install
 
