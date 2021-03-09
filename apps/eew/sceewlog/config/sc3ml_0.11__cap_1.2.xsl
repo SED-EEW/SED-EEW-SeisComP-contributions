@@ -21,12 +21,18 @@
     <xsl:variable name="mag" select="scs:seiscomp/scs:EventParameters/scs:origin/scs:magnitude/scs:magnitude/scs:value"/>
     <xsl:variable name="ag" select="scs:seiscomp/scs:EventParameters/scs:pick/scs:creationInfo/scs:agencyID"/>
     <xsl:variable name="mag_id" select="scs:seiscomp/scs:EventParameters/scs:origin/scs:magnitude/@publicID"/>
-    <xsl:variable name="time" select="scs:seiscomp/scs:EventParameters/scs:pick/scs:time/scs:value"/>
+    <xsl:variable name="org_id" select="scs:seiscomp/scs:EventParameters/scs:origin/@publicID"/>
     <xsl:variable name="time2" select="scs:seiscomp/scs:EventParameters/scs:origin/scs:magnitude/scs:creationInfo/scs:creationTime"/>
     <xsl:variable name="loc" select="scs:seiscomp/scs:EventParameters/scs:event/scs:description/scs:text"/>
-    <xsl:variable name="date" select="substring($time/text(),1,10)"/>
+    <xsl:variable name="full_time" select="substring($mag_id,19,6)"/>
+    <xsl:variable name="hour" select="substring($mag_id,19,2)"/>
+    <xsl:variable name="minute" select="substring($mag_id,21,2)"/>
+    <xsl:variable name="second" select="substring($mag_id,23,2)"/>
+    <xsl:variable name="date" select="substring($mag_id,11,8)"/>
+    <xsl:variable name="year" select="substring($mag_id,11,4)"/>
+    <xsl:variable name="month" select="substring($mag_id,15,2)"/>
+    <xsl:variable name="day" select="substring($mag_id,17,2)"/>
     <xsl:variable name="new_time" select="substring($time2/text(),1,19)"/>
-    <xsl:variable name="hour" select="substring($time/text(),12,8)"/>
 
     <!-- Starting point: Match the root node and select the one and only
          EventParameters node -->
@@ -45,11 +51,23 @@
             <urgency>Immediate</urgency>
             <severity>Extreme</severity>
             <certainty>Observed</certainty>
-            <headline>M<xsl:value-of select="round($mag*10) div 10"/> Prueba de Alerta de Terremoto emitida por <xsl:value-of select="$ag"/> on <xsl:value-of select="$date"/> at <xsl:value-of select="$hour"/></headline>
+	    <headline>M<xsl:value-of select="round($mag*10) div 10"/> Prueba de Alerta de Terremoto emitida por <xsl:value-of select="$ag"/> a las <xsl:value-of select="$hour"/>:<xsl:value-of select="$minute"/>:<xsl:value-of select="$second"/> el dia <xsl:value-of select="$day"/>-<xsl:value-of select="$month"/>-<xsl:value-of select="$year"/></headline>
             <instruction>Mantengase alejado de ventanas y objetos que puedan caer. Vaya a un lugar seguro y cubrase.</instruction> 
+            <parameter>
+	    <valueName>creationTime</valueName>
+	    <value><xsl:value-of select="$time2"/></value>
+	    </parameter>
+            <parameter>
+	    <valueName>magnitudTime</valueName>
+	    <value><xsl:value-of select="$mag_id"/></value>
+	    </parameter>
+            <parameter>
+	    <valueName>magnitudTime</valueName>
+	    <value><xsl:value-of select="$org_id"/></value>
+	    </parameter>
             <area>
                 <areaDesc><xsl:value-of select="$loc"/></areaDesc>
-            </area>
+	    </area>
         </info>
     </alert>
     </xsl:template>
