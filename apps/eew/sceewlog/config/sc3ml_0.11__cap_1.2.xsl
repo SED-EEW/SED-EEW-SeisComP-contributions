@@ -22,6 +22,7 @@
     <xsl:variable name="ag" select="scs:seiscomp/scs:EventParameters/scs:pick/scs:creationInfo/scs:agencyID"/>
     <xsl:variable name="mag_id" select="scs:seiscomp/scs:EventParameters/scs:origin/scs:magnitude/@publicID"/>
     <xsl:variable name="org_id" select="scs:seiscomp/scs:EventParameters/scs:origin/@publicID"/>
+    <xsl:variable name="event_id" select="scs:seiscomp/scs:EventParameters/scs:event/@publicID"/>
     <xsl:variable name="time2" select="scs:seiscomp/scs:EventParameters/scs:origin/scs:magnitude/scs:creationInfo/scs:creationTime"/>
     <xsl:variable name="loc" select="scs:seiscomp/scs:EventParameters/scs:event/scs:description/scs:text"/>
     <xsl:variable name="full_time" select="substring($mag_id,19,6)"/>
@@ -38,7 +39,7 @@
          EventParameters node -->
     <xsl:template match="/">
     <alert xmlns="urn:oasis:names:tc:emergency:cap:1.2">
-        <identifier><xsl:value-of select="$mag_id"/></identifier>
+        <identifier><xsl:value-of select="$event_id"/></identifier>
         <sender><xsl:value-of select="$ag"/></sender>
         <sent><xsl:value-of select="$new_time"/>-00:00</sent>
         <status>Actual</status>
@@ -54,16 +55,8 @@
 	    <headline>M<xsl:value-of select="round($mag*10) div 10"/> Prueba de Alerta de Terremoto emitida por <xsl:value-of select="$ag"/> a las <xsl:value-of select="$hour"/>:<xsl:value-of select="$minute"/>:<xsl:value-of select="$second"/> el dia <xsl:value-of select="$day"/>-<xsl:value-of select="$month"/>-<xsl:value-of select="$year"/></headline>
             <instruction>Mantengase alejado de ventanas y objetos que puedan caer. Vaya a un lugar seguro y cubrase.</instruction> 
             <parameter>
-	    <valueName>creationTime</valueName>
+	    <valueName>magnitudcreationTime</valueName>
 	    <value><xsl:value-of select="$time2"/></value>
-	    </parameter>
-            <parameter>
-	    <valueName>magnitudTime</valueName>
-	    <value><xsl:value-of select="$mag_id"/></value>
-	    </parameter>
-            <parameter>
-	    <valueName>magnitudTime</valueName>
-	    <value><xsl:value-of select="$org_id"/></value>
 	    </parameter>
             <area>
                 <areaDesc><xsl:value-of select="$loc"/></areaDesc>
