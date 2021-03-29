@@ -21,18 +21,17 @@
     <xsl:variable name="mag" select="scs:seiscomp/scs:EventParameters/scs:origin/scs:magnitude/scs:magnitude/scs:value"/>
     <xsl:variable name="ag" select="scs:seiscomp/scs:EventParameters/scs:pick/scs:creationInfo/scs:agencyID"/>
     <xsl:variable name="mag_id" select="scs:seiscomp/scs:EventParameters/scs:origin/scs:magnitude/@publicID"/>
-    <xsl:variable name="org_id" select="scs:seiscomp/scs:EventParameters/scs:origin/@publicID"/>
+    <xsl:variable name="org_id" select="scs:seiscomp/scs:EventParameters/scs:origin/scs:time/scs:value"/>
     <xsl:variable name="event_id" select="scs:seiscomp/scs:EventParameters/scs:event/@publicID"/>
     <xsl:variable name="time2" select="scs:seiscomp/scs:EventParameters/scs:origin/scs:magnitude/scs:creationInfo/scs:creationTime"/>
     <xsl:variable name="loc" select="scs:seiscomp/scs:EventParameters/scs:event/scs:description/scs:text"/>
-    <xsl:variable name="full_time" select="substring($mag_id,19,6)"/>
-    <xsl:variable name="hour" select="substring($mag_id,19,2)"/>
-    <xsl:variable name="minute" select="substring($mag_id,21,2)"/>
-    <xsl:variable name="second" select="substring($mag_id,23,2)"/>
-    <xsl:variable name="date" select="substring($mag_id,11,8)"/>
-    <xsl:variable name="year" select="substring($mag_id,11,4)"/>
-    <xsl:variable name="month" select="substring($mag_id,15,2)"/>
-    <xsl:variable name="day" select="substring($mag_id,17,2)"/>
+    <xsl:variable name="full_time" select="substring($org_id,1,25)"/>
+    <xsl:variable name="hour" select="substring($org_id,12,2)"/>
+    <xsl:variable name="minute" select="substring($org_id,21,2)"/>
+    <xsl:variable name="second" select="substring($org_id,18,2)"/>
+    <xsl:variable name="year" select="substring($org_id,1,4)"/>
+    <xsl:variable name="month" select="substring($org_id,6,2)"/>
+    <xsl:variable name="day" select="substring($org_id,9,2)"/>
     <xsl:variable name="new_time" select="substring($time2/text(),1,19)"/>
 
     <!-- Starting point: Match the root node and select the one and only
@@ -57,6 +56,8 @@
             <parameter>
 	    <valueName>magnitudcreationTime</valueName>
 	    <value><xsl:value-of select="$time2"/></value>
+	    <valueName>originTime</valueName>
+	    <value><xsl:value-of select="$org_id"/></value>
 	    </parameter>
             <area>
                 <areaDesc><xsl:value-of select="$loc"/></areaDesc>
