@@ -1,39 +1,3 @@
-# this is our first build stage, it will not persist in the final image
-FROM debian:buster-slim as intermediate
-
-# install git
-RUN apt-get update
-RUN apt-get install -y make g++ git gmt libgmt-dev libopencv-dev
-
-# add credentials on build
-ARG SSH_PRIVATE_KEY
-RUN mkdir /root/.ssh/
-# RUN echo "${SSH_PRIVATE_KEY}"|sed 's/NEWLINE/\n/g' 
-RUN echo "${SSH_PRIVATE_KEY}"|sed 's/NEWLINE/\n/g' > /root/.ssh/id_rsa
-
-# make sure your domain is accepted
-RUN touch /root/.ssh/known_hosts
-RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
-
-RUN chmod 600  /root/.ssh/id_rsa
-RUN chmod 644 /root/.ssh/known_hosts
-
-# Install FinDer
-RUN git clone git@github.com:FMassin/FinDer.git  \
-    && cd /FinDer/libsrc \
-    && git checkout master \
-    && make clean \
-    && make \
-    && make no_timestamp \
-    && make test \
-    && make install \
-    && cd /FinDer/finder_file \
-    && make clean \
-    && make \
-    && make test \
-    && cp finder_run finder_create_mask create_new_mask.sh  /usr/local/include/finder/
-
-#######################
 FROM debian:buster-slim
 
 MAINTAINER Fred Massin  <fmassin@sed.ethz.ch>
@@ -103,13 +67,47 @@ RUN echo 'force-unsafe-io' | tee /etc/dpkg/dpkg.cfg.d/02apt-speedup \
     openssl \
     libssl-dev \
     net-tools \
+    # FinDer \
+    gmt libgmt-dev libopencv-dev \
     # misc
-    git \
-    vim \
-    wget \
+    git vim wget \
     # playback
     libfaketime 
 
+
+
+# Install FinDer
+## add credentials on build
+ARG SSH_PRIVATE_KEY
+RUN mkdir /root/.ssh/
+# RUN echo "${SSH_PRIVATE_KEY}"|sed 's/NEWLINE/\n/g'
+RUN echo "${SSH_PRIVATE_KEY}"|sed 's/NEWLINE/\n/g' > /root/.ssh/id_rsa
+
+## make sure your domain is accepted
+RUN touch /root/.ssh/known_hosts
+RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
+
+RUN chmod 600  /root/.ssh/id_rsa
+RUN chmod 644 /root/.ssh/known_hosts
+
+## compile
+RUN git clone git@github.com:FMassin/FinDer.git $WORK_DIR/FinDer \
+    && cd $WORK_DIR/FinDer/libsrc \
+    && git checkout master \
+    && make clean \
+    && make \
+    && make no_timestamp \
+    && make test \
+    && make install \
+    && cd /FinDer/finder_file \
+    && make clean \
+    && make \
+    && make test
+
+## clean
+RUN rm $WORK_DIR/FinDer/libsrc/*.cc $WORK_DIR/FinDer/libsrc/*.h 
+RUN rm $WORK_DIR/FinDer/finder_file/*.cc $WORK_DIR/FinDer/finder_file/*.h
+    
 # Install seiscomp
 RUN git clone https://github.com/SeisComP3/seiscomp3.git $WORK_DIR/seiscomp3 \
     && mkdir -p $WORK_DIR/seiscomp3/build \
@@ -124,10 +122,6 @@ RUN git clone https://github.com/SeisComP3/seiscomp3.git $WORK_DIR/seiscomp3 \
        -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
     && make -j $(grep -c processor /proc/cpuinfo) \
     && make install
-
-# copy the repository form the previous image
-COPY --from=intermediate /usr/local/lib/finder  /usr/local/lib/finder 
-COPY --from=intermediate /usr/local/include/finder/libFinder.a /usr/local/include/finder/libFinder.a
 
 # Install addons
 ADD ./ $WORK_DIR/seiscomp3/src/sed-addons/
