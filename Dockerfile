@@ -105,9 +105,17 @@ RUN cd $WORK_DIR/FinDer/finder_file \
     && make \
     && make test
 
-## clean source code
-RUN rm $WORK_DIR/FinDer/libsrc/*.cc $WORK_DIR/FinDer/libsrc/*.h
-RUN rm $WORK_DIR/FinDer/finder_file/*.cc $WORK_DIR/FinDer/finder_file/*.h
+## clean FinDer source code
+RUN mkdir -p $INSTALL_DIR/share/FinDer \
+    && rm $WORK_DIR/FinDer/libsrc/*.cc \
+          $WORK_DIR/FinDer/libsrc/*.h \
+          $WORK_DIR/FinDer/finder_file/*.cc \
+          $WORK_DIR/FinDer/finder_file/*.h \
+    && mv $WORK_DIR/FinDer/config \
+          $WORK_DIR/FinDer/finder_file \
+          $WORK_DIR/FinDer/libsrc \
+          $INSTALL_DIR/share/FinDer/ \
+    && rm -r $WORK_DIR/FinDer
     
 # Install seiscomp
 RUN git clone https://github.com/SeisComP3/seiscomp3.git $WORK_DIR/seiscomp3 \
@@ -138,6 +146,9 @@ RUN cd $WORK_DIR/seiscomp3/build \
        -DFinDer_LIBRARY=/usr/local/lib/libFinder.a \
     && make -j $(grep -c processor /proc/cpuinfo) \
     && make install
+
+# clean seiscomp source code
+RUN rm -r $WORK_DIR/seiscomp3
 
 # Setup ssh access
 RUN mkdir /var/run/sshd
