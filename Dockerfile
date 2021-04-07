@@ -98,14 +98,15 @@ RUN git clone git@github.com:FMassin/FinDer.git $WORK_DIR/FinDer \
     && make \
     && make no_timestamp \
     && make test \
-    && make install \
-    && cd /FinDer/finder_file \
+    && make install
+
+RUN cd $WORK_DIR/FinDer/finder_file \
     && make clean \
     && make \
     && make test
 
-## clean
-RUN rm $WORK_DIR/FinDer/libsrc/*.cc $WORK_DIR/FinDer/libsrc/*.h 
+## clean source code
+RUN rm $WORK_DIR/FinDer/libsrc/*.cc $WORK_DIR/FinDer/libsrc/*.h
 RUN rm $WORK_DIR/FinDer/finder_file/*.cc $WORK_DIR/FinDer/finder_file/*.h
     
 # Install seiscomp
