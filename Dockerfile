@@ -163,12 +163,7 @@ USER sysop
 #### SeisComp3 settings ###
 ## Configure
 RUN /opt/seiscomp3/bin/seiscomp print env >> /home/sysop/.profile
-#RUN echo 'export SEISCOMP_ROOT="/opt/seiscomp3/"' >> /home/sysop/.profile
-#RUN echo 'export LD_LIBRARY_PATH="$SEISCOMP_ROOT/lib:/usr/local/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH"'>> /home/sysop/.profile
-#RUN echo 'export PYTHONPATH="$PYTHONPATH:$SEISCOMP_ROOT/lib/python"' >> /home/sysop/.profile
-#RUN echo 'export MANPATH="$SEISCOMP_ROOT/man:$MANPATH"' >> /home/sysop/.profile
-#RUN echo 'export PATH="$SEISCOMP_ROOT/bin:$PATH"' >> /home/sysop/.profile
-#RUN echo 'source $SEISCOMP_ROOT/share/shell-completion/seiscomp.bash' >> /home/sysop/.profile
+RUN echo 'export LD_LIBRARY_PATH="/usr/local/lib/:$LD_LIBRARY_PATH"'>> /home/sysop/.profile
 RUN echo 'date' >> /home/sysop/.profile
 RUN echo 'echo \$SEISCOMP_ROOT is $SEISCOMP_ROOT' >> /home/sysop/.profile
 RUN echo 'seiscomp status |grep "is running"' >> /home/sysop/.profile
