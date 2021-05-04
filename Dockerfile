@@ -67,7 +67,9 @@ RUN echo 'force-unsafe-io' | tee /etc/dpkg/dpkg.cfg.d/02apt-speedup \
     openssl \
     libssl-dev \
     net-tools \
-    # FinDer \
+    # Doc build
+    python-sphinx \
+    # FinDer 
     gmt libgmt-dev libopencv-dev \
     # misc
     git vim wget \
