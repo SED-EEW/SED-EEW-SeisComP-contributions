@@ -136,6 +136,7 @@ RUN git clone https://github.com/SeisComP3/seiscomp3.git $WORK_DIR/seiscomp3 \
 ADD ./ $WORK_DIR/seiscomp3/src/sed-addons/
 RUN cd $WORK_DIR/seiscomp3/build \
     && cmake .. \
+       -DSC_DOC_GENERATE=ON \
        -DSC_GLOBAL_GUI=ON \
        -DSC_IPGPADDONS_GUI_APPS=ON \
        -DSC_TRUNK_DB_MYSQL=ON \
