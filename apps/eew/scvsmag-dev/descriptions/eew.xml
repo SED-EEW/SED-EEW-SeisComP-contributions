@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<seiscomp>
+	<module name="EEW" category="EEW" standalone="true" author="Swiss Seismological Service">
+		<description>
+		Addons for near instantaneous estimates of earthquake magnitude.
+		</description>
+	</module>
+</seiscomp>
