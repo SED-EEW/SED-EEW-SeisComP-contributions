@@ -69,6 +69,7 @@ RUN echo 'force-unsafe-io' | tee /etc/dpkg/dpkg.cfg.d/02apt-speedup \
     net-tools \
     # Doc build
     python-sphinx \
+    firefox-esr \
     # FinDer 
     gmt libgmt-dev libopencv-dev \
     # misc
