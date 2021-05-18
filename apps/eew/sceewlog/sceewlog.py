@@ -588,9 +588,44 @@ class Listener(seiscomp3.Client.Application):
                 if comment.id() == 'likelihood':
                     evt = self.cache.get(seiscomp3.DataModel.Event, evID)
                     if evt:
+                        # Check if orgID is mising from the Event
+                        orgFound = False
+                        for i in range(evt.originReferenceCount()):
+                            if evt.originReference(i).originID() == orgID:
+                                orgFound = True
+                                break
+
+                        # if orgID is mising add it to the event
+                        if not orgFound:
+                            seiscomp3.Logging.debug(
+                                "Event %s doesn't have origin %s, add it then" % (evID, orgID))
+                            orgRef = seiscomp3.DataModel.OriginReference(orgID)
+                            evt.add(orgRef)
+
+                        # Check if magID is mising from orgID
+                        magFound = False
+                        tmpOrg = self.cache.get(seiscomp3.DataModel.Origin, orgID)
+                        for i in range(tmpOrg.magnitudeCount()):
+                            if tmpOrg.magnitude(i).publicID() == magID:
+                                magFound = True
+                                break
+ 
+                        if not magFound:
+                            # here we should add the missing magnitude but
+                            # for now just log the error
+                            seiscomp3.Logging.error(
+                                "Origin %s doesn't have magnitude %s (event %s)" % (orgID, magID, evID))
+                            continue
+
+                        evt.setPreferredOriginID(orgID)
                         evt.setPreferredMagnitudeID(magID)
                     else:
                         seiscomp3.Logging.debug("Cannot find event %s in cache." % evID)
+
+                if evID not in self.event_dict:
+                    seiscomp3.Logging.error("Internal logic error: cannot find \
+                        event %s in self.event_dict" % evID)
+                    continue
 
                 # Attach the likelihood to the right update
                 updateno = None
