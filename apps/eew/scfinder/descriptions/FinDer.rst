@@ -2,7 +2,7 @@ Part of the :ref:`EEW` package.
 
 The `Finite-Fault Rupture Detector`_ (FinDer) Earthquake Early Warning algorithm
 (Böse et al., 2012; Böse et al., 2015; Böse et al., 2018) has been implemented
-with an API which is used by the :ref:`scfinder` wrapper module. The
+with an API. To integrate FinDer within SeisComP, a wrapper module :ref:`scfinder` uses this API. The
 :ref:`scfinder` module requires FinDer to be installed and SeisComP to be
 compiled from source. The source code for FinDer is distributed separately by
 the SED.
@@ -11,18 +11,17 @@ the SED.
 The Finite-Fault Rupture Detector
 ---------------------------------
 
-Seismic-ground motions in large earthquakes are controlled by the distance to
-the rupturing fault, not by the hypocentral distance as is assumed in
-traditional point-source algorithms. The Finite-Fault Rupture Detector (FinDer)
-algorithm (Böse et al., 2012) determines fast and robust line-source models of
+The ground motion observed during large earthquakes is controlled by the distance to
+the rupturing fault, not by the hypocentral distance. Traditional point-source algorithms can only provide the hypocentral distance. The Finite-Fault Rupture Detector (FinDer)
+algorithm (Böse et al., 2012) can determine fast and robust line-source models of
 large earthquakes in order to enhance ground-motion predictions for earthquake
 early warning (EEW) and rapid response. The algorithm quantifies model
 uncertainties in terms of likelihood functions (Böse et al., 2015), and can be
 applied across the entire magnitude range from M2 to M9 (Böse et al., 2018).
 
-The FinDer algorithm is based on template matching, in which the spatial
+The FinDer algorithm is based on template matching, in which the evolving spatial
 distribution of high-frequency ground-motion amplitudes (usually peak ground
-acceleration, PGA) in a seismic monitoring network is continuously compared
+acceleration, PGA) observed on a seismic monitoring network is continuously compared
 with theoretical template maps. These templates are pre-computed from empirical
 ground-motion prediction equations (GMPEs) for line-sources of different
 lengths and magnitudes, and can be rotated on-the-fly to constrain the strike of
@@ -35,7 +34,7 @@ by the line-source centroid, length, strike and corresponding likelihood
 functions. The model is updated every second until peak shaking is reached, thus
 allowing to keep track of fault ruptures while they are still evolving.
 
-Compared to other, more traditional EEW algorithms, FinDer has a number of
+Compared to traditional point-source EEW algorithms, FinDer has a number of
 interesting features (see Böse et al., 2018 for details):
 
 - Characterization of seismic ground-motions rather than earthquake sources;
@@ -57,7 +56,7 @@ EEW License
 ===========
 
 The SeisComP EEW modules are free and open source, and the *scfinder* module is
-part of the SeisComP distribution from Jakarta v2020.330. They are distributed
+part of the SeisComP distribution starting from Jakarta v2020.330. They are distributed
 under the GNU Affero General Public License (Free Software Foundation, version 3
 or later).
 
