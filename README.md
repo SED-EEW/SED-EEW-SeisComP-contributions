@@ -1,6 +1,6 @@
 # Description
 
-The *sed-addons* package contains SeisComP-based software for SED with restricted distribution, including the modules
+The *sed-addons* package contains SeisComP-based software developed by the ETHZ-SED seismic network team that has not been integrated into the main SeisComP distribution. Software includes the modules
 
   - **scfinder** which matches emerging patterns of strong motion from the seismic network with most likely seismic sources to predict
     location and size of finite faults, and from this, infers event magnitude and expected ground motion patterns.
