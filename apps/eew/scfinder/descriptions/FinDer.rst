@@ -1,19 +1,12 @@
 Part of the :ref:`EEW` package.
 
-The `Finite-Fault Rupture Detector`_ (FinDer) Earthquake Early Warning algorithm
-(Böse et al., 2012; Böse et al., 2015; Böse et al., 2018) has been implemented
-with an API. To integrate FinDer within SeisComP, a wrapper module :ref:`scfinder` uses this API. The
-:ref:`scfinder` module requires FinDer to be installed and SeisComP to be
-compiled from source. The source code for FinDer is distributed separately by
-the SED.
-
 
 The Finite-Fault Rupture Detector
 ---------------------------------
 
 The ground motion observed during large earthquakes is controlled by the distance to
-the rupturing fault, not by the hypocentral distance. Traditional point-source algorithms can only provide the hypocentral distance. The Finite-Fault Rupture Detector (FinDer)
-algorithm (Böse et al., 2012) can determine fast and robust line-source models of
+the rupturing fault, not by the hypocentral distance. Traditional point-source algorithms can only provide the hypocentral distance. The `Finite-Fault Rupture Detector`_ (FinDer) Earthquake Early Warning algorithm
+ (Böse et al., 2012) can determine fast and robust line-source models of
 large earthquakes in order to enhance ground-motion predictions for earthquake
 early warning (EEW) and rapid response. The algorithm quantifies model
 uncertainties in terms of likelihood functions (Böse et al., 2015), and can be
@@ -47,9 +40,32 @@ interesting features (see Böse et al., 2018 for details):
 - Enables joint seismic-geodetic real-time finite-fault models (e.g. for tsunami warning);
 - Can resolve fault-plane ambiguities, including those of small earthquakes.
 
+
+Development
+===========
+
 The implementation of FinDer proceeds in close collaboration of the Seismic
 Network group at the SED in ETH Zurich with the US Geological Survey (USGS) and
 the California Institute of Technology (Caltech).
+
+
+FinDer and SeisComP
+===================
+
+FinDer has been implemented
+with an API. To integrate FinDer within SeisComP, a wrapper module :ref:`scfinder` uses this API. The
+:ref:`scfinder` module requires FinDer to be installed and SeisComP to be
+compiled from source. The source code for FinDer is distributed separately by
+the SED.
+
+The library version of generic EEW pre-processing module `sceewenv` is used within scfinder to provide continuously 
+updated envelope amplitudes to FinDer. FinDer outputs magnitudes (Mfd):
+
+Mfd is updated **when significant changes are observed with updates continuing until a stable solution is reached**
+
+An additional generic EEW module, :ref:`sceewlog`, creates log output and mails solutions
+once a new event is fully processed. It also provides an interface to send
+alerts in real-time using ActiveMQ. The EEWD (**link, reference**), an open-source java application, can receive and display EEW messages broadcast via ActiveMQ.
 
 
 EEW License
