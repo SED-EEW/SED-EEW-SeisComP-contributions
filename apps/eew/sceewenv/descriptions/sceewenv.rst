@@ -18,7 +18,7 @@ pre-processing necessary for the :ref:`scvsmag` module.
 
 Further parameters are also being calculated within *sceewenv*, such as filter banks and **tauP**, though these are not currently used.
 
-The processing procedure is as follows:
+The processing procedure for envelope computation is as follows:
 
 #. gain correction
 #. baseline correction
