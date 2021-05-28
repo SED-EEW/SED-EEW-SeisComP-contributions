@@ -34,3 +34,8 @@ Timeline
 - ???2019: Licence for the VS modules changed from ?? to ??
 - 2021: Finder added to SED EEW suite, modules repakaged, from  SeisComP v4.???. Key changes: 1. scfinder module added. 2. Generic EEW pre-processing module sceewenv replaces VS-specific scenvelope (deprecated). 3. Generic EEW post-processing module sceewlog replaces VS-specific scvsmaglog (depracated). Licence for these new modules unchanged.
 
+General References
+==================
+
+Description of current version: Massin et al, Frontiers
+Description of VS-specific version: Behr et al, SRL
