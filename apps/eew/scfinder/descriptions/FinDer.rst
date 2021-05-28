@@ -55,8 +55,7 @@ the California Institute of Technology (Caltech).
 EEW License
 ===========
 
-The SeisComP EEW modules are free and open source, and the *scfinder* module is
-part of the SeisComP distribution starting from Jakarta v2020.330. They are distributed
+The SeisComP EEW modules are free and open source. They are distributed
 under the GNU Affero General Public License (Free Software Foundation, version 3
 or later).
 
