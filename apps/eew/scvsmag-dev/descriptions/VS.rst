@@ -6,10 +6,10 @@ Virtual Seismologist
 The  `Virtual Seismologist`_ in SeisComP (VS(SC)) provides near instantaneous
 estimates of earthquake magnitude as soon as SeisComP origins are available.
 With a well-configured SeisComP system running on a dense network, magnitudes
-for local events can be available within 10-20 s of origin time. VS(SC) can be a
+for local events can be available within 4-20 s of origin time (**Massin et al, 2021**). VS(SC) can be a
 key component of an earthquake early warning system, and can be used to provide
 rapid earthquake notifications. With the capability to estimate magnitude
-(given a location estimate) with 3-seconds of P-wave information at a single
+(given a location estimate) with 1-second (**configurable, oringally 3s**) of P-wave information at a single
 station, VS(SC) magnitude estimates are tens of seconds faster than
 conventional Ml calculations, which require waiting for the peak S-wave
 amplitudes. The VS magnitude estimation relationships consist of 1) a
