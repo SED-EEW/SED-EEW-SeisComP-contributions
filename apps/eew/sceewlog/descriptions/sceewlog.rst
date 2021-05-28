@@ -1,24 +1,23 @@
 Part of the :ref:`EEW` package.
 
-*sceewlog* was originally part of the SeisComP implementation of the
-`Virtual Seismologist`_ (VS) Earthquake Early Warning algorithm (Cua, 2005; Cua
-and Heaton, 2007) released under the GNU Affero General Public License (Free
-Software Foundation, version 3 or later). It requires the Python package
-`dateutil`_ to be installed.
+*sceewlog*  logs the VS and FinDer magnitude messages received from :ref:`scvsmag` and 
+:ref:`scfinder` (configurable), and broadcasts these alerts and generates and disseminates reports.
 
-It logs the VS and FinDer magnitude messages received from :ref:`scvsmag` and 
-:ref:`scfinder` (configurable), and once an event has timed out, generates
+*sceewlog* is released under the GNU Affero General Public License (Free
+Software Foundation, version 3 or later). It requires the Python package
+`dateutil`_ to be installed. sceewlog replaces scvslog that was originally part of the SeisComP implementation of the
+`Virtual Seismologist`_ (VS) Earthquake Early Warning algorithm.
+
+Once an event has timed out, the modules generates
 report files. These report files are saved to disk and can also be sent via
 email.
 
-It also implements an `ActiveMQ`_ interface which provides the possibility to
-send alert messages in real-time. Currently, messages can be sent in three
-different formats (SeisComPML, QuakeML, ShakeAlertML). The recommended client to
-display these alert messages is the `Earthquake Early Warning Display (EEWD)`_
+It also implements an `ActiveMQ`_ interface which can
+send alert messages in real-time. Currently, messages can be sent in four
+different formats (SeisComPML, QuakeML, ShakeAlertML, CAP). The SED-ETHZ team provide a client that can
+display these alert messages, the `Earthquake Early Warning Display (EEWD)`_
 an OpenSource user interface developed within the European REAKT project and
-based on the `UserDisplay`_. The UserDisplay is not openly available, however,
-people with permission to run the UserDisplay can use it to receive alert
-messages from *sceewlog*.
+based on early versions of the ShakeAlert `UserDisplay`_. 
 
 To receive alerts with the EEWD set the format to *qml1.2-rt*. There are
 currently no clients which can digest SeisComPML and the UserDisplay format
