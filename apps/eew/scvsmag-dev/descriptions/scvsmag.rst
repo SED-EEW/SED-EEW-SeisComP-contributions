@@ -241,12 +241,6 @@ and it is, therefore, recommended to use this feature only as intended.
    pipelines, they can be distinguished by modifying their respective public
    IDs.
 
-References
-==========
-
-Borcherdt, R. D., 1994: Estimates of Site-Dependent Response Spectra for Design
-(Methodology and Justification), Earthquake Spectra
-
 .. target-notes::
 
 .. _`Virtual Seismologist` : http://www.seismo.ethz.ch/en/research-and-teaching/products-software/EEW/Virtual-Seismologist/

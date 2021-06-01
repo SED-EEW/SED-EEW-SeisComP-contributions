@@ -1,12 +1,10 @@
 Part of the :ref:`EEW` package.
 
-
-The Finite-Fault Rupture Detector
----------------------------------
-
-The ground motion observed during large earthquakes is controlled by the distance to
-the rupturing fault, not by the hypocentral distance. Traditional point-source algorithms can only provide the hypocentral distance. The `Finite-Fault Rupture Detector`_ (FinDer) Earthquake Early Warning algorithm
- (Böse et al., 2012) can determine fast and robust line-source models of
+The ground motion observed during large earthquakes is controlled by the
+distance to the rupturing fault, not by the hypocentral distance. Traditional
+point-source algorithms can only provide the hypocentral distance. The
+`Finite-Fault Rupture Detector`_ (FinDer) Earthquake Early Warning algorithm
+(Böse et al., 2012) can determine fast and robust line-source models of
 large earthquakes in order to enhance ground-motion predictions for earthquake
 early warning (EEW) and rapid response. The algorithm quantifies model
 uncertainties in terms of likelihood functions (Böse et al., 2015), and can be
@@ -42,7 +40,7 @@ interesting features (see Böse et al., 2018 for details):
 
 
 Development
-===========
+-----------
 
 The implementation of FinDer proceeds in close collaboration of the Seismic
 Network group at the SED in ETH Zurich with the US Geological Survey (USGS) and
@@ -50,22 +48,23 @@ the California Institute of Technology (Caltech).
 
 
 FinDer and SeisComP
-===================
+-------------------
 
-FinDer has been implemented
-with an API. To integrate FinDer within SeisComP, a wrapper module :ref:`scfinder` uses this API. The
-:ref:`scfinder` module requires FinDer to be installed and SeisComP to be
-compiled from source. The source code for FinDer is distributed separately by
-the SED.
+FinDer has been implemented with an API. To integrate FinDer within SeisComP, a
+wrapper module :ref:`scfinder` uses this API. The :ref:`scfinder` module
+requires FinDer to be installed and SeisComP to be compiled from source. The
+source code for FinDer is distributed separately by the SED.
 
-The library version of generic EEW pre-processing module `sceewenv` is used within scfinder to provide continuously 
-updated envelope amplitudes to FinDer. FinDer outputs magnitudes (Mfd):
+The library version of generic EEW pre-processing module `sceewenv` is used
+within `scfinder` to provide continuously updated envelope amplitudes to FinDer.
+FinDer outputs magnitudes (Mfd). Mfd is updated when significant changes are
+observed with updates continuing until a stable solution is reached.
 
-Mfd is updated **when significant changes are observed with updates continuing until a stable solution is reached**
-
-An additional generic EEW module, :ref:`sceewlog`, creates log output and mails solutions
-once a new event is fully processed. It also provides an interface to send
-alerts in real-time using ActiveMQ. The EEWD (**link, reference**), an open-source java application, can receive and display EEW messages broadcast via ActiveMQ.
+An additional generic EEW module, :ref:`sceewlog`, creates log output and mails
+solutions once a new event is fully processed. It also provides an interface to
+send alerts in real-time using ActiveMQ. The `Earthquake Early Warning Display`_
+(EEWD, Cauzzi et al., 2016), an open-source java application, can receive and
+display EEW messages broadcast via ActiveMQ.
 
 
 EEW License
@@ -73,7 +72,8 @@ EEW License
 
 The SeisComP EEW modules are free and open source. They are distributed
 under the GNU Affero General Public License (Free Software Foundation, version 3
-or later). For licence information on SED-ETHZ SeisComP EEW modules released before SeisComP **v4.??** see Timeline on :ref:`EEW` 
+or later). For licence information on SED-ETHZ SeisComP EEW modules released
+before SeisComP v4.0.0 see the Timeline in :ref:`EEW`.
 
 
 References
@@ -91,7 +91,12 @@ Böse, M., Smith, D., Felizardo, C., Meier, M.-A., Heaton, T. H., & Clinton, J.
     F., 2017: FinDer v.2: Improved Real-time Ground-Motion Predictions for M2-M9
     with Seismic Finite-Source Characterization. Geophysical Journal
     International.
+    
+Cauzzi, C., Behr, Y. D., Clinton, J., Kastli, P., Elia, L., & Zollo, A. (2016)
+     An Open-Source Earthquake Early Warning Display. Seismological Research
+     Letters, 87(3), 737–742, doi:10.1785/0220150284
 
 .. target-notes::
 
 .. _`Finite-Fault Rupture Detector` : http://www.seismo.ethz.ch/en/research-and-teaching/products-software/EEW/finite-fault-rupture-detector-finder/
+.. _`Earthquake Early Warning Display` : https://github.com/SED-EEW/EEWD

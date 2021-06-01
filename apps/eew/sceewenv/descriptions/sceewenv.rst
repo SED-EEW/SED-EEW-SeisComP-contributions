@@ -1,22 +1,14 @@
 Part of the :ref:`EEW` package.
 
-*sceewenv* is the generic pre-processing module for EEW algorithms. It is required for VS (scvsmag). In FinDer, the same core processing library is integrated into :ref:`scfinder`.
-
-,is integrated within FinDer (scfinder) originally part of the SeisComP implementation of the `Virtual
-Seismologist`_(VS) Earthquake Early Warning algorithm (Cua, 2005; Cua and
-Heaton, 2007) and its core library is now integrated into :ref:`scfinder`, the
-wrapper for the `Finite-Fault Rupture Detector`_ (FinDer) Earthquake Early
-Warning algorithm (Böse et al., 2012; Böse et al., 2015; Böse et al., 2018).
-
 *sceewenv* is released under the GNU Affero General Public License (Free
-Software Foundation, version 3 or later). It generates real-time envelope values
-for horizontal and vertical acceleration, velocity and displacement from raw
-acceleration and velocity waveforms. It provides in effect
-continuous real-time streams of PGA, PGV and PGD values which could also be used
-independently VS or FinDer. *sceewenv* was extended from the original SED-ETHZ VS-specific pre-processing module `scenvelope`, implemented to handle the waveform
-pre-processing necessary for the :ref:`scvsmag` module. 
-
-Further parameters are also being calculated within *sceewenv*, such as filter banks and **tauP**, though these are not currently used.
+Software Foundation, version 3 or later). It provides in effect continuous
+real-time streams of envelope values for horizontal and vertical acceleration,
+velocity and displacement from raw acceleration and velocity waveforms.
+*sceewenv* was extended from the original SED-ETHZ VS-specific pre-processing
+module `scenvelope`, implemented to handle the waveform pre-processing necessary
+for the :ref:`scvsmag` module. Further parameters can also being calculated
+using the core library included in *sceewenv*, such as spectral amplitudes and
+tauP, though these are not accessible via the current *sceewenv* implementation.
 
 The processing procedure for envelope computation is as follows:
 
@@ -42,7 +34,7 @@ in :file:`global.cfg`:
 
 .. code-block:: sh
 
-   plugins = dmvs, ...
+   plugins = ${plugins}, dmvs
 
 **Add** the "ENVELOPE" group the the other message groups defined by
 :ref:`scmaster` in :file:`scmaster.cfg`:

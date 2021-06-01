@@ -2,11 +2,7 @@
 <seiscomp>
 	<module name="scvsmag" category="EEW" author="Swiss Seismological Service">
 		<description>
-			Computes VS magnitudes based on envelopes calculated by scenvelope.
-			VS magnitudes are based on origins. For rapid origin location with scautoloc,
-			configure "thresholds.amplMaxTimeWindow" with 1 to 3 secondes in scautopick,
-			and "autoloc.minPhaseCount" with 4 to 6 picks in scautoloc, as well as
-			"autoloc.amplTypeAbs" with "snr" amplitude type.
+			Computes magnitudes with the `Virtual Seismologist`_ (VS) algorithm based on envelopes calculated by :ref:`sceewenv`.
 		</description>
 		<configuration>
 			<group name="vsmag">

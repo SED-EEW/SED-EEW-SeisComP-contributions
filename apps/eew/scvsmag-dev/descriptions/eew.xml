@@ -2,7 +2,7 @@
 <seiscomp>
 	<module name="EEW" category="EEW" standalone="true" author="Swiss Seismological Service">
 		<description>
-		Addons for near instantaneous estimates of earthquake magnitude.
+            The SED-ETHZ SeisComP EEW modules.
 		</description>
 	</module>
 </seiscomp>
