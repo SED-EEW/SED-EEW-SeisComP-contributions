@@ -1,10 +1,8 @@
 Part of the :ref:`EEW` package.
 
-*scfinder* is a wrapper for the `Finite-Fault Rupture Detector`_ (FinDer)
-Earthquake Early Warning algorithm (Böse et al., 2012; Böse et al., 2015; Böse
-et al., 2018). *scfinder* is released under the GNU Affero General Public
-License (Free Software Foundation, version 3 or later). It uses the same library
-as :ref:`sceewenv` to compute acceleration envelope values provided as input for
+*scfinder* is released under the GNU Affero General Public License (Free
+Software Foundation, version 3 or later). It uses the same library as
+:ref:`sceewenv` to compute acceleration envelope values provided as input for
 the FinDer API.
 
 This module requires FinDer to be installed and SeisComP to be compiled from
@@ -57,23 +55,11 @@ following setting:
    # then the best one among the highest priority method. It also defines the
    # method priority for custom priority checks (eventAssociation.priorities). A
    # defined method string must match exactly the string in Origin.methodID.
-   eventAssociation.methods = "NonLinLoc(L2)","NonLinLoc(EDT)","Hypo71","iLoc","LOCSAT"
-
-References
-==========
-
-Böse, M., Heaton, T. H., & Hauksson, E., 2012: Real‐time Finite Fault Rupture
-    Detector (FinDer) for large earthquakes. Geophysical Journal International,
-    191(2), 803–812. doi:10.1111/j.1365-246X.2012.05657.x
-
-Böse, M., Felizardo, C., & Heaton, T. H., 2015: Finite-Fault Rupture Detector
-    (FinDer): Going Real-Time in Californian ShakeAlertWarning System.
-    Seismological Research Letters, 86(6), 1692–1704. doi:10.1785/0220150154
-
-Böse, M., Smith, D., Felizardo, C., Meier, M.-A., Heaton, T. H., & Clinton, J.
-    F., 2017: FinDer v.2: Improved Real-time Ground-Motion Predictions for M2-M9
-    with Seismic Finite-Source Characterization. Geophysical Journal
-    International.
+   eventAssociation.methods = "NonLinLoc(L2)",\
+                              "NonLinLoc(EDT)",\
+                              "Hypo71",\
+                              "iLoc",\
+                              "LOCSAT"
 
 .. target-notes::
 

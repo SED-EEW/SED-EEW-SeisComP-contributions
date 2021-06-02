@@ -2,7 +2,7 @@
 <seiscomp>
 	<module name="sceewlog" category="EEW" author="Swiss Seismological Service">
 		<description>
-			Logs EEW magnitude messages via file, email, and ActiveMQ.
+			Logs EEW magnitude messages.
 		</description>
 		<configuration>
 			<parameter name="magTypes" type="list:string" default="MVS, Mfd">
@@ -138,7 +138,7 @@
 				</parameter>
 				<parameter name="messageFormat" type="string" default="qml1.2-rt">
 					<description>
-					ActiveMQ message format; can be either 'qml1.2-rt', 'shakealert', or 'sc3ml'.
+					ActiveMQ message format; can be either 'cap1.2', 'qml1.2-rt', 'shakealert', or 'sc3ml'.
 					</description>
 				</parameter>
 			</group>
