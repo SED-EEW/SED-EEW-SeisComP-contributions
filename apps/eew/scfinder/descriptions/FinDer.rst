@@ -55,8 +55,8 @@ wrapper module :ref:`scfinder` uses this API. The :ref:`scfinder` module
 requires FinDer to be installed and SeisComP to be compiled from source. The
 source code for FinDer is distributed separately by the SED.
 
-The library version of generic EEW pre-processing module `sceewenv` is used
-within `scfinder` to provide continuously updated envelope amplitudes to FinDer.
+The library version of the generic EEW pre-processing module `sceewenv` is used
+within :ref:`scfinder` to provide continuously updated envelope amplitudes to FinDer.
 FinDer outputs magnitudes (Mfd). Mfd is updated when significant changes are
 observed with updates continuing until a stable solution is reached.
 
@@ -88,9 +88,9 @@ Böse, M., Felizardo, C., & Heaton, T. H., 2015: Finite-Fault Rupture Detector
     Seismological Research Letters, 86(6), 1692–1704. doi:10.1785/0220150154
 
 Böse, M., Smith, D., Felizardo, C., Meier, M.-A., Heaton, T. H., & Clinton, J.
-    F., 2017: FinDer v.2: Improved Real-time Ground-Motion Predictions for M2-M9
+    F., 2018: FinDer v.2: Improved Real-time Ground-Motion Predictions for M2-M9
     with Seismic Finite-Source Characterization. Geophysical Journal
-    International.
+    International, 212(1), 725-742, doi:10.1093/gji/ggx430.
     
 Cauzzi, C., Behr, Y. D., Clinton, J., Kastli, P., Elia, L., & Zollo, A. (2016)
      An Open-Source Earthquake Early Warning Display. Seismological Research
