@@ -67,59 +67,12 @@ RUN echo 'force-unsafe-io' | tee /etc/dpkg/dpkg.cfg.d/02apt-speedup \
     openssl \
     libssl-dev \
     net-tools \
-    # Doc build
-    python-sphinx \
-    firefox-esr \
-    # FinDer 
-    gmt libgmt-dev libopencv-dev \
     # misc
-    git vim wget \
-    # playback
-    libfaketime 
+    git \
+    vim \
+    wget
 
 
-
-# Install FinDer
-## add credentials on build
-ARG SSH_PRIVATE_KEY
-RUN mkdir /root/.ssh/
-# RUN echo "${SSH_PRIVATE_KEY}"|sed 's/NEWLINE/\n/g'
-RUN echo "${SSH_PRIVATE_KEY}"|sed 's/NEWLINE/\n/g' > /root/.ssh/id_rsa
-
-## make sure your domain is accepted
-RUN touch /root/.ssh/known_hosts
-RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
-
-RUN chmod 600  /root/.ssh/id_rsa
-RUN chmod 644 /root/.ssh/known_hosts
-
-## compile
-RUN git clone git@github.com:FMassin/FinDer.git $WORK_DIR/FinDer \
-    && cd $WORK_DIR/FinDer/libsrc \
-    && git checkout master \
-    && make clean \
-    && make \
-    && make no_timestamp \
-    && make test \
-    && make install
-
-RUN cd $WORK_DIR/FinDer/finder_file \
-    && make clean \
-    && make \
-    && make test
-
-## clean FinDer source code
-RUN mkdir -p $INSTALL_DIR/share/FinDer \
-    && rm $WORK_DIR/FinDer/libsrc/*.cc \
-          $WORK_DIR/FinDer/libsrc/*.h \
-          $WORK_DIR/FinDer/finder_file/*.cc \
-          $WORK_DIR/FinDer/finder_file/*.h \
-    && mv $WORK_DIR/FinDer/config \
-          $WORK_DIR/FinDer/finder_file \
-          $WORK_DIR/FinDer/libsrc \
-          $INSTALL_DIR/share/FinDer/ \
-    && rm -r $WORK_DIR/FinDer
-    
 # Install seiscomp
 RUN git clone https://github.com/SeisComP3/seiscomp3.git $WORK_DIR/seiscomp3 \
     && mkdir -p $WORK_DIR/seiscomp3/build \
@@ -139,20 +92,14 @@ RUN git clone https://github.com/SeisComP3/seiscomp3.git $WORK_DIR/seiscomp3 \
 ADD ./ $WORK_DIR/seiscomp3/src/sed-addons/
 RUN cd $WORK_DIR/seiscomp3/build \
     && cmake .. \
-       -DSC_DOC_GENERATE=ON \
        -DSC_GLOBAL_GUI=ON \
        -DSC_IPGPADDONS_GUI_APPS=ON \
        -DSC_TRUNK_DB_MYSQL=ON \
        -DSC_TRUNK_DB_POSTGRESQL=ON \
        -DSC_TRUNK_DB_SQLITE3=ON \
        -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
-       -DFinDer_INCLUDE_DIR=/usr/local/include/finder \
-       -DFinDer_LIBRARY=/usr/local/lib/libFinder.a \
     && make -j $(grep -c processor /proc/cpuinfo) \
     && make install
-
-# clean seiscomp source code
-RUN rm -r $WORK_DIR/seiscomp3
 
 # Setup ssh access
 RUN mkdir /var/run/sshd
@@ -178,7 +125,12 @@ USER sysop
 #### SeisComp3 settings ###
 ## Configure
 RUN /opt/seiscomp3/bin/seiscomp print env >> /home/sysop/.profile
-RUN echo 'export LD_LIBRARY_PATH="/usr/local/lib/:$LD_LIBRARY_PATH"'>> /home/sysop/.profile
+#RUN echo 'export SEISCOMP_ROOT="/opt/seiscomp3/"' >> /home/sysop/.profile
+#RUN echo 'export LD_LIBRARY_PATH="$SEISCOMP_ROOT/lib:/usr/local/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH"'>> /home/sysop/.profile
+#RUN echo 'export PYTHONPATH="$PYTHONPATH:$SEISCOMP_ROOT/lib/python"' >> /home/sysop/.profile
+#RUN echo 'export MANPATH="$SEISCOMP_ROOT/man:$MANPATH"' >> /home/sysop/.profile
+#RUN echo 'export PATH="$SEISCOMP_ROOT/bin:$PATH"' >> /home/sysop/.profile
+#RUN echo 'source $SEISCOMP_ROOT/share/shell-completion/seiscomp.bash' >> /home/sysop/.profile
 RUN echo 'date' >> /home/sysop/.profile
 RUN echo 'echo \$SEISCOMP_ROOT is $SEISCOMP_ROOT' >> /home/sysop/.profile
 RUN echo 'seiscomp status |grep "is running"' >> /home/sysop/.profile
