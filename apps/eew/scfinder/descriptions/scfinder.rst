@@ -12,7 +12,7 @@ FinDer provides estimates of the rupture centroid, length and strike. These
 values are attached by *scfinder* within a derived object called *strong motion
 origin*, which uses the strong motion database extension. In order to save the
 strong motion origins to the database and to provide them to other modules, the
-messaging system must to be able to handle these messages. Therefore, the
+messaging system must be able to handle these messages. Therefore, the
 plugins *dmsm* must be available to :ref:`scmaster`.
 
 The plugins can be most easily **added** through the configuration parameters
@@ -27,7 +27,7 @@ scevent configuration
 
 *scfinder* can produce an origin as soon as seismic waves have reached a minimum
 number of stations as configured in finder.config. :ref:`FinDer` is not
-pick-based, hence the phase number attached to its origin relates to the
+pick-based; the phase number attached to its origin relates to the
 stations exceeding :ref:`FinDer` ground motion acceleration threshold. For
 :ref:`scevent` to create an event from an origin with 4 phases requires the
 following setting:
