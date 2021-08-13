@@ -35,7 +35,7 @@ EEW License
 ===========
 
 The SeisComP EEW modules are free and open-source. Currently, they are
-distributed under the GNU Affero General Public License (Free Software
+distributed under the `GNU Affero General Public License`_ (Free Software
 Foundation, version 3 or later).
 
 Timeline
@@ -43,9 +43,9 @@ Timeline
 
 - 2013, SeisComP3 Seattle v2013.200: Initial set of SED EEW modules based only
   on VS, under the `SED Public License for Seiscomp Contributions`_, consisting
-  of `scenvelope`, `scvsmag`, and `scvsmaglog.
+  of `scenvelope`, `scvsmag`, and `scvsmaglog`.
 - 2020, SeisComP v4.0.0: Licence for the VS modules changed from `SED Public
-  License for Seiscomp Contributions`_ to GNU Affero General Public License.
+  License for Seiscomp Contributions`_ to `GNU Affero General Public License`_.
 - 2021: FinDer added to the SED-ETHZ SeisComP EEW package, modules repackaged,
   from  SeisComP v4.6.0. Key changes:
 1. `scfinder` module added.
@@ -69,4 +69,5 @@ Behr, Y., J. F. Clinton, C. Cauzzi, E. Hauksson, K. Jónsdóttir, C. G. Marius, 
 
 .. target-notes::
 
+.. _`GNU Affero General Public License` : http://www.gnu.org/licenses/agpl-3.0.en.html
 .. _`SED Public License for Seiscomp Contributions` : http://www.seismo.ethz.ch/static/seiscomp_contrib/license.txt
