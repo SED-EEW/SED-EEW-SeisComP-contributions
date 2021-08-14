@@ -2,8 +2,16 @@ FROM debian:buster-slim
 
 MAINTAINER Fred Massin  <fmassin@sed.ethz.ch>
 
-ENV WORK_DIR /usr/local/src/
-ENV INSTALL_DIR /opt/seiscomp3
+ENV    WORK_DIR /usr/local/src
+ENV INSTALL_DIR /opt/seiscomp
+ENV   REPO_PATH https://github.com/SeisComP
+ENV         TAG 4.5.0
+ENV           D "-DSC_GLOBAL_GUI=ON \
+                    -DSC_IPGPADDONS_GUI_APPS=ON \
+                    -DSC_TRUNK_DB_MYSQL=ON \
+                    -DSC_TRUNK_DB_POSTGRESQL=ON \
+                    -DSC_TRUNK_DB_SQLITE3=ON \
+                    -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR"
 
 # Fix Debian  env
 ENV DEBIAN_FRONTEND noninteractive
@@ -74,30 +82,32 @@ RUN echo 'force-unsafe-io' | tee /etc/dpkg/dpkg.cfg.d/02apt-speedup \
 
 
 # Install seiscomp
-RUN git clone https://github.com/SeisComP3/seiscomp3.git $WORK_DIR/seiscomp3 \
-    && mkdir -p $WORK_DIR/seiscomp3/build \
-    && cd $WORK_DIR/seiscomp3 \
-    && git checkout release/jakarta \
-    && git pull \
-    && cd $WORK_DIR/seiscomp3/build \
-    && cmake .. -DSC_GLOBAL_GUI=ON \
-       -DSC_TRUNK_DB_MYSQL=ON \
-       -DSC_TRUNK_DB_POSTGRESQL=ON \
-       -DSC_TRUNK_DB_SQLITE3=ON \
-       -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
-    && make -j $(grep -c processor /proc/cpuinfo) \
+RUN echo "Cloning base repository into $WORK_DIR/seiscomp" \
+    && git clone --branch $TAG $REPO_PATH/seiscomp.git $WORK_DIR/seiscomp \
+    && echo "Cloning base components" \
+    && cd $WORK_DIR/seiscomp/src/base \
+    && git clone --branch $TAG $REPO_PATH/seedlink.git \
+    && git clone --branch $TAG $REPO_PATH/common.git \
+    && git clone --branch $TAG $REPO_PATH/main.git \
+    && git clone --branch $TAG $REPO_PATH/extras.git \
+    && echo "Cloning external base components" \
+    && git clone --branch $TAG $REPO_PATH/contrib-gns.git \
+    && git clone --branch $TAG $REPO_PATH/contrib-ipgp.git \
+    && git clone --branch $TAG $REPO_PATH/contrib-sed.git \
+    && echo "Done" 
+
+RUN mkdir -p $WORK_DIR/seiscomp/build \
+    && cd $WORK_DIR/seiscomp/build \
+    && cmake .. $D \
+    && make \ 
     && make install
 
 # Install addons
-ADD ./ $WORK_DIR/seiscomp3/src/sed-addons/
-RUN cd $WORK_DIR/seiscomp3/build \
-    && cmake .. \
-       -DSC_GLOBAL_GUI=ON \
-       -DSC_IPGPADDONS_GUI_APPS=ON \
-       -DSC_TRUNK_DB_MYSQL=ON \
-       -DSC_TRUNK_DB_POSTGRESQL=ON \
-       -DSC_TRUNK_DB_SQLITE3=ON \
-       -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
+ADD ./ $WORK_DIR/seiscomp/src/base/sed-addons/
+RUN rm -r $WORK_DIR/seiscomp/src/base/contrib-sed/apps/scvsmag \
+    && sed -i 's/scvsmag//' $WORK_DIR/seiscomp/src/base/contrib-sed/apps/CMakeLists.txt \
+    && cd $WORK_DIR/seiscomp/build \
+    && cmake .. $D \
     && make -j $(grep -c processor /proc/cpuinfo) \
     && make install
 
@@ -117,15 +127,15 @@ RUN groupadd --gid $GROUP_ID -r sysop && useradd -m -s /bin/bash --uid $USER_ID 
     && echo 'sysop:sysop' | chpasswd \
     && chown -R sysop:sysop $INSTALL_DIR
 
-RUN mkdir -p /home/sysop/.seiscomp3 \
+RUN mkdir -p /home/sysop/.seiscomp \
     && chown -R sysop:sysop /home/sysop
 
 USER sysop
 
 #### SeisComp3 settings ###
 ## Configure
-RUN /opt/seiscomp3/bin/seiscomp print env >> /home/sysop/.profile
-#RUN echo 'export SEISCOMP_ROOT="/opt/seiscomp3/"' >> /home/sysop/.profile
+RUN  $INSTALL_DIR/bin/seiscomp print env >> /home/sysop/.profile
+#RUN echo 'export SEISCOMP_ROOT="$INSTALL_DIR/"' >> /home/sysop/.profile
 #RUN echo 'export LD_LIBRARY_PATH="$SEISCOMP_ROOT/lib:/usr/local/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH"'>> /home/sysop/.profile
 #RUN echo 'export PYTHONPATH="$PYTHONPATH:$SEISCOMP_ROOT/lib/python"' >> /home/sysop/.profile
 #RUN echo 'export MANPATH="$SEISCOMP_ROOT/man:$MANPATH"' >> /home/sysop/.profile

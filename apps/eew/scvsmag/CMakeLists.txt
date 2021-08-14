@@ -15,8 +15,11 @@ SET(
 ADD_DEFINITIONS(-DVSSC)
 SC_ADD_EXECUTABLE(PROG ${PROG_TARGET})
 SC_LINK_LIBRARIES_INTERNAL(${PROG_TARGET} client datamodel_vs)
-SC_INSTALL_INIT(${PROG_TARGET} ${INIT_TEMPLATE})
-
+IF(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../../../../trunk/apps/templates/initd.py")
+	SC_INSTALL_INIT(${PROG_TARGET}     ../../../../trunk/apps/templates/initd.py)
+ELSE()
+	SC_INSTALL_INIT(${PROG_TARGET}     ../../../../../base/common/apps/templates/initd.py)
+ENDIF()
 
 FILE(GLOB descs "${CMAKE_CURRENT_SOURCE_DIR}/descriptions/*.xml")
 INSTALL(FILES ${descs} DESTINATION ${SC3_PACKAGE_APP_DESC_DIR})
