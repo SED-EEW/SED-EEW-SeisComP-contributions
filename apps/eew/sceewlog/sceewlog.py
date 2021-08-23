@@ -665,7 +665,7 @@ class Listener(seiscomp.client.Application):
 
                 # Attach the likelihood to the right update
                 updateno = None
-                for _updateno, _update_dict in self.event_dict[evID]['updates'].iteritems():
+                for _updateno, _update_dict in self.event_dict[evID]['updates'].items():
                     if magID != _update_dict['magID']:
                         continue
                     if updateno is None:
