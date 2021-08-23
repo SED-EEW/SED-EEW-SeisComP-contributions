@@ -74,7 +74,9 @@ class Listener(seiscomp3.Client.Application):
         self.hb_seconds = None
         # UserDisplay interface
         self.udevt = None
-
+        self.udevtLhThresh = 0.0
+        self.udevtMagThresh = 0.0
+		
     def validateParameters(self):
         try:
             if seiscomp3.Client.Application.validateParameters(self) == False:
@@ -150,6 +152,9 @@ class Listener(seiscomp3.Client.Application):
             self.amqUser = self.configGetString('ActiveMQ.username')
             self.amqPwd = self.configGetString('ActiveMQ.password')
             self.amqMsgFormat = self.configGetString('ActiveMQ.messageFormat')
+            #magnitude and likehood threshold values for AMQ
+            self.udevtMagThresh = self.configGetDouble('ActiveMQ.magThresh')
+            self.udevtLhThresh = self.configGetDouble('ActiveMQ.lhThresh')
         except:
             pass
 
@@ -384,7 +389,16 @@ class Listener(seiscomp3.Client.Application):
         self.processComments()
 
         # Send an alert
-        self.sendAlert(magID)
+        if self.udevtLhThresh == 0.0: # not awaiting for likelihood. Otherwise, waiting for this value at processComment()
+			seiscomp3.Logging.debug("no likelihood threshold check. Checking magnitude threshold...")
+			if mag.magnitude().value() >= self.udevtMagThresh:
+				seiscomp3.Logging.debug("Magnitude is >= magnitude threshold")
+				seiscomp3.Logging.debug("An alert will be sent...")
+				self.sendAlert(magID)
+                        else:
+				seiscomp3.Logging.debug("Magnitude value is less than mag threshold")
+        else:
+			seiscomp3.Logging.debug("Configured likelihood threshold value more than 0. Waiting for its value...")
 
     def sendAlert(self, magID):
         """
@@ -419,7 +433,7 @@ class Listener(seiscomp3.Client.Application):
                     ep.add(pk)
         else:
             seiscomp3.Logging.debug("Cannot find origin %s in cache." % orgID)
-
+            
         self.udevt.send(self.udevt.message_encoder(ep))
 
     def handleMagnitude(self, magnitude, parentID):
@@ -647,18 +661,50 @@ class Listener(seiscomp3.Client.Application):
                             % (magID, comment.id())
                     seiscomp3.Logging.error(msg)
                     continue
+                
+                lhValue = None
 
                 if comment.id() == 'likelihood':
                     self.event_dict[evID]['updates'][updateno]['likelihood'] = \
                             float(comment.text())
+                            
+                    lhValue = self.event_dict[evID]['updates'][updateno]['likelihood']
+                    
+                    seiscomp3.Logging.debug("Likelihood: %s for magnitude %s " % \
+                    ( self.event_dict[evID]['updates'][updateno]['likelihood'] , magID ) )
+                
                 elif comment.id() == 'rupture-strike':
                     self.event_dict[evID]['updates'][updateno]['rupture-strike'] = \
                             float(comment.text())
+                
                 elif comment.id() == 'rupture-length':
                     self.event_dict[evID]['updates'][updateno]['rupture-length'] = \
                             float(comment.text())
+                
+                
+                if lhValue and self.udevtLhThresh != 0.0:
+				#checking if there is a likelihood value and if the configured value is different than 0	
+					
+					magVal = self.event_dict[evID]['updates'][updateno]['magnitude']
+					
+					if lhValue >= self.udevtLhThresh:
+					
+						seiscomp3.Logging.debug("likelihood value: %s is >= lhThreshold: %s" % ( lhValue, self.udevtLhThresh ) )
+						
+						if  magVal >= self.udevtMagThresh:
+							seiscomp3.Logging.debug( "Magnitude value %s is >= magThreshold %s." % ( magVal, self.udevtMagTresh ) )
+							seiscomp3.Logging.debug("An alert will be sent...")
+							self.sendAlert( magID )
+						
+						else:
+							seiscomp3.Logging.debug( "Magnitude value is less than magThreshold. Not sending any alert" )
+					
+					else:
+						seiscomp3.Logging.debug("likelihood value less than lhThreshold. Not sending any alert")
 
         self.received_comments = comments_to_keep
+        
+        
 
     def handleComment(self, comment, parentID):
         """
@@ -727,3 +773,4 @@ if __name__ == '__main__':
     import sys
     app = Listener(len(sys.argv), sys.argv)
     sys.exit(app())
+
