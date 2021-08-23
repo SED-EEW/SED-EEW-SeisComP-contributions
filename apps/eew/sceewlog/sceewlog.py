@@ -616,31 +616,31 @@ class Listener(seiscomp.client.Application):
                 orgID = self.origin_lookup[magID]
                 if orgID not in self.event_lookup:
                     comments_to_keep.append( (comment, parentID) )
-                    seiscomp3.Logging.debug("Event not received yet for magnitude %s \
-                            origin %s(handleComment)" % (magID,orgID))
+                    seiscomp.logging.debug("Event not received yet for magnitude %s \
+                            origin %s(handleComment)" % (magID, orgID))
                     continue
 
                 evID = self.event_lookup[orgID]
                 if comment.id() == 'likelihood':
-                    evt = self.cache.get(seiscomp3.DataModel.Event, evID)
+                    evt = self.cache.get(seiscomp.datamodel.Event, evID)
                     if evt:
-                        # Check if orgID is mising from the Event
+                        # Check if orgID is missing from the Event
                         orgFound = False
                         for i in range(evt.originReferenceCount()):
                             if evt.originReference(i).originID() == orgID:
                                 orgFound = True
                                 break
 
-                        # if orgID is mising add it to the event
+                        # if orgID is missing add it to the event
                         if not orgFound:
-                            seiscomp3.Logging.debug(
+                            seiscomp.logging.debug(
                                 "Event %s doesn't have origin %s, add it then" % (evID, orgID))
-                            orgRef = seiscomp3.DataModel.OriginReference(orgID)
+                            orgRef = seiscomp.datamodel.OriginReference(orgID)
                             evt.add(orgRef)
 
-                        # Check if magID is mising from orgID
+                        # Check if magID is missing from orgID
                         magFound = False
-                        tmpOrg = self.cache.get(seiscomp3.DataModel.Origin, orgID)
+                        tmpOrg = self.cache.get(seiscomp.datamodel.Origin, orgID)
                         for i in range(tmpOrg.magnitudeCount()):
                             if tmpOrg.magnitude(i).publicID() == magID:
                                 magFound = True
@@ -649,17 +649,17 @@ class Listener(seiscomp.client.Application):
                         if not magFound:
                             # here we should add the missing magnitude but
                             # for now just log the error
-                            seiscomp3.Logging.error(
+                            seiscomp.logging.error(
                                 "Origin %s doesn't have magnitude %s (event %s)" % (orgID, magID, evID))
                             continue
 
                         evt.setPreferredOriginID(orgID)
                         evt.setPreferredMagnitudeID(magID)
                     else:
-                        seiscomp3.Logging.debug("Cannot find event %s in cache." % evID)
+                        seiscomp.logging.debug("Cannot find event %s in cache." % evID)
 
                 if evID not in self.event_dict:
-                    seiscomp3.Logging.error("Internal logic error: cannot find \
+                    seiscomp.logging.error("Internal logic error: cannot find \
                         event %s in self.event_dict" % evID)
                     continue
 
@@ -673,7 +673,7 @@ class Listener(seiscomp.client.Application):
                         continue
                     msg = 'Found multiple updates with magID %s for the same' % magID
                     msg += '%s comment. Choosing the most recent one' % comment.id()
-                    seiscomp3.Logging.warning(msg)
+                    seiscomp.logging.warning(msg)
                     if updateno < _updateno:
                         updateno = _updateno
 
@@ -681,7 +681,7 @@ class Listener(seiscomp.client.Application):
                     comments_to_keep.append( (comment, parentID) )
                     msg = 'Could not find parent magnitude %s for %s comment' \
                             % (magID, comment.id())
-                    seiscomp3.Logging.error(msg)
+                    seiscomp.logging.error(msg)
                     continue
 
                 if comment.id() == 'likelihood':
