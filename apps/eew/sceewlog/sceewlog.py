@@ -390,15 +390,16 @@ class Listener(seiscomp3.Client.Application):
 
         # Send an alert
         if self.udevtLhThresh == 0.0: # not awaiting for likelihood. Otherwise, waiting for this value at processComment()
-			seiscomp3.Logging.debug("no likelihood threshold check. Checking magnitude threshold...")
+			seiscomp3.Logging.debug("No AMQ likelihood threshold check (set 0.0). Checking only AMQ magnitude threshold...")
 			if mag.magnitude().value() >= self.udevtMagThresh:
-				seiscomp3.Logging.debug("Magnitude is >= magnitude threshold")
+				seiscomp3.Logging.debug("Magnitude: %s is >= AMQ magnitude threshold: %s" % ( mag.magnitude.value(), self.udevtMagThresh))
 				seiscomp3.Logging.debug("An alert will be sent...")
 				self.sendAlert(magID)
                         else:
-				seiscomp3.Logging.debug("Magnitude value is less than mag threshold")
+				seiscomp3.Logging.debug("Magnitude value: %s is less than AMQ magnitude threshold: %s" % \
+				( mag.magnitude.value(), self.udevtMagThresh))
         else:
-			seiscomp3.Logging.debug("Configured likelihood threshold value more than 0. Waiting for its value...")
+			seiscomp3.Logging.debug("Waiting for likelihood value...")
 
     def sendAlert(self, magID):
         """
@@ -689,15 +690,16 @@ class Listener(seiscomp3.Client.Application):
 					
 					if lhValue >= self.udevtLhThresh:
 					
-						seiscomp3.Logging.debug("likelihood value: %s is >= lhThreshold: %s" % ( lhValue, self.udevtLhThresh ) )
+						seiscomp3.Logging.debug("likelihood value: %s is >= AMQ likelihood threshold: %s" % ( lhValue, self.udevtLhThresh ) )
 						
 						if  magVal >= self.udevtMagThresh:
-							seiscomp3.Logging.debug( "Magnitude value %s is >= magThreshold %s." % ( magVal, self.udevtMagTresh ) )
+							sseiscomp3.Logging.debug( "Magnitude value %s is >= AMQ magnitude threshold %s." % ( magVal, self.udevtMagThresh )
 							seiscomp3.Logging.debug("An alert will be sent...")
 							self.sendAlert( magID )
 						
 						else:
-							seiscomp3.Logging.debug( "Magnitude value is less than magThreshold. Not sending any alert" )
+							seiscomp3.Logging.debug( "Magnitude value: %s is less than AMQ magnitude threshold: %s" \
+							% ( magVal, self.udevtMagThresh )  )
 					
 					else:
 						seiscomp3.Logging.debug("likelihood value less than lhThreshold. Not sending any alert")
