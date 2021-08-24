@@ -126,7 +126,7 @@ class Listener(seiscomp3.Client.Application):
             self.tls = self.configGetBool("email.usetls")
             self.ssl = self.configGetBool("email.usessl")
             if self.tls and self.ssl:
-                seiscomp.Logging.warning('TLS and SSL cannot be both true!')
+                seiscomp3.Logging.warning('TLS and SSL cannot be both true!')
                 self.tls = False
                 self.ssl = False
             self.auth = self.configGetBool("email.authenticate")
@@ -388,18 +388,46 @@ class Listener(seiscomp3.Client.Application):
         # Make sure to attached additional information for this ev/mag
         self.processComments()
 
-        # Send an alert
-        if self.udevtLhThresh == 0.0: # not awaiting for likelihood. Otherwise, waiting for this value at processComment()
-			seiscomp3.Logging.debug("No AMQ likelihood threshold check (set 0.0). Checking only AMQ magnitude threshold...")
-			if mag.magnitude().value() >= self.udevtMagThresh:
-				seiscomp3.Logging.debug("Magnitude: %s is >= AMQ magnitude threshold: %s" % ( mag.magnitude.value(), self.udevtMagThresh))
-				seiscomp3.Logging.debug("An alert will be sent...")
-				self.sendAlert(magID)
-                        else:
-				seiscomp3.Logging.debug("Magnitude value: %s is less than AMQ magnitude threshold: %s" % \
-				( mag.magnitude.value(), self.udevtMagThresh))
+        if self.event_dict[evID]['updates'][updateno]['sent']:
+            seiscomp3.Logging.debug("Alert msg already sent")
+            return
+
+        magVal =  mag.magnitude().value()
+        # Send an alert as long as the threshold values are exceeded
+        if self.udevtLhThresh == 0.0: # not verifying likelihood, only magnitude threshold for AMQ
+            seiscomp3.Logging.debug("No AMQ likelihood threshold check (set 0.0). Checking only AMQ magnitude threshold...")
+            
+            if magVal >= self.udevtMagThresh:
+                seiscomp3.Logging.debug("Magnitude: %s is >= AMQ magnitude threshold: %s" % ( magVal, self.udevtMagThresh))
+                seiscomp3.Logging.debug("An alert will be sent...")
+                self.sendAlert(magID)
+                #setting this event is already sent
+                self.event_dict[evID]['updates'][updateno]['sent'] = True
+            else:
+                seiscomp3.Logging.debug("Magnitude value: %s is less than AMQ magnitude threshold: %s" % ( magVal, self.udevtMagThresh))
+        
         else:
-			seiscomp3.Logging.debug("Waiting for likelihood value...")
+            if self.event_dict[evID]['updates'][updateno]['likelihood']:
+                
+                lhVal = self.event_dict[evID]['updates'][updateno]['likelihood']
+                seiscomp3.Logging.debug("likelihood value: %s found for mag %s" % ( lhVal, magID ) )
+                
+                if lhVal >= self.udevtLhThresh:
+                    seiscomp3.Logging.debug("likelihood value: %s is >= AMQ likelihood threshold: %s" % ( lhValue, self.udevtLhThresh ) )
+
+                    if  magVal >= self.udevtMagThresh:
+                        seiscomp3.Logging.debug( "Magnitude value %s is >= AMQ magnitude threshold %s." % ( magVal, self.udevtMagThresh ) )
+                        seiscomp3.Logging.debug("An alert will be sent...")
+                        self.sendAlert( magID )
+                        #setting this event is already sent
+                        self.event_dict[evID]['updates'][updateno]['sent'] =  True
+                    
+                    else:
+                        seiscomp3.Logging.debug( "Magnitude value: %s is less than AMQ magnitude threshold: %s" \
+                        % ( magVal, self.udevtMagThresh )  )
+            else:
+                seiscomp3.Logging.debug("No Likelihood value for mag %s.\nNot sending any alert." % magID)
+
 
     def sendAlert(self, magID):
         """
@@ -663,13 +691,10 @@ class Listener(seiscomp3.Client.Application):
                     seiscomp3.Logging.error(msg)
                     continue
                 
-                lhValue = None
-
+                
                 if comment.id() == 'likelihood':
                     self.event_dict[evID]['updates'][updateno]['likelihood'] = \
                             float(comment.text())
-                            
-                    lhValue = self.event_dict[evID]['updates'][updateno]['likelihood']
                     
                     seiscomp3.Logging.debug("Likelihood: %s for magnitude %s " % \
                     ( self.event_dict[evID]['updates'][updateno]['likelihood'] , magID ) )
@@ -681,28 +706,6 @@ class Listener(seiscomp3.Client.Application):
                 elif comment.id() == 'rupture-length':
                     self.event_dict[evID]['updates'][updateno]['rupture-length'] = \
                             float(comment.text())
-                
-                
-                if lhValue and self.udevtLhThresh != 0.0:
-				#checking if there is a likelihood value and if the configured value is different than 0	
-					
-					magVal = self.event_dict[evID]['updates'][updateno]['magnitude']
-					
-					if lhValue >= self.udevtLhThresh:
-					
-						seiscomp3.Logging.debug("likelihood value: %s is >= AMQ likelihood threshold: %s" % ( lhValue, self.udevtLhThresh ) )
-						
-						if  magVal >= self.udevtMagThresh:
-							sseiscomp3.Logging.debug( "Magnitude value %s is >= AMQ magnitude threshold %s." % ( magVal, self.udevtMagThresh )
-							seiscomp3.Logging.debug("An alert will be sent...")
-							self.sendAlert( magID )
-						
-						else:
-							seiscomp3.Logging.debug( "Magnitude value: %s is less than AMQ magnitude threshold: %s" \
-							% ( magVal, self.udevtMagThresh )  )
-					
-					else:
-						seiscomp3.Logging.debug("likelihood value less than lhThreshold. Not sending any alert")
 
         self.received_comments = comments_to_keep
         
