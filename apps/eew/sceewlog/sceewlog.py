@@ -154,7 +154,7 @@ class Listener(seiscomp3.Client.Application):
             self.amqMsgFormat = self.configGetString('ActiveMQ.messageFormat')
             #magnitude and likehood threshold values for AMQ
             self.udevtMagThresh = self.configGetDouble('ActiveMQ.magThresh')
-            self.udevtLhThresh = self.configGetDouble('ActiveMQ.lhThresh')
+            self.udevtLhThresh = self.configGetDouble('ActiveMQ.likelihoodThresh')
         except:
             pass
 

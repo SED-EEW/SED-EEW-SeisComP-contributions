@@ -146,7 +146,7 @@
 					Minimum Magnitude Value to send alert
 					</description>
 				</parameter>
-				<parameter name="lhThresh" type="float" default="0.0">
+				<parameter name="likelihoodThresh" type="float" default="0.0">
 					<description>
 					Minimum Likelihood value to send an alert. If this is 0.0 then only it is used magnitude as filter
 					</description>

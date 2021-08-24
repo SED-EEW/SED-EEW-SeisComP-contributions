@@ -114,7 +114,7 @@ class CoreEventInfo(UDConnection):
             xslt = ET.parse(os.path.join(ei.shareDir(), 'sceewlog',
                             'sc3ml_0.11__shakealert.xsl'))
             self.transform = ET.XSLT(xslt)
-        elif format == 'cap':
+        elif format == 'cap1.2':
             xslt = ET.parse(os.path.join(ei.shareDir(), 'sceewlog',
                             'sc3ml_0.11__cap_1.2.xsl'))
             self.transform = ET.XSLT(xslt)
