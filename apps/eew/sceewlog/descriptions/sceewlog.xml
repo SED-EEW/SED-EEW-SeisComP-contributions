@@ -141,6 +141,16 @@
 					ActiveMQ message format; can be either 'cap1.2', 'qml1.2-rt', 'shakealert', or 'sc3ml'.
 					</description>
 				</parameter>
+				<parameter name="magThresh" type="float" default="0.0">
+					<description>
+					Minimum Magnitude Value to send alert
+					</description>
+				</parameter>
+				<parameter name="likelihoodThresh" type="float" default="0.0">
+					<description>
+					Minimum Likelihood value to send an alert. If this is 0.0 then only it is used magnitude as filter
+					</description>
+				</parameter>
 			</group>
 			
 		</configuration>
