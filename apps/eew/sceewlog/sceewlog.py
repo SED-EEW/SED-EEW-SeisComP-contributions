@@ -388,10 +388,6 @@ class Listener(seiscomp3.Client.Application):
         # Make sure to attached additional information for this ev/mag
         self.processComments()
 
-        if self.event_dict[evID]['updates'][updateno]['sent']:
-            seiscomp3.Logging.debug("Alert msg already sent")
-            return
-
         magVal =  mag.magnitude().value()
         # Send an alert as long as the threshold values are exceeded
         if self.udevtLhThresh == 0.0: # not verifying likelihood, only magnitude threshold for AMQ
@@ -683,8 +679,8 @@ class Listener(seiscomp3.Client.Application):
                     self.event_dict[evID]['updates'][updateno]['rupture-length'] = \
                             float(comment.text())
                 
-                if self.event_dict[evID]['updates'][updateno]['likelihood'] and not \
-                self.event_dict[evID]['updates'][updateno]['sent']:
+                if self.event_dict[evID]['updates'][updateno]['likelihood'] and \
+                self.udevtLhThresh > 0.0:
                 
                     lhVal = self.event_dict[evID]['updates'][updateno]['likelihood']
                     magVal = self.event_dict[evID]['updates'][updateno]['magnitude']
