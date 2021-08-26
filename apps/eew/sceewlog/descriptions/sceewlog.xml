@@ -143,12 +143,12 @@
 				</parameter>
 				<parameter name="magThresh" type="float" default="0.0">
 					<description>
-					Minimum Magnitude Value to send alert
+					Minimum Magnitude Value to send alert.
 					</description>
 				</parameter>
 				<parameter name="likelihoodThresh" type="float" default="0.0">
 					<description>
-					Minimum Likelihood value to send an alert. If this is 0.0 then only it is used magnitude as filter
+					Minimum Likelihood value to send an alert. Setup to 0.0 to skip any likelihood filtering.
 					</description>
 				</parameter>
 			</group>
