@@ -54,6 +54,7 @@ RUN echo 'force-unsafe-io' | tee /etc/dpkg/dpkg.cfg.d/02apt-speedup \
     python-libxml2 \
     python-numpy \
     python-m2crypto \
+    python-dateutil \
     libghc-opengl-dev \
     libqt4-opengl-dev \
     libqtwebkit-dev \
