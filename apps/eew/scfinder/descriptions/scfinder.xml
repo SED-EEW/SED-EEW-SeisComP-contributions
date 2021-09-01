@@ -2,7 +2,7 @@
 <seiscomp>
 	<module name="scfinder" category="EEW" author="Swiss Seismological Service">
 		<description>
-            *scfinder* is a wrapper module for the `Finite-Fault Rupture Detector`_ (FinDer)
+            scfinder is a wrapper module for the Finite-Fault Rupture Detector (FinDer)
             Earthquake Early Warning algorithm.
 		</description>
 		<configuration>
