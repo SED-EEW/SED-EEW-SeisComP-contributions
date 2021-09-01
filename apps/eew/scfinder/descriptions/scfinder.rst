@@ -3,7 +3,7 @@ Part of the :ref:`EEW` package.
 *scfinder* is released under the GNU Affero General Public License (Free
 Software Foundation, version 3 or later). It uses the same library as
 :ref:`sceewenv` to compute acceleration envelope values provided as input for
-the FinDer API.
+the `Finite-Fault Rupture Detector`_ (FinDer) API.
 
 This module requires FinDer to be installed and SeisComP to be compiled from
 source. The source code for FinDer is distributed separately by the SED.

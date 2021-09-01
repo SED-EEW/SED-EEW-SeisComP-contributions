@@ -2,7 +2,7 @@
 <seiscomp>
 	<module name="sceewenv" category="EEW" author="Swiss Seismological Service">
 		<description>
-            The generic pre-processing module for EEW algorithms. It is required by :ref:`scvsmag` for the `Virtual Seismologist`_ (VS). In FinDer, the same core processing library is integrated into :ref:`scfinder`, the wrapper for the `Finite-Fault Rupture Detector`_ (FinDer).
+            The generic pre-processing module for EEW algorithms. It is required by scvsmag for the Virtual Seismologist. In FinDer, the same core processing library is integrated into scfinder, the wrapper for the Finite-Fault Rupture Detector.
 		</description>
 		<configuration>
 			<group name="eewenv">

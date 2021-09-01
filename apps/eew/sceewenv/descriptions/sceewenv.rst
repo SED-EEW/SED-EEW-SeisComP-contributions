@@ -4,9 +4,9 @@ Part of the :ref:`EEW` package.
 Software Foundation, version 3 or later). It provides in effect continuous
 real-time streams of envelope values for horizontal and vertical acceleration,
 velocity and displacement from raw acceleration and velocity waveforms.
-*sceewenv* was extended from the original SED-ETHZ VS-specific pre-processing
-module `scenvelope`, implemented to handle the waveform pre-processing necessary
-for the :ref:`scvsmag` module. Further parameters can also being calculated
+*sceewenv* was extended from the original SED-ETHZ `Virtual Seismologist`_-specific 
+pre-processing module `scenvelope`, implemented to handle the waveform pre-processing 
+necessary for the :ref:`scvsmag` module. Further parameters can also being calculated
 using the core library included in *sceewenv*, such as spectral amplitudes and
 tauP, though these are not accessible via the current *sceewenv* implementation.
 
