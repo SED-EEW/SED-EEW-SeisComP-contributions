@@ -24,6 +24,7 @@ from dateutil import tz
 import random
 import seiscomp.client, seiscomp.core
 import seiscomp.config, seiscomp.datamodel, seiscomp.system, seiscomp.utils
+import seiscomp.geo
 
 
 class Listener(seiscomp.client.Application):
@@ -73,9 +74,12 @@ class Listener(seiscomp.client.Application):
         self.hb = None
         self.hb_seconds = None
         # UserDisplay interface
+        self.activeMQ = False
         self.udevt = None
         self.udevtLhThresh = 0.0
         self.udevtMagThresh = 0.0
+        self.profilesDic = []
+        self.bnaFile = ''
 
     def validateParameters(self):
         try:
@@ -151,19 +155,14 @@ class Listener(seiscomp.client.Application):
             self.sendemail = False
 
         try:
-            self.amqHost = self.configGetString('ActiveMQ.hostname')
-            self.amqPort = self.configGetInt('ActiveMQ.port')
-            self.amqTopic = self.configGetString('ActiveMQ.topic')
-            self.amqHbTopic = self.configGetString('ActiveMQ.hbtopic')
-            self.amqUser = self.configGetString('ActiveMQ.username')
-            self.amqPwd = self.configGetString('ActiveMQ.password')
-            self.amqMsgFormat = self.configGetString('ActiveMQ.messageFormat')
-            #magnitude and likehood threshold values for AMQ
-            self.udevtMagThresh = self.configGetDouble('ActiveMQ.magThresh')
-            self.udevtLhThresh = self.configGetDouble('ActiveMQ.likelihoodThresh')
+            self.activeMQ = self.configGetBool("ActiveMQ")
         except:
-            pass
-
+            seiscomp.logging.warning('not possible to check whether ActiveMQ is enable or not. Leaving this false')
+            self.activeMQ = False
+        
+        if self.activeMQ:
+            self.activeMQinitConfig()
+            
         try:
             self.storeReport = self.configGetBool("report.activate")
             self.expirationtime = self.configGetDouble("report.eventbuffer")
@@ -173,6 +172,131 @@ class Listener(seiscomp.client.Application):
             pass
 
         return True
+    
+    def activeMQinitConfig(self):
+        """
+        Init variables related to ActiveMQ. Only called when self.ActiveMQ = True
+        """
+        try:
+            self.amqHost = self.configGetString('ActiveMQ.hostname')
+            self.amqPort = self.configGetInt('ActiveMQ.port')
+            self.amqTopic = self.configGetString('ActiveMQ.topic')
+            self.amqHbTopic = self.configGetString('ActiveMQ.hbtopic')
+            self.amqUser = self.configGetString('ActiveMQ.username')
+            self.amqPwd = self.configGetString('ActiveMQ.password')
+            self.amqMsgFormat = self.configGetString('ActiveMQ.messageFormat')
+            #magnitude and likehood threshold values for AMQ
+            #self.udevtMagThresh = self.configGetDouble('ActiveMQ.magThresh')
+            #self.udevtLhThresh = self.configGetDouble('ActiveMQ.likelihoodThresh')
+        except:
+            seiscomp.logging.error('There was an error while reading the configuration for ActiveMQ. section. Please check it in detail' )
+            sys.exit(-1)
+        
+        #Region profiles 
+        profiles = []
+        try:
+            profiles =   self.configGetString('ActiveMQ.profiles').split(',')
+        except:
+            seiscomp.logging.error('Error while reading the ActiveMQ.profiles. Check it in detail' )
+            sys.exit(-1)
+        
+        #
+        try:
+            self.bnaFile =   self.configGetString('ActiveMQ.bnaFile')
+        except:
+            seiscomp.logging.error('Error while reading the ActiveMQ.bnaFile' )
+            sys.exit(-1)
+        
+        if len(profiles) > 0:
+            #reading each profile
+            for prof in profiles:
+                
+                tmpDic = {}
+                tmpDic['name'] = prof
+                
+                #Mag Threshold
+                try:
+                    tmpDic['magThresh'] = self.configGetDouble( 'ActiveMQ.' + prof + '.magThresh')
+                except:
+                    seiscomp.logging.warning('not possible to parse: '+'ActiveMQ.' + prof + '.magThresh' )
+                    seiscomp.logging.warning('setting '+'ActiveMQ.' + prof + '.magThresh = 0.0')
+                    tmpDic['magThresh'] = 0.0
+                    pass
+                
+                #Likelihood Threshold
+                try:
+                    
+                    tmpVal = self.configGetDouble( 'ActiveMQ.' + prof + '.likelihoodThresh')
+                    if tmpVal >= 0.0 and tmpVal <= 1:
+                        tmpDic['likelihoodThresh'] = tmpVal
+                    else:
+                        seiscomp.logging.warning('ActiveMQ.' + prof + '.likelihoodThresh must be between 0.0 to 1.0' )
+                        seiscomp.logging.info('setting '+'ActiveMQ.' + prof + '.likelihoodThresh = 0.0')
+                        tmpDic['likelihoodThresh'] = 0.0
+                except:
+                    seiscomp.logging.warning('Not possible to parse: '+'ActiveMQ.' + prof + '.likelihoodThresh' )
+                    seiscomp.logging.info('setting '+'ActiveMQ.' + prof + '.likelihoodThresh = 0.0')
+                    tmpDic['likelihoodThresh'] = 0.0
+                    pass
+                
+                #Min depth
+                try:
+                    
+                    tmpDic['minDepth'] = self.configGetDouble( 'ActiveMQ.' + prof + '.minDepth')
+                except:
+                    seiscomp.logging.warning('not possible to parse: '+'ActiveMQ.' + prof + '.minDepth' )
+                    seiscomp.logging.warning('setting '+'ActiveMQ.' + prof + '.minDepth = 0.0')
+                    tmpDic['minDepth'] = 0.0
+                    pass
+                
+                #Max depth
+                try:
+                    
+                    tmpDic['maxDepth'] = self.configGetDouble( 'ActiveMQ.' + prof + '.maxDepth')
+                except:
+                    seiscomp.logging.warning('not possible to parse: '+'ActiveMQ.' + prof + '.maxDepth' )
+                    seiscomp.logging.warning('setting '+'ActiveMQ.' + prof + '.maxDepth = 700.0')
+                    tmpDic['maxDepth'] = 700.0
+                    pass
+                
+                if tmpDic['minDepth'] > tmpDic['maxDepth']:
+                    seiscomp.logging.error('Min Depth cannot be greater than maxDepth. Please, correct this error' )
+                    sys.exit(-1)
+                
+                #BNA closed polygon
+                try:
+                    tmpDic['bnaPolygon'] = self.configGetString( 'ActiveMQ.' + prof + '.bnaPolygonName')
+                    #tmpDic['bnaFilePath'] = self.configGetString( 'ActiveMQ.' + prof + '.bnaFilePath')
+                except:
+                    seiscomp.logging.error('not possible to parse: '+'ActiveMQ.' + prof + '.bnaPolygonName' )
+                    seiscomp.logging.error('please check in detail')                    
+                    sys.exit(-1) #TODO: another clean way to exit?
+                
+                try:
+                    #check if the closed polygon exists 
+                    fs = seiscomp.geo.GeoFeatureSet()
+                    fo = fs.readBNAFile(self.bnaFile, None)
+                    tmpList = list( filter ( lambda x : x.name() == tmpDic['bnaPolygon'] and x.closedPolygon() , fs.features() ) )
+                    
+                    if len(tmpList) == 0:
+                        seiscomp.logging.error('Closed polygon: '+tmpDic['bnaPolygon']+' does not not exist in '+ self.bnaFile )
+                        seiscomp.logging.error('or the polygon IS NOT closed')
+                        seiscomp.logging.error('please fix this')
+                        sys.exit(-1)
+                    else:
+                        #if len(tmpList) > 1 then it will only use the first closed polygon
+                        tmpDic['bnaFeature'] = tmpList[0]
+                except Exception as e:
+                    seiscomp.logging.error('There was an error while loading the BNA file')
+                    seiscomp.logging.error(e)
+                    sys.exit(-1)
+                
+                #all okay with this poylgon and threshold values - Appending the tmpDic
+                self.profilesDic.append(tmpDic)
+                
+        else:
+            seiscomp.logging.error('There must exist the default profile "global" with the corresponding BNA file with its polygon')
+            sys.exit(-1)
 
     def init(self):
         """
@@ -370,8 +494,7 @@ class Listener(seiscomp.client.Application):
         self.event_dict[evID]['updates'][updateno]['magnitude'] = mag.magnitude(
         ).value()
         self.event_dict[evID]['updates'][updateno]['lat'] = org.latitude().value()
-        self.event_dict[evID]['updates'][updateno]['lon'] = org.longitude(
-        ).value()
+        self.event_dict[evID]['updates'][updateno]['lon'] = org.longitude().value()
         self.event_dict[evID]['updates'][updateno]['depth'] = org.depth().value()
         self.event_dict[evID]['updates'][updateno]['nstorg'] = org.arrivalCount()
         try:
@@ -408,19 +531,19 @@ class Listener(seiscomp.client.Application):
         # Make sure to attached additional information for this ev/mag
         self.processComments()
 
-        magVal =  mag.magnitude().value()
-        # Send an alert as long as the threshold values are exceeded
-        if self.udevtLhThresh == 0.0: # not verifying likelihood, only magnitude threshold for AMQ
-            seiscomp.logging.debug("No AMQ likelihood threshold check (set 0.0). Checking only AMQ magnitude threshold...")
-            
-            if magVal >= self.udevtMagThresh:
-                seiscomp.logging.info("Magnitude: %s is >= AMQ magnitude threshold: %s" % ( magVal, self.udevtMagThresh))
-                seiscomp.logging.debug("An alert will be sent...")
-                self.sendAlert(magID)
-            else:
-                seiscomp.logging.debug("Magnitude value: %s is less than AMQ magnitude threshold: %s. Not sending any alert" % ( magVal, self.udevtMagThresh))
-        else:
-            seiscomp.logging.debug("Waiting for likelihood value...")
+        #magVal =  mag.magnitude().value()
+        ## Send an alert as long as the threshold values are exceeded
+        #if self.udevtLhThresh == 0.0: # not verifying likelihood, only magnitude threshold for AMQ
+        #    seiscomp.logging.debug("No AMQ likelihood threshold check (set 0.0). Checking only AMQ magnitude threshold...")
+        #    
+        #    if magVal >= self.udevtMagThresh:
+        #        seiscomp.logging.info("Magnitude: %s is >= AMQ magnitude threshold: %s" % ( magVal, self.udevtMagThresh))
+        #        seiscomp.logging.debug("An alert will be sent...")
+        #        self.sendAlert(magID)
+        #    else:
+        #        seiscomp.logging.debug("Magnitude value: %s is less than AMQ magnitude threshold: %s. Not sending any alert" % ( magVal, self.udevtMagThresh))
+        #else:
+        #    seiscomp.logging.debug("Waiting for likelihood value...")
         
     def sendAlert(self, magID):
         """
@@ -700,8 +823,9 @@ class Listener(seiscomp.client.Application):
                     seiscomp.logging.error(msg)
                     continue
                 
+                lhVal = -1.0
                 if comment.id() == 'likelihood':
-                    self.event_dict[evID]['updates'][updateno]['likelihood'] = \
+                    self.event_dict[evID]['updates'][updateno]['likelihood'] = lhVal = \
                             float(comment.text())
                             
                 elif comment.id() == 'rupture-strike':
@@ -712,28 +836,29 @@ class Listener(seiscomp.client.Application):
                     self.event_dict[evID]['updates'][updateno]['rupture-length'] = \
                             float(comment.text())
                 
-                if self.event_dict[evID]['updates'][updateno]['likelihood'] and \
-                self.udevtLhThresh > 0.0:
+                if lhVal >= 0 and self.activeMQ:
                 
-                    lhVal = self.event_dict[evID]['updates'][updateno]['likelihood']
                     magVal = self.event_dict[evID]['updates'][updateno]['magnitude']
+                    depthVal = self.event_dict[evID]['updates'][updateno]['depth']
+                    latVal = self.event_dict[evID]['updates'][updateno]['lat']
+                    lonVal = self.event_dict[evID]['updates'][updateno]['lon']
                     
-                    seiscomp.logging.debug("likelihood value: %s found for mag %s" % ( lhVal, magID ) )
+                    #first Checking if origin location is within a closed polygon
+                    #there might be more than one polygon but once
+                    #a condition is accomplished then it will only alert once
                     
-                    if lhVal >= self.udevtLhThresh:
-                        seiscomp.logging.debug("likelihood value: %s is >= AMQ likelihood threshold: %s" % ( lhVal, self.udevtLhThresh ) )
-    
-                        if  magVal >= self.udevtMagThresh:
-                            seiscomp.logging.debug( "Magnitude value %s is >= AMQ magnitude threshold %s." % ( magVal, self.udevtMagThresh ) )
-                            seiscomp.logging.debug("An alert will be sent...")
+                    for ft in self.profilesDic:
+                        if ft['bnaFeature'].contains( seiscomp3.Geo.GeoCoordinate(latVal,lonVal) ) \
+                        and magVal >= ft['magThresh'] \
+                        and depthVal >= ft['minDepth'] \
+                        and depthVal <= ft['maxDepth'] \
+                        and lhVal >= ft['likehoodThresh']:
+                            seiscomp.logging.debug('alert within Polygon: "'+ft['name']+'" an alert will be sent' )
                             self.sendAlert( magID )
-                            
-                        else:
-                            seiscomp.logging.debug( "Magnitude value: %s is less than AMQ magnitude threshold: %s" \
-                            % ( magVal, self.udevtMagThresh )  )
-                else:
-                    seiscomp.logging.debug("No Likelihood value or update already sent for mag %s already reported.\nNo alert for this update" % magID)
+                            break
 
+                            
+                            
         self.received_comments = comments_to_keep
 
     def handleComment(self, comment, parentID):
