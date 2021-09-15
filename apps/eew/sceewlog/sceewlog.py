@@ -266,7 +266,6 @@ class Listener(seiscomp.client.Application):
                 #BNA closed polygon
                 try:
                     tmpDic['bnaPolygon'] = self.configGetString( 'ActiveMQ.' + prof + '.bnaPolygonName')
-                    #tmpDic['bnaFilePath'] = self.configGetString( 'ActiveMQ.' + prof + '.bnaFilePath')
                 except:
                     seiscomp.logging.error('not possible to parse: '+'ActiveMQ.' + prof + '.bnaPolygonName' )
                     seiscomp.logging.error('please check in detail')                    
@@ -848,7 +847,7 @@ class Listener(seiscomp.client.Application):
                     #a condition is accomplished then it will only alert once
                     
                     for ft in self.profilesDic:
-                        if ft['bnaFeature'].contains( seiscomp3.Geo.GeoCoordinate(latVal,lonVal) ) \
+                        if ft['bnaFeature'].contains( seiscomp.geo.GeoCoordinate(latVal,lonVal) ) \
                         and magVal >= ft['magThresh'] \
                         and depthVal >= ft['minDepth'] \
                         and depthVal <= ft['maxDepth'] \
