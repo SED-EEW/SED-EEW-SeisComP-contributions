@@ -2,7 +2,7 @@
 <seiscomp>
 	<module name="scvsmag" category="EEW" author="Swiss Seismological Service">
 		<description>
-			Computes magnitudes with the `Virtual Seismologist`_ (VS) algorithm based on envelopes calculated by :ref:`sceewenv`.
+			Computes magnitudes with the Virtual Seismologist (VS) algorithm based on envelopes calculated by sceewenv.
 		</description>
 		<configuration>
 			<group name="vsmag">
