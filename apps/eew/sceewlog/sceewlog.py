@@ -263,32 +263,42 @@ class Listener(seiscomp.client.Application):
                     seiscomp.logging.error('Min Depth cannot be greater than maxDepth. Please, correct this error' )
                     sys.exit(-1)
                 
-                #BNA closed polygon
+                #BNA closed polygon 
                 try:
                     tmpDic['bnaPolygon'] = self.configGetString( 'ActiveMQ.' + prof + '.bnaPolygonName')
                 except:
                     seiscomp.logging.error('not possible to parse: '+'ActiveMQ.' + prof + '.bnaPolygonName' )
                     seiscomp.logging.error('please check in detail')                    
                     sys.exit(-1) #TODO: another clean way to exit?
-                
-                try:
-                    #check if the closed polygon exists 
-                    fs = seiscomp.geo.GeoFeatureSet()
-                    fo = fs.readBNAFile(self.bnaFile, None)
-                    tmpList = list( filter ( lambda x : x.name() == tmpDic['bnaPolygon'] and x.closedPolygon() , fs.features() ) )
-                    
-                    if len(tmpList) == 0:
-                        seiscomp.logging.error('Closed polygon: '+tmpDic['bnaPolygon']+' does not not exist in '+ self.bnaFile )
-                        seiscomp.logging.error('or the polygon IS NOT closed')
-                        seiscomp.logging.error('please fix this')
+                #if there is bna file or the polygon name is set to none or empty
+                #then the bnaFeature object is None - no check if the origin is within a polygon
+                if tmpDic['bnaPolygon'].lower() == '' \
+                or tmpDic['bnaPolygon'].lower() == 'none' \
+                or self.bnaFile == '' \
+                or self.bnaFile.lower() == 'none':
+                    seiscomp.logging.warning("No Polygon check for profile: "+tmpDic['name'])
+                    tmpDic['bnaFeature'] = None
+                else:
+                    try:
+                        #check if the closed polygon exists and if they are closed ones
+                        fs = seiscomp.geo.GeoFeatureSet()
+                        fo = fs.readBNAFile(self.bnaFile, None)                    
+                        tmpList = list( filter ( lambda x : x.name() == tmpDic['bnaPolygon'] and x.closedPolygon() , fs.features() ) )
+                        
+                        if len(tmpList) == 0:
+                            seiscomp.logging.error('Closed polygon: '+tmpDic['bnaPolygon']+' does not not exist in '+ self.bnaFile )
+                            seiscomp.logging.error('or the polygon IS NOT closed')
+                            seiscomp.logging.error('please fix this')
+                            sys.exit(-1)
+                        else:
+                            #if len(tmpList) > 1 then it will only use the first closed polygon
+                            tmpDic['bnaFeature'] = tmpList[0]
+                            
+                    except Exception as e:
+                        seiscomp.logging.error('There was an error while loading the BNA file')
+                        seiscomp.logging.error(e)
                         sys.exit(-1)
-                    else:
-                        #if len(tmpList) > 1 then it will only use the first closed polygon
-                        tmpDic['bnaFeature'] = tmpList[0]
-                except Exception as e:
-                    seiscomp.logging.error('There was an error while loading the BNA file')
-                    seiscomp.logging.error(e)
-                    sys.exit(-1)
+                
                 
                 #all okay with this poylgon and threshold values - Appending the tmpDic
                 self.profilesDic.append(tmpDic)
@@ -847,15 +857,19 @@ class Listener(seiscomp.client.Application):
                     #a condition is accomplished then it will only alert once
                     
                     for ft in self.profilesDic:
-                        if ft['bnaFeature'].contains( seiscomp.geo.GeoCoordinate(latVal,lonVal) ) \
-                        and magVal >= ft['magThresh'] \
+                        if magVal >= ft['magThresh'] \
                         and depthVal >= ft['minDepth'] \
                         and depthVal <= ft['maxDepth'] \
                         and lhVal >= ft['likehoodThresh']:
-                            seiscomp.logging.debug('alert within Polygon: "'+ft['name']+'" an alert will be sent' )
-                            self.sendAlert( magID )
-                            break
-
+                            if ft['bnaFeature'] == None:
+                                seiscomp.logging.debug('Not checking if origin is within a polygon: An alert will be sent...' )
+                                self.sendAlert( magID )
+                                break
+                            else:
+                                if ft['bnaFeature'].contains( seiscomp.geo.GeoCoordinate(latVal,lonVal) ):
+                                    seiscomp.logging.debug('Origin within the polygon: "'+ft['name']+'". An alert will be sent...' )
+                                    self.sendAlert( magID )
+                                    break
                             
                             
         self.received_comments = comments_to_keep
