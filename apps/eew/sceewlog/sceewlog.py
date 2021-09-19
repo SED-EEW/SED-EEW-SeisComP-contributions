@@ -195,7 +195,7 @@ class Listener(seiscomp.client.Application):
         #Region profiles 
         profiles = []
         try:
-            profiles =   self.configGetString('ActiveMQ.profiles').split(',')
+            profiles =   self.configGetStrings('ActiveMQ.profiles')
         except:
             seiscomp.logging.error('Error while reading the ActiveMQ.profiles. Check it in detail' )
             sys.exit(-1)
@@ -227,7 +227,7 @@ class Listener(seiscomp.client.Application):
                 try:
                     
                     tmpVal = self.configGetDouble( 'ActiveMQ.' + prof + '.likelihoodThresh')
-                    if tmpVal >= 0.0 and tmpVal <= 1:
+                    if tmpVal >= 0.0 and tmpVal <= 1.0:
                         tmpDic['likelihoodThresh'] = tmpVal
                     else:
                         seiscomp.logging.warning('ActiveMQ.' + prof + '.likelihoodThresh must be between 0.0 to 1.0' )
