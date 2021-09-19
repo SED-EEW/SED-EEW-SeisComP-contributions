@@ -860,7 +860,7 @@ class Listener(seiscomp.client.Application):
                         if magVal >= ft['magThresh'] \
                         and depthVal >= ft['minDepth'] \
                         and depthVal <= ft['maxDepth'] \
-                        and lhVal >= ft['likehoodThresh']:
+                        and lhVal >= ft['likelihoodThresh']:
                             if ft['bnaFeature'] == None:
                                 seiscomp.logging.debug('Not checking if origin is within a polygon: An alert will be sent...' )
                                 self.sendAlert( magID )
