@@ -870,8 +870,18 @@ class Listener(seiscomp.client.Application):
                                     seiscomp.logging.debug('Origin within the polygon: "'+ft['name']+'". An alert will be sent...' )
                                     self.sendAlert( magID )
                                     break
-                            
-                            
+                        else:
+                            seiscomp.logging.debug('For profile: '+ ft['name']+'...')
+                            if magVal < ft['magThresh']:
+                                seiscomp.logging.debug('magVal was less than '+ft['magThresh'])
+                            if lhVal < ft['likelihoodThresh']:
+                                seiscomp.logging.debug('likelihood threshold was less than '+ft['likelihoodThresh'])
+                            if depthVal < ft['minDepth']:
+                                seiscomp.logging.debug('depth min value was less than '+ft['minDepth'])
+                            if depthVal > ft['maxDepth']:
+                                seiscomp.logging.debug('depth min value was greater than '+ft['maxDepth'])
+                            if ft['bnaFeature'] != None and not ft['bnaFeature'].contains( seiscomp.geo.GeoCoordinate(latVal,lonVal) ):
+                                seiscomp.logging.debug('lat: '+latVal + ' and lon: '+lonVal+' are not within polygon: '+ft['bnaPolygon'])
         self.received_comments = comments_to_keep
 
     def handleComment(self, comment, parentID):
