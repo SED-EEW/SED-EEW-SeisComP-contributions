@@ -836,6 +836,7 @@ class Listener(seiscomp.client.Application):
                 if comment.id() == 'likelihood':
                     self.event_dict[evID]['updates'][updateno]['likelihood'] = lhVal = \
                             float(comment.text())
+                    seiscomp.logging.info("likelihood value: %s" % lhVal)
                             
                 elif comment.id() == 'rupture-strike':
                     self.event_dict[evID]['updates'][updateno]['rupture-strike'] = \
@@ -879,11 +880,15 @@ class Listener(seiscomp.client.Application):
                             if depthVal < ft['minDepth']:
                                 seiscomp.logging.debug('depth min value was less than %s' % ft['minDepth'])
                             if depthVal > ft['maxDepth']:
-                                seiscomp.logging.debug('depth min value was greater than %s' % ft['maxDepth'])
-                            if ft['bnaFeature'] != None and not ft['bnaFeature'].contains( seiscomp.geo.GeoCoordinate(latVal,lonVal) ):
-                                seiscomp.logging.debug('lat: %s and lon: %s are not within polygon: %s' \
-                                % ( latVal, lonVal, ft['bnaPolygon'] ) )
-
+                                seiscomp.logging.debug('depth max value was greater than %s' % ft['maxDepth'])
+                            if ft['bnaFeature'] != None:
+                                if not ft['bnaFeature'].contains( seiscomp.geo.GeoCoordinate(latVal,lonVal) ):
+                                    seiscomp.logging.debug('lat: %s and lon: %s are not within polygon: %s' \
+                                    % ( latVal, lonVal, ft['bnaPolygon'] ) )
+                            seiscomp.logging.debug('No alert will be sent')
+                else:
+                    if len(self.profilesDic) == 0 : #no profiles. Any origin and mag is reported
+                        self.sendAlert( magID )
     def handleComment(self, comment, parentID):
         """
         Update events based on special magnitude comments.
