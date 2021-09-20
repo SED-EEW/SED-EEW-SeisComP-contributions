@@ -873,16 +873,16 @@ class Listener(seiscomp.client.Application):
                         else:
                             seiscomp.logging.debug('For profile: '+ ft['name']+'...')
                             if magVal < ft['magThresh']:
-                                seiscomp.logging.debug('magVal was less than '+ft['magThresh'])
+                                seiscomp.logging.debug('magVal was less than %s' % ft['magThresh'])
                             if lhVal < ft['likelihoodThresh']:
-                                seiscomp.logging.debug('likelihood threshold was less than '+ft['likelihoodThresh'])
+                                seiscomp.logging.debug('likelihood threshold was less than %s' % ft['likelihoodThresh'])
                             if depthVal < ft['minDepth']:
-                                seiscomp.logging.debug('depth min value was less than '+ft['minDepth'])
+                                seiscomp.logging.debug('depth min value was less than %s' % ft['minDepth'])
                             if depthVal > ft['maxDepth']:
-                                seiscomp.logging.debug('depth min value was greater than '+ft['maxDepth'])
+                                seiscomp.logging.debug('depth min value was greater than %s' % ft['maxDepth'])
                             if ft['bnaFeature'] != None and not ft['bnaFeature'].contains( seiscomp.geo.GeoCoordinate(latVal,lonVal) ):
-                                seiscomp.logging.debug('lat: '+latVal + ' and lon: '+lonVal+' are not within polygon: '+ft['bnaPolygon'])
-        self.received_comments = comments_to_keep
+                                seiscomp.logging.debug('lat: %s and lon: %s are not within polygon: %s' \
+                                % ( latVal, lonVal, ft['bnaPolygon'] ) )
 
     def handleComment(self, comment, parentID):
         """
