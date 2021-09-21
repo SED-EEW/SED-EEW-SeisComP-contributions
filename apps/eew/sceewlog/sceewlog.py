@@ -290,7 +290,7 @@ class Listener(seiscomp.client.Application):
                 else:
                     try:
                         #check if the closed polygon exists and if they are closed ones
-                        fs = seiscomp3.Geo.GeoFeatureSet()
+                        fs = seiscomp.geo.GeoFeatureSet()
                         fo = fs.readBNAFile(self.bnaFile, None)                    
                         tmpList = list( filter ( lambda x : x.name() == tmpDic['bnaPolygon'] and x.closedPolygon() , fs.features() ) )
                         
@@ -308,7 +308,7 @@ class Listener(seiscomp.client.Application):
                             
                     except Exception as e:
                         seiscomp.logging.error('There was an error while loading the BNA file')
-                        seiscomp.logging.error(e)
+                        seiscomp.logging.error( repr(e) )
                         sys.exit(-1)
 
                 
