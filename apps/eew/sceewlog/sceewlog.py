@@ -225,19 +225,18 @@ class Listener(seiscomp.client.Application):
                 
                 #Likelihood Threshold
                 try:
-                    
                     tmpVal = self.configGetDouble( 'ActiveMQ.' + prof + '.likelihoodThresh')
-                    if tmpVal >= 0.0 and tmpVal <= 1.0:
-                        tmpDic['likelihoodThresh'] = tmpVal
-                    else:
-                        seiscomp.logging.warning('ActiveMQ.' + prof + '.likelihoodThresh must be between 0.0 to 1.0' )
-                        seiscomp.logging.info('setting '+'ActiveMQ.' + prof + '.likelihoodThresh = 0.0')
-                        tmpDic['likelihoodThresh'] = 0.0
                 except:
                     seiscomp.logging.warning('Not possible to parse: '+'ActiveMQ.' + prof + '.likelihoodThresh' )
                     seiscomp.logging.info('setting '+'ActiveMQ.' + prof + '.likelihoodThresh = 0.0')
                     tmpDic['likelihoodThresh'] = 0.0
                     pass
+                
+                if tmpVal >= 0.0 and tmpVal <= 1:
+                    tmpDic['likelihoodThresh'] = tmpVal
+                else:
+                    seiscomp.logging.error('Incorrect ActiveMQ.' + prof + '.likelihoodThresh. It must be between 0.0 to 1.0' )
+                    sys.exit(-1)
                 
                 #Min depth
                 try:
@@ -262,14 +261,24 @@ class Listener(seiscomp.client.Application):
                 if tmpDic['minDepth'] > tmpDic['maxDepth']:
                     seiscomp.logging.error('Min Depth cannot be greater than maxDepth. Please, correct this error' )
                     sys.exit(-1)
+                    
+                #max time - seconds
+                try:
+                    tmpDic['maxTime'] = self.configGetInt( 'ActiveMQ.' + prof + '.maxTime')
+                except:
+                    seiscomp.logging.warning('not possible to parse: '+'ActiveMQ.' + prof + '.maxTime' )
+                    seiscomp.logging.warning('setting '+'ActiveMQ.' + prof + '.maxTime = -1')
+                    tmpDic['maxTime'] = -1
+                    pass
                 
-                #BNA closed polygon 
+                #BNA closed polygon
                 try:
                     tmpDic['bnaPolygon'] = self.configGetString( 'ActiveMQ.' + prof + '.bnaPolygonName')
                 except:
                     seiscomp.logging.error('not possible to parse: '+'ActiveMQ.' + prof + '.bnaPolygonName' )
                     seiscomp.logging.error('please check in detail')                    
                     sys.exit(-1) #TODO: another clean way to exit?
+                
                 #if there is bna file or the polygon name is set to none or empty
                 #then the bnaFeature object is None - no check if the origin is within a polygon
                 if tmpDic['bnaPolygon'].lower() == '' \
@@ -281,7 +290,7 @@ class Listener(seiscomp.client.Application):
                 else:
                     try:
                         #check if the closed polygon exists and if they are closed ones
-                        fs = seiscomp.geo.GeoFeatureSet()
+                        fs = seiscomp3.Geo.GeoFeatureSet()
                         fo = fs.readBNAFile(self.bnaFile, None)                    
                         tmpList = list( filter ( lambda x : x.name() == tmpDic['bnaPolygon'] and x.closedPolygon() , fs.features() ) )
                         
@@ -292,21 +301,24 @@ class Listener(seiscomp.client.Application):
                             sys.exit(-1)
                         else:
                             #if len(tmpList) > 1 then it will only use the first closed polygon
+                            if len(tmpList) > 1:
+                                seiscomp.logging.warning('There are more than one closed polygon with the name "%s"' % tmpDic['bnaPolygon'])
+                                seiscomp.logging.warning('just taking the first one')
                             tmpDic['bnaFeature'] = tmpList[0]
                             
                     except Exception as e:
                         seiscomp.logging.error('There was an error while loading the BNA file')
                         seiscomp.logging.error(e)
                         sys.exit(-1)
-                
+
                 
                 #all okay with this poylgon and threshold values - Appending the tmpDic
                 self.profilesDic.append(tmpDic)
                 
         else:
-            seiscomp.logging.error('There must exist the default profile "global" with the corresponding BNA file with its polygon')
-            sys.exit(-1)
-
+            seiscomp.logging.warning('No ActiveMQ message filtering. All the configured magnitudes will be sent')
+            pass
+            #sys.exit(-1)
     def init(self):
         """
         Initialization.
@@ -852,43 +864,55 @@ class Listener(seiscomp.client.Application):
                     depthVal = self.event_dict[evID]['updates'][updateno]['depth']
                     latVal = self.event_dict[evID]['updates'][updateno]['lat']
                     lonVal = self.event_dict[evID]['updates'][updateno]['lon']
-                    
+                    difftime = self.event_dict[evID]['updates'][updateno]['diff']
                     #first Checking if origin location is within a closed polygon
                     #there might be more than one polygon but once
                     #a condition is accomplished then it will only alert once
                     
                     for ft in self.profilesDic:
-                        if magVal >= ft['magThresh'] \
-                        and depthVal >= ft['minDepth'] \
-                        and depthVal <= ft['maxDepth'] \
-                        and lhVal >= ft['likelihoodThresh']:
-                            if ft['bnaFeature'] == None:
-                                seiscomp.logging.debug('Not checking if origin is within a polygon: An alert will be sent...' )
-                                self.sendAlert( magID )
-                                break
-                            else:
-                                if ft['bnaFeature'].contains( seiscomp.geo.GeoCoordinate(latVal,lonVal) ):
-                                    seiscomp.logging.debug('Origin within the polygon: "'+ft['name']+'". An alert will be sent...' )
-                                    self.sendAlert( magID )
-                                    break
-                        else:
-                            seiscomp.logging.debug('For profile: '+ ft['name']+'...')
-                            if magVal < ft['magThresh']:
-                                seiscomp.logging.debug('magVal was less than %s' % ft['magThresh'])
-                            if lhVal < ft['likelihoodThresh']:
-                                seiscomp.logging.debug('likelihood threshold was less than %s' % ft['likelihoodThresh'])
-                            if depthVal < ft['minDepth']:
-                                seiscomp.logging.debug('depth min value was less than %s' % ft['minDepth'])
-                            if depthVal > ft['maxDepth']:
-                                seiscomp.logging.debug('depth max value was greater than %s' % ft['maxDepth'])
-                            if ft['bnaFeature'] != None:
-                                if not ft['bnaFeature'].contains( seiscomp.geo.GeoCoordinate(latVal,lonVal) ):
-                                    seiscomp.logging.debug('lat: %s and lon: %s are not within polygon: %s' \
+                        noSend = False
+                        seiscomp.logging.debug( 'For Profile: %s...' % ft['name'] )
+                        if magVal < ft['magThresh']:
+                            seiscomp.logging.debug('magVal was less than %s' % ft['magThresh'])
+                            noSend = True
+                            
+                        if depthVal < ft['minDepth']:
+                            seiscomp.logging.debug('depth min value was less than %s' % ft['minDepth'])
+                            noSend = True
+                        
+                        if depthVal > ft['maxDepth']:
+                            seiscomp.logging.debug('depth min value was greater than %s' % ft['maxDepth'])
+                            noSend = True
+                        
+                        if lhVal < ft['likelihoodThresh']:
+                            seiscomp.logging.debug('likelihood threshold was less than %s' % ft['likelihoodThresh'])
+                            noSend = True
+                        
+                        if ft['maxTime'] != -1:
+                            if ft['maxTime'] < difftime:
+                                seiscomp.logging.debug('Difftime of %s is greater than the maxTime for this profile' % difftime)
+                                noSend = True
+                        
+                        if ft['bnaFeature'] != None:
+                            if not ft['bnaFeature'].contains( seiscomp.geo.GeoCoordinate(float(latVal),float(lonVal)) ):
+                                seiscomp.logging.debug('lat: %s and lon: %s are not within polygon: %s' \
                                     % ( latVal, lonVal, ft['bnaPolygon'] ) )
-                            seiscomp.logging.debug('No alert will be sent')
-                else:
-                    if len(self.profilesDic) == 0 : #no profiles. Any origin and mag is reported
-                        self.sendAlert( magID )
+                                noSend = True
+                        
+                        if noSend:
+                            seiscomp.logging.debug('No alert for this origin and magnitude')
+                            continue
+                        else:
+                            seiscomp.logging.debug('Sending and alert....')
+                            self.sendAlert( magID )
+                            break
+                            
+                elif self.activeMQ and len(self.profilesDic) == 0 :
+                    #no profiles. Any origin and mag is reported
+                    seiscomp.logging.info('No profiles but activeMQ enabled. sending an alert...')
+                    self.sendAlert( magID )
+                        
+        self.received_comments = comments_to_keep
     def handleComment(self, comment, parentID):
         """
         Update events based on special magnitude comments.
