@@ -80,6 +80,7 @@ class Listener(seiscomp.client.Application):
         self.udevtMagThresh = 0.0
         self.profilesDic = []
         self.bnaFile = ''
+        self.fs = None #GeoFeature object
 
     def validateParameters(self):
         try:
@@ -207,6 +208,12 @@ class Listener(seiscomp.client.Application):
             seiscomp.logging.error('Error while reading the ActiveMQ.bnaFile' )
             sys.exit(-1)
         
+        if self.bnaFile != '' or self.bnaFile.lower() != 'none':
+            self.fs = seiscomp.geo.GeoFeatureSet()
+            fo = self.fs.readBNAFile(self.bnaFile, None)
+            if not fo:
+                seiscomp.logging.error('Not possible to open the bnaFile')
+                sys.exit(-1)
         if len(profiles) > 0:
             #reading each profile
             for prof in profiles:
@@ -281,18 +288,15 @@ class Listener(seiscomp.client.Application):
                 
                 #if there is bna file or the polygon name is set to none or empty
                 #then the bnaFeature object is None - no check if the origin is within a polygon
-                if tmpDic['bnaPolygon'].lower() == '' \
+                if tmpDic['bnaPolygon'] == '' \
                 or tmpDic['bnaPolygon'].lower() == 'none' \
-                or self.bnaFile == '' \
-                or self.bnaFile.lower() == 'none':
+                or self.fs == None:
                     seiscomp.logging.warning("No Polygon check for profile: "+tmpDic['name'])
-                    tmpDic['bnaFeature'] = None
+                    tmpDic['bnaFeature'] = False
                 else:
                     try:
-                        #check if the closed polygon exists and if they are closed ones
-                        fs = seiscomp.geo.GeoFeatureSet()
-                        fo = fs.readBNAFile(self.bnaFile, None)                    
-                        tmpList = list( filter ( lambda x : x.name() == tmpDic['bnaPolygon'] and x.closedPolygon() , fs.features() ) )
+                        #check if the closed polygon exists and if they are closed ones                   
+                        tmpList = list( filter ( lambda x : x.name() == tmpDic['bnaPolygon'] and x.closedPolygon() , self.fs.features() ) )
                         
                         if len(tmpList) == 0:
                             seiscomp.logging.error('Closed polygon: '+tmpDic['bnaPolygon']+' does not not exist in '+ self.bnaFile )
@@ -303,11 +307,11 @@ class Listener(seiscomp.client.Application):
                             #if len(tmpList) > 1 then it will only use the first closed polygon
                             if len(tmpList) > 1:
                                 seiscomp.logging.warning('There are more than one closed polygon with the name "%s"' % tmpDic['bnaPolygon'])
-                                seiscomp.logging.warning('just taking the first one')
-                            tmpDic['bnaFeature'] = tmpList[0]
+                                seiscomp.logging.warning('It will used only the first one')
+                            tmpDic['bnaFeature'] = True
                             
                     except Exception as e:
-                        seiscomp.logging.error('There was an error while loading the BNA file')
+                        seiscomp.logging.error('There was an error while checking the BNA file')
                         seiscomp.logging.error( repr(e) )
                         sys.exit(-1)
 
@@ -858,6 +862,7 @@ class Listener(seiscomp.client.Application):
                     self.event_dict[evID]['updates'][updateno]['rupture-length'] = \
                             float(comment.text())
                 
+                #Evaluation to send or not send an alert
                 if lhVal >= 0 and self.activeMQ:
                 
                     magVal = self.event_dict[evID]['updates'][updateno]['magnitude']
@@ -881,7 +886,7 @@ class Listener(seiscomp.client.Application):
                             noSend = True
                         
                         if depthVal > ft['maxDepth']:
-                            seiscomp.logging.debug('depth min value was greater than %s' % ft['maxDepth'])
+                            seiscomp.logging.debug('depth max value was greater than %s' % ft['maxDepth'])
                             noSend = True
                         
                         if lhVal < ft['likelihoodThresh']:
@@ -893,12 +898,17 @@ class Listener(seiscomp.client.Application):
                                 seiscomp.logging.debug('Difftime of %s is greater than the maxTime for this profile' % difftime)
                                 noSend = True
                         
-                        if ft['bnaFeature'] != None:
-                            if not ft['bnaFeature'].contains( seiscomp.geo.GeoCoordinate(float(latVal),float(lonVal)) ):
-                                seiscomp.logging.debug('lat: %s and lon: %s are not within polygon: %s' \
+                        if ft['bnaFeature']:
+                            tmpList = list( filter ( lambda x : x.name() == ft['bnaPolygon'], self.fs.features() ) )
+                            if len(tmpList) > 0:
+                                if not tmpList[0].contains( seiscomp.geo.GeoCoordinate(float('%.3f' % latVal),float('%.3f' %lonVal)) ):
+                                    seiscomp.logging.debug('lat: %s and lon: %s are not within polygon: %s' \
                                     % ( latVal, lonVal, ft['bnaPolygon'] ) )
-                                noSend = True
-                        
+                                    noSend = True
+                            else:
+                                seiscomp.logging.warning("There is no polygon whose name is %s " % ft['bnaPolygon'])
+                            
+                            
                         if noSend:
                             seiscomp.logging.debug('No alert for this origin and magnitude')
                             continue
