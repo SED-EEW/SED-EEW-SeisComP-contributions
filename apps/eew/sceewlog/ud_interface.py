@@ -88,7 +88,7 @@ class HeartBeat(UDConnection):
         root = ET.Element('hb')
         root.set('originator', 'vssc3')
         root.set('sender', 'vssc3')
-        if self.format == 'qml1.2-rt':
+        if self.format in ['qml1.2-rt', 'cap1.2']:
             now = dt.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
             root.set('xmlns', 'http://heartbeat.reakteu.org')
         else:
