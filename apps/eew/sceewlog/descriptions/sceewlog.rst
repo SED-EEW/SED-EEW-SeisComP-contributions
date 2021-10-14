@@ -13,7 +13,8 @@ report files. These report files are saved to disk and can also be sent via
 email.
 
 It also implements an `ActiveMQ`_ interface which can
-send alert messages in real-time. Currently, messages can be sent in four
+send alert messages in real-time. It supports regionalized filter profiles (based on polygons and EQ parameter threshold values).
+Currently, messages can be sent in four
 different formats (SeisComPML, QuakeML, ShakeAlertML, CAP). The SED-ETHZ team provide a client that can
 display these alert messages, the `Earthquake Early Warning Display (EEWD)`_
 an OpenSource user interface developed within the European REAKT project and
@@ -67,6 +68,62 @@ the time difference between *creation time* and last *origin time* in seconds,
 origin and  *#St.(Ma.)* the number of envelope streams that contributed to the
 magnitude. *Str.* and *Len.* are the strike and length of the fault line
 provided by :ref:`scfinder`.
+
+Regionalized Filters
+====================
+
+To filter alerts to be sent out through ActiveMQ, it is necessary to set profiles on ActiveMQ section.
+Since this is using regions which are basically polygons, then the first step is to provide a BNA file that contains the polygons.
+If the user does not provide a BNA file, then the other profile parameters will be evaluated globally.
+
+.. code-block:: sh
+
+   activeMQ.bnaFile = /opt/seiscomp3/share/sceewlog/closedpolygons.bna
+   
+Then profile names have to be set. Two profile examples will be presented below.
+
+.. code-block:: sh
+
+   activeMQ.profiles = global, America
+   
+For global profile it won't be used a closed polygon since this spans on the entire world. For America profile it will be used 
+the "America" closed polygon which has to be in the activeMQ.bnaFile.
+
+.. code-block:: sh
+
+   activeMQ.global.bnaPolygonName = none
+   activeMQ.America.bnaPolygonName = America
+
+The magnitude and threshold values will be:
+
+.. code-block:: sh
+
+   activeMQ.global.magThresh = 6.0
+   activeMQ.global.likelihoodThresh = 0.5
+   activeMQ.America.magThresh = 5.0
+   activeMQ.America.likelihoodThresh = 0.3
+
+There are also a depth filter based on min-max range for each profile. Following the example for the global profile, it will be only for shallow EQs, whereas
+for America one the min depth will be 0 km and max depth 100 km.
+
+.. code-block:: sh
+
+   activeMQ.global.minDepth = 0
+   activeMQ.global.maxDepth = 33
+   activeMQ.America.minDepth = 0
+   activeMQ.America.maxDepth = 100
+
+Finally, to avoid sending alerts which are far from being considered ontime warnings, then a maxTime value can be set.
+This maxTime value is the maximum value in seconds of magnitude creation time minus origin time. For the examples, on the global
+profile this parameter will be -1 which means no considering this filter, whereas for America it is set to 60 seconds.
+
+ 
+.. code-block:: sh
+
+   #No considering this filter
+   activeMQ.global.maxTime = -1
+   #
+   activeMQ.America.maxTime = 60
 
 
 
