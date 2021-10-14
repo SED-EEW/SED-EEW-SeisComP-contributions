@@ -156,7 +156,7 @@ class Listener(seiscomp.client.Application):
             self.sendemail = False
 
         try:
-            self.activeMQ = self.configGetBool("ActiveMQ")
+            self.activeMQ = self.configGetBool("ActiveMQ.activate")
         except:
             seiscomp.logging.warning('not possible to check whether ActiveMQ is enable or not. Leaving this false')
             self.activeMQ = False
