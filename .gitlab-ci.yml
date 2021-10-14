@@ -12,7 +12,7 @@ before_script:
 
 build:
   tags:
-    - docker
+    - dind
   script:
     - docker build --pull -t $IMAGE_TAG .
     - docker push $IMAGE_TAG
