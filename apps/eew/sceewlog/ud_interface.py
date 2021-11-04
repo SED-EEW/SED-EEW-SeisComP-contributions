@@ -24,6 +24,7 @@ import os
 import lxml.etree as ET
 import seiscomp
 from seiscomp.io import Exporter, ExportSink
+from headlinealert import HeadlineAlert as hl 
 
 
 class UDException(Exception): pass
@@ -109,6 +110,8 @@ class CoreEventInfo(UDConnection):
         UDConnection.__init__(self, host, port, topic, username, password)
         ei = seiscomp.system.Environment.Instance()
         self.transform = None
+        self.hlalert = None
+        self.dic = None
         if format == 'qml1.2-rt':
             xslt = ET.parse(os.path.join(ei.shareDir(), 'sceewlog',
                                          'sc3ml_0.11__quakeml_1.2-RT_eewd.xsl'))
@@ -118,24 +121,84 @@ class CoreEventInfo(UDConnection):
                             'sc3ml_0.11__shakealert.xsl'))
             self.transform = ET.XSLT(xslt)
         elif format == 'cap1.2':
+            
+            self.hlalert = hl(os.path.join(ei.shareDir(), 'sceewlog',
+                            'world_cities.csv'))
+            try:
+                self.dic = self.hlalert.csvFile2dic(self.hlalert.dataFile)
+            except:
+                pass
             xslt = ET.parse(os.path.join(ei.shareDir(), 'sceewlog',
                             'sc3ml_0.11__cap_1.2.xsl'))
+            
             self.transform = ET.XSLT(xslt)
+            
         elif format == 'sc3ml':
             pass
         else:
             seiscomp.logging.error('Currently supported AMQ message formats \
             are cap1.2, sc3ml, qml1.2-rt, and shakealert.')
 
-    def message_encoder(self, ep, pretty_print=True):
+    def modify_headline(self, ep, dom):
+        #headline for alert msg
+        hlSpanish = None
+        hlEnglish = None
+        try:
+            evt = ep.event(0)
+            agency = evt.creationInfo().agencyID()
+            prefOrID = evt.preferredOriginID()
+            prefMagID = evt.preferredMagnitudeID()
+            origin = ep.findOrigin(prefOrID)
+            
+            mag = origin.findMagnitude(prefMagID).magnitude().value()
+            lat = origin.latitude().value()
+            lon = origin.longitude().value()
+            depth = origin.depth().value()
+            
+            if self.hlalert is not None and self.dic is not None:
+                
+                np = dis = azVal = azTextSp = azTextEn = None
+                
+                epi = {'lat': lat,'lon': lon}
+                #nearest city or place from self.dic (dictionary)
+                np = self.hlalert.findNearestPlace(self.dic, epi)
+                #distance to the nearest place
+                dis = self.hlalert.distance([ float(np['lat']), epi['lat'], float(np['lon']), epi['lon'] ] )
+                #azimuth from the nearest place to the epicenter
+                azVal = self.hlalert.azimuth([ float(np['lat']), epi['lat'], float(np['lon']), epi['lon'] ] )
+                #
+                azTextSp = self.hlalert.direction(azVal, 'es-US')
+                azTextEn = self.hlalert.direction(azVal, 'en-US')
+                location = self.hlalert.location(dis, azTextSp, np['city'],np['country'], 'sp') 
+                region = self.hlalert.region( epi['lat'], epi['lon'] )
+                hlSpanish = agency + ' info - Mag: '+str( round(mag, 1) )+ ', '+location
+                hlEnglish = agency + ' info - Mag: '+str( round(mag, 1) )+ ', ' + region
+                
+                if hlSpanish is not None:
+                    dom = self.hlalert.replaceHeadline(hlSpanish, 'es-US',dom)
+                
+                if hlEnglish is not None:
+                    dom = self.hlalert.replaceHeadline(hlEnglish, 'en-US',dom)
+        except:
+            #Something went wrong. Returning the same dom 
+            return dom
+        
+        return dom
+        
+    def message_encoder(self, ep, pretty_print=True, change_headline = False):
         exp = Exporter.Create('trunk')
         io = BytesIO() 
         sink = Sink(io)
         exp.write(sink, ep)
-        # apply XSLT
         dom = ET.fromstring(io.getvalue())
+        # apply XSLT
         if self.transform is not None:
             dom = self.transform(dom)
+            
+            #replacing the headline in spanish and english
+            if change_headline:
+                dom = self.modify_headline(ep, dom)
+                
         return ET.tostring(dom, pretty_print=pretty_print)
 
 if __name__ == '__main__':
