@@ -81,6 +81,7 @@ class Listener(seiscomp.client.Application):
         self.profilesDic = []
         self.bnaFile = ''
         self.fs = None #GeoFeature object
+        self.capNearCity = False
 
     def validateParameters(self):
         try:
@@ -192,7 +193,16 @@ class Listener(seiscomp.client.Application):
         except:
             seiscomp.logging.error('There was an error while reading the configuration for ActiveMQ. section. Please check it in detail' )
             sys.exit(-1)
-        
+            
+        #capNearCity
+        try:
+            self.capNearCity = self.configGetBool("ActiveMQ.capNearCity")
+        except:
+            self.capNearCity = False
+            seiscomp.logging.error('ActiveMQ.capNearCity config value missing or not a set a proper boolean value')
+            seiscomp.logging.error('setting it to False')
+            pass
+            
         #Region profiles 
         profiles = []
         try:
@@ -203,7 +213,7 @@ class Listener(seiscomp.client.Application):
         
         #
         try:
-            self.bnaFile =   self.configGetString('ActiveMQ.bnaFile')
+            self.bnaFile = self.configGetString('ActiveMQ.bnaFile')
         except:
             seiscomp.logging.error('Error while reading the ActiveMQ.bnaFile' )
             sys.exit(-1)
@@ -322,7 +332,8 @@ class Listener(seiscomp.client.Application):
         else:
             seiscomp.logging.warning('No ActiveMQ message filtering. All the configured magnitudes will be sent')
             pass
-            #sys.exit(-1)
+
+    
     def init(self):
         """
         Initialization.
@@ -607,7 +618,7 @@ class Listener(seiscomp.client.Application):
         else:
             seiscomp.logging.debug("Cannot find origin %s in cache." % orgID)
 
-        self.udevt.send(self.udevt.message_encoder(ep))
+        self.udevt.send(self.udevt.message_encoder(ep), self.capNearCity)
 
     def handleMagnitude(self, magnitude, parentID):
         """
