@@ -24,7 +24,6 @@ import os
 import lxml.etree as ET
 import seiscomp
 from seiscomp.io import Exporter, ExportSink
-from headlinealert import HeadlineAlert as hl 
 
 
 class UDException(Exception): pass
@@ -121,13 +120,14 @@ class CoreEventInfo(UDConnection):
                             'sc3ml_0.11__shakealert.xsl'))
             self.transform = ET.XSLT(xslt)
         elif format == 'cap1.2':
-            
-            self.hlalert = hl(os.path.join(ei.shareDir(), 'sceewlog',
-                            'world_cities.csv'))
             try:
+                from headlinealert import HeadlineAlert as hl
+                self.hlalert = hl(os.path.join(ei.shareDir(), 'sceewlog',
+                            'world_cities.csv'))
                 self.dic = self.hlalert.csvFile2dic(self.hlalert.dataFile)
             except:
                 pass
+                
             xslt = ET.parse(os.path.join(ei.shareDir(), 'sceewlog',
                             'sc3ml_0.11__cap_1.2.xsl'))
             
@@ -185,7 +185,7 @@ class CoreEventInfo(UDConnection):
         
         return dom
         
-    def message_encoder(self, ep, pretty_print=True, change_headline = False):
+    def message_encoder(self, ep, change_headline, pretty_print=True):
         exp = Exporter.Create('trunk')
         io = BytesIO() 
         sink = Sink(io)
@@ -196,7 +196,7 @@ class CoreEventInfo(UDConnection):
             dom = self.transform(dom)
             
             #replacing the headline in spanish and english
-            if change_headline:
+            if change_headline and self.hlalert and self.dic:
                 dom = self.modify_headline(ep, dom)
                 
         return ET.tostring(dom, pretty_print=pretty_print)
