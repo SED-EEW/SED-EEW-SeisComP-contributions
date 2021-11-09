@@ -24,7 +24,7 @@ from seiscomp3.IO import Exporter, ExportSink
 import cStringIO
 import lxml.etree as ET
 import os
-from headlinealert import HeadlineAlert as hl
+
 
 
 class UDException(Exception): pass
@@ -119,9 +119,10 @@ class CoreEventInfo(UDConnection):
                             'sc3ml_0.11__shakealert.xsl'))
             self.transform = ET.XSLT(xslt)
         elif format == 'cap1.2':
-            self.hlalert = hl(os.path.join(ei.shareDir(), 'sceewlog',
-                            'world_cities.csv'))
             try:
+                from headlinealert import HeadlineAlert as hl
+                self.hlalert = hl(os.path.join(ei.shareDir(), 'sceewlog',
+                            'world_cities.csv'))
                 self.dic = self.hlalert.csvFile2dic(self.hlalert.dataFile)
             except:
                 pass
@@ -161,14 +162,13 @@ class CoreEventInfo(UDConnection):
                 dis = self.hlalert.distance([ float(np['lat']), epi['lat'], float(np['lon']), epi['lon'] ] )
                 #azimuth from the nearest place to the epicenter
                 azVal = self.hlalert.azimuth([ float(np['lat']), epi['lat'], float(np['lon']), epi['lon'] ] )
-                #Obtaning the cardinal direction in abreviatted text
+                #
                 azTextSp = self.hlalert.direction(azVal, 'es-US')
                 azTextEn = self.hlalert.direction(azVal, 'en-US')
-                #Text that will replace the default headline
                 location = self.hlalert.location(dis, azTextSp, np['city'],np['country'], 'es-US')
                 region = self.hlalert.region( epi['lat'], epi['lon'] )
-                hlSpanish = agency + ' info - Mag: '+str( round(mag, 1) )+ ', '+location
-                hlEnglish = agency + ' info - Mag: '+str( round(mag, 1) )+ ', ' + region
+                hlSpanish = agency + ' SISMO - Mag: '+str( round(mag, 1) )+ ', '+location
+                hlEnglish = agency + ' EQ - Mag: '+str( round(mag, 1) )+ ', ' + region
 
                 if hlSpanish is not None:
                     dom = self.hlalert.replaceHeadline(hlSpanish, 'es-US',dom)
@@ -181,7 +181,7 @@ class CoreEventInfo(UDConnection):
 
         return dom
 
-    def message_encoder(self, ep, pretty_print=True, change_headline = False):
+    def message_encoder(self, ep, change_headline, pretty_print=True):
 
         exp = Exporter.Create('trunk')
         io = cStringIO.StringIO()
@@ -192,7 +192,7 @@ class CoreEventInfo(UDConnection):
         if self.transform is not None:
             dom = self.transform(dom)
             #replacing the headline in spanish and english
-            if change_headline:
+            if change_headline and self.hlalert and self.dic:
                 dom = self.modify_headline(ep, dom)
         return ET.tostring(dom, pretty_print=pretty_print)
 
