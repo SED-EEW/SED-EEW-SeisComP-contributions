@@ -618,7 +618,7 @@ class Listener(seiscomp.client.Application):
         else:
             seiscomp.logging.debug("Cannot find origin %s in cache." % orgID)
 
-        self.udevt.send(self.udevt.message_encoder(ep), self.capNearCity)
+        self.udevt.send(self.udevt.message_encoder( ep, self.capNearCity ))
 
     def handleMagnitude(self, magnitude, parentID):
         """
