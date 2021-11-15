@@ -103,12 +103,15 @@ class HeartBeat(UDConnection):
 class CoreEventInfo(UDConnection):
 
     def __init__(self, host, port, topic, username, password,
-                 format='qml1.2-rt'):
+                 change_headline, language, worldCitiesFile, format='qml1.2-rt' ):
         UDConnection.__init__(self, host, port, topic, username, password)
         ei = seiscomp3.System.Environment.Instance()
         self.transform = None
+        self.changeHeadline = change_headline
+        self.hlLangCities = language
+        self.hlWorldCitiesFile = worldCitiesFile
         self.hlalert = None
-        self.dic = None
+        self.dic = None 
 
         if format == 'qml1.2-rt':
             xslt = ET.parse(os.path.join(ei.shareDir(), 'sceewlog',
@@ -118,16 +121,22 @@ class CoreEventInfo(UDConnection):
             xslt = ET.parse(os.path.join(ei.shareDir(), 'sceewlog',
                             'sc3ml_0.11__shakealert.xsl'))
             self.transform = ET.XSLT(xslt)
+        
         elif format == 'cap1.2':
             try:
-                from headlinealert import HeadlineAlert as hl
-                self.hlalert = hl(os.path.join(ei.shareDir(), 'sceewlog',
-                            'world_cities.csv'))
-                self.dic = self.hlalert.csvFile2dic(self.hlalert.dataFile)
-            except:
-                pass
+                if self.changeHeadline and self.hlWorldCitiesFile:
+                    from headlinealert import HeadlineAlert as hl
+                    self.hlalert = hl(self.hlWorldCitiesFile)
+                    seiscomp3.Logging.info("loading cities file: %s" % self.hlWorldCitiesFile)
+                    self.dic = self.hlalert.csvFile2dic(self.hlalert.dataFile)
+                except:
+                    seiscomp3.Logging.warning('Not possible to load the world cities file for language: %s' % self.hlLangCities)
+                    seiscomp3.Logging.warning('alert messages in cap1.2 format will present default headline strings.')
+                    pass
+                
             xslt = ET.parse(os.path.join(ei.shareDir(), 'sceewlog',
                             'sc3ml_0.11__cap_1.2.xsl'))
+            
             self.transform = ET.XSLT(xslt)
         elif format == 'sc3ml':
             pass
@@ -145,16 +154,16 @@ class CoreEventInfo(UDConnection):
             prefOrID = evt.preferredOriginID()
             prefMagID = evt.preferredMagnitudeID()
             origin = ep.findOrigin(prefOrID)
-
+            
             mag = origin.findMagnitude(prefMagID).magnitude().value()
             lat = origin.latitude().value()
             lon = origin.longitude().value()
             depth = origin.depth().value()
-
+            
             if self.hlalert is not None and self.dic is not None:
-
+                
                 np = dis = azVal = azTextSp = azTextEn = None
-
+                
                 epi = {'lat': lat,'lon': lon}
                 #nearest city or place from self.dic (dictionary)
                 np = self.hlalert.findNearestPlace(self.dic, epi)
@@ -162,26 +171,33 @@ class CoreEventInfo(UDConnection):
                 dis = self.hlalert.distance([ float(np['lat']), epi['lat'], float(np['lon']), epi['lon'] ] )
                 #azimuth from the nearest place to the epicenter
                 azVal = self.hlalert.azimuth([ float(np['lat']), epi['lat'], float(np['lon']), epi['lon'] ] )
-                #
+                #azimuth in abbreviated way of cardianal direction
                 azTextSp = self.hlalert.direction(azVal, 'es-US')
                 azTextEn = self.hlalert.direction(azVal, 'en-US')
-                location = self.hlalert.location(dis, azTextSp, np['city'],np['country'], 'es-US')
+                #Location string text based on distance, direction, city name, country name, language
+                location = self.hlalert.location(dis, azTextSp, np['city'],np['country'], self.language) 
+                #
                 region = self.hlalert.region( epi['lat'], epi['lon'] )
-                hlSpanish = agency + ' SISMO - Mag: '+str( round(mag, 1) )+ ', '+location
-                hlEnglish = agency + ' EQ - Mag: '+str( round(mag, 1) )+ ', ' + region
-
+                #
+                if self.hlLangCities == 'es-US':
+                    hlSpanish = agency + '/Sismo - Magnitud '+str( round(mag, 1) )+ ', '+location
+                    hlEnglish = agency + '/Earthquake - Magnitude '+str( round(mag, 1) )+ ', ' + region
+                else:
+                    hlSpanish = agency + '/Sismo - Magnitud '+str( round(mag, 1) )+ ', '+region
+                    hlEnglish = agency + '/Earthquake - Magnitude '+str( round(mag, 1) )+ ', ' + location
+                    
                 if hlSpanish is not None:
                     dom = self.hlalert.replaceHeadline(hlSpanish, 'es-US',dom)
-
+                
                 if hlEnglish is not None:
                     dom = self.hlalert.replaceHeadline(hlEnglish, 'en-US',dom)
         except:
-            #Something went wrong. Returning the same dom
+            #Something went wrong. Returning the same dom 
             return dom
-
+        
         return dom
 
-    def message_encoder(self, ep, change_headline, pretty_print=True):
+    def message_encoder(self, ep, pretty_print=True):
 
         exp = Exporter.Create('trunk')
         io = cStringIO.StringIO()
@@ -192,8 +208,9 @@ class CoreEventInfo(UDConnection):
         if self.transform is not None:
             dom = self.transform(dom)
             #replacing the headline in spanish and english
-            if change_headline and self.hlalert and self.dic:
+            if self.changeHeadline and self.hlalert and self.dic:
                 dom = self.modify_headline(ep, dom)
+                
         return ET.tostring(dom, pretty_print=pretty_print)
 
 if __name__ == '__main__':
