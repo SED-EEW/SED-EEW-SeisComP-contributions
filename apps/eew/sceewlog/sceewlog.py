@@ -76,12 +76,15 @@ class Listener(seiscomp.client.Application):
         # UserDisplay interface
         self.activeMQ = False
         self.udevt = None
+        self.amqMsgFormat = 'qml1.2-rt'
         self.udevtLhThresh = 0.0
         self.udevtMagThresh = 0.0
         self.profilesDic = []
         self.bnaFile = ''
         self.fs = None #GeoFeature object
-        self.capNearCity = False
+        self.changeHeadline = False
+        self.hlCitiesFile = None
+        self.hlLanguage = None
 
     def validateParameters(self):
         try:
@@ -187,22 +190,40 @@ class Listener(seiscomp.client.Application):
             self.amqUser = self.configGetString('ActiveMQ.username')
             self.amqPwd = self.configGetString('ActiveMQ.password')
             self.amqMsgFormat = self.configGetString('ActiveMQ.messageFormat')
-            #magnitude and likehood threshold values for AMQ
-            #self.udevtMagThresh = self.configGetDouble('ActiveMQ.magThresh')
-            #self.udevtLhThresh = self.configGetDouble('ActiveMQ.likelihoodThresh')
         except:
             seiscomp.logging.error('There was an error while reading the configuration for ActiveMQ. section. Please check it in detail' )
             sys.exit(-1)
             
-        #capNearCity
+        #cap headline change
         try:
-            self.capNearCity = self.configGetBool("ActiveMQ.capNearCity")
+            self.changeHeadline = self.configGetBool("ActiveMQ.changeHeadline")
         except:
-            self.capNearCity = False
-            seiscomp.logging.error('ActiveMQ.capNearCity config value missing or not a set a proper boolean value')
-            seiscomp.logging.error('setting it to False')
+            self.changeHeadline = False
+            seiscomp.logging.warning('ActiveMQ.changeHeadline config value missing or not a set a proper boolean value')
+            seiscomp.logging.warning('setting it to False')
             pass
+        
+        try:
+            self.hlLanguage = self.configGetString('ActiveMQ.hlLanguage')
+        except:
+            self.hlLanguage = 'en-US'
+            seiscomp.logging.warning('ActiveMQ.hlLanguage config value missing or not a set a proper string value')
+            seiscomp.logging.warning('setting it to en-US')
+        
+        if self.hlLanguage not in ['es-US','en-US'] and self.changeHeadline:
+            seiscomp.logging.error('ActiveMQ.hlLanguage must be "en-US" or "es-US"')
+            seiscomp.logging.error('Please, fix this')
+            sys.exit(-1)
             
+        try:
+            self.hlCitiesFile = self.configGetString('ActiveMQ.hlCitiesFile')
+        except:
+            if self.changeHeadline:
+                seiscomp.logging.error('ActiveMQ.hlCities must be a path to the file that contains cities and their location')
+                seiscomp.logging.error('please, check this and set the string value properly')
+                sys.exit(-1)
+        
+        
         #Region profiles 
         profiles = []
         try:
@@ -218,12 +239,13 @@ class Listener(seiscomp.client.Application):
             seiscomp.logging.error('Error while reading the ActiveMQ.bnaFile' )
             sys.exit(-1)
         
-        if self.bnaFile != '' or self.bnaFile.lower() != 'none':
+        if self.bnaFile.lower() != 'none':
             self.fs = seiscomp.geo.GeoFeatureSet()
             fo = self.fs.readBNAFile(self.bnaFile, None)
             if not fo:
                 seiscomp.logging.error('Not possible to open the bnaFile')
                 sys.exit(-1)
+        
         if len(profiles) > 0:
             #reading each profile
             for prof in profiles:
@@ -364,7 +386,8 @@ class Listener(seiscomp.client.Application):
             import ud_interface
             self.udevt = ud_interface.CoreEventInfo(self.amqHost, self.amqPort,
                                                     self.amqTopic, self.amqUser,
-                                                    self.amqPwd,
+                                                    self.amqPwd, self.changeHeadline,
+                                                    self.hlLanguage, self.hlCitiesFile,
                                                     self.amqMsgFormat)
             self.hb = ud_interface.HeartBeat(self.amqHost, self.amqPort,
                                              self.amqHbTopic, self.amqUser,
@@ -566,21 +589,15 @@ class Listener(seiscomp.client.Application):
 
         # Make sure to attached additional information for this ev/mag
         self.processComments()
-
-        #magVal =  mag.magnitude().value()
-        ## Send an alert as long as the threshold values are exceeded
-        #if self.udevtLhThresh == 0.0: # not verifying likelihood, only magnitude threshold for AMQ
-        #    seiscomp.logging.debug("No AMQ likelihood threshold check (set 0.0). Checking only AMQ magnitude threshold...")
-        #    
-        #    if magVal >= self.udevtMagThresh:
-        #        seiscomp.logging.info("Magnitude: %s is >= AMQ magnitude threshold: %s" % ( magVal, self.udevtMagThresh))
-        #        seiscomp.logging.debug("An alert will be sent...")
-        #        self.sendAlert(magID)
-        #    else:
-        #        seiscomp.logging.debug("Magnitude value: %s is less than AMQ magnitude threshold: %s. Not sending any alert" % ( magVal, self.udevtMagThresh))
-        #else:
-        #    seiscomp.logging.debug("Waiting for likelihood value...")
         
+        magType = self.event_dict[evID]['updates'][updateno]['type']
+        
+        if magType in self.magTypes and magType != 'MVS' and self.activeMQ:
+            #collecting the event udpate
+            evtDic =  self.event_dict[evID]['updates'][updateno]
+            #evaluate to send or not the alert based on profiles
+            self.alertEvaluation( evtDic, magID ) 
+
     def sendAlert(self, magID):
         """
         Send an alert to a UserDisplay, if one is configured
@@ -618,7 +635,7 @@ class Listener(seiscomp.client.Application):
         else:
             seiscomp.logging.debug("Cannot find origin %s in cache." % orgID)
 
-        self.udevt.send(self.udevt.message_encoder( ep, self.capNearCity ))
+        self.udevt.send(self.udevt.message_encoder( ep ))
 
     def handleMagnitude(self, magnitude, parentID):
         """
@@ -873,67 +890,87 @@ class Listener(seiscomp.client.Application):
                     self.event_dict[evID]['updates'][updateno]['rupture-length'] = \
                             float(comment.text())
                 
-                #Evaluation to send or not send an alert
-                if lhVal >= 0 and self.activeMQ:
+                #Evaluation to send or not an alert
                 
-                    magVal = self.event_dict[evID]['updates'][updateno]['magnitude']
-                    depthVal = self.event_dict[evID]['updates'][updateno]['depth']
-                    latVal = self.event_dict[evID]['updates'][updateno]['lat']
-                    lonVal = self.event_dict[evID]['updates'][updateno]['lon']
-                    difftime = self.event_dict[evID]['updates'][updateno]['diff']
-                    #first Checking if origin location is within a closed polygon
-                    #there might be more than one polygon but once
-                    #a condition is accomplished then it will only alert once
+                magType = self.event_dict[evID]['updates'][updateno]['type']
+                
+                #only evaluate an alert when there is a likelihood value for magnitude type MVS
+                if lhVal >= 0 and self.activeMQ and magType == 'MVS' and magType in self.magTypes:
+                    evtDic = self.event_dict[evID]['updates'][updateno]
+                    #evaluate to send or not the alert based on profiles
+                    self.alertEvaluation(evtDic, magID )
                     
-                    for ft in self.profilesDic:
-                        noSend = False
-                        seiscomp.logging.debug( 'For Profile: %s...' % ft['name'] )
-                        if magVal < ft['magThresh']:
-                            seiscomp.logging.debug('magVal was less than %s' % ft['magThresh'])
-                            noSend = True
-                            
-                        if depthVal < ft['minDepth']:
-                            seiscomp.logging.debug('depth min value was less than %s' % ft['minDepth'])
-                            noSend = True
-                        
-                        if depthVal > ft['maxDepth']:
-                            seiscomp.logging.debug('depth max value was greater than %s' % ft['maxDepth'])
-                            noSend = True
-                        
-                        if lhVal < ft['likelihoodThresh']:
-                            seiscomp.logging.debug('likelihood threshold was less than %s' % ft['likelihoodThresh'])
-                            noSend = True
-                        
-                        if ft['maxTime'] != -1:
-                            if ft['maxTime'] < difftime:
-                                seiscomp.logging.debug('Difftime of %s is greater than the maxTime for this profile' % difftime)
-                                noSend = True
-                        
-                        if ft['bnaFeature']:
-                            tmpList = list( filter ( lambda x : x.name() == ft['bnaPolygon'], self.fs.features() ) )
-                            if len(tmpList) > 0:
-                                if not tmpList[0].contains( seiscomp.geo.GeoCoordinate(float('%.3f' % latVal),float('%.3f' %lonVal)) ):
-                                    seiscomp.logging.debug('lat: %s and lon: %s are not within polygon: %s' \
-                                    % ( latVal, lonVal, ft['bnaPolygon'] ) )
-                                    noSend = True
-                            else:
-                                seiscomp.logging.warning("There is no polygon whose name is %s " % ft['bnaPolygon'])
-                            
-                            
-                        if noSend:
-                            seiscomp.logging.debug('No alert for this origin and magnitude')
-                            continue
-                        else:
-                            seiscomp.logging.debug('Sending and alert....')
-                            self.sendAlert( magID )
-                            break
-                            
-                elif self.activeMQ and len(self.profilesDic) == 0 :
-                    #no profiles. Any origin and mag is reported
-                    seiscomp.logging.info('No profiles but activeMQ enabled. sending an alert...')
-                    self.sendAlert( magID )
-                        
+
         self.received_comments = comments_to_keep
+    
+    def alertEvaluation( self, evt, magID ):
+        """
+        Evaluation based on the profiles to send or not an alert
+        """
+        #collecting the variables
+        magVal = evt['magnitude']
+        depthVal = evt['depth']
+        latVal = evt['lat']
+        lonVal = evt['lon']
+        difftime = evt['diff']
+        
+        if 'likelihood' in evt:
+            lhVal = evt['likelihood'] 
+        else:
+            lhVal = None
+        
+        #first Checking if origin location is within a closed polygon
+        #there might be more than one polygon but once
+        #a condition is accomplished then it will only alert once 
+        for ft in self.profilesDic:
+            noSend = False
+            seiscomp.logging.debug( 'Evaluation for Profile: %s...' % ft['name'] )
+            if magVal < ft['magThresh']:
+                seiscomp.logging.debug('magVal was less than %s' % ft['magThresh'])
+                noSend = True
+                
+            if depthVal < ft['minDepth']:
+                seiscomp.logging.debug('depth min value was less than %s' % ft['minDepth'])
+                noSend = True
+            
+            if depthVal > ft['maxDepth']:
+                seiscomp.logging.debug('depth max value was greater than %s' % ft['maxDepth'])
+                noSend = True
+            
+            if lhVal != None:
+                if lhVal < ft['likelihoodThresh']:
+                    seiscomp.logging.debug('likelihood threshold was less than %s' % ft['likelihoodThresh'])
+                    noSend = True
+                    
+            if ft['maxTime'] != -1:
+                if ft['maxTime'] < difftime:
+                    seiscomp.logging.debug('Difftime of %s is greater than the maxTime for this profile' % difftime)
+                    noSend = True
+            
+            if ft['bnaFeature']:
+                tmpList = list( filter ( lambda x : x.name() == ft['bnaPolygon'], self.fs.features() ) )
+                if len(tmpList) > 0:
+                    if not tmpList[0].contains( seiscomp.geo.GeoCoordinate(float('%.3f' % latVal),float('%.3f' %lonVal)) ):
+                        seiscomp.logging.debug('lat: %s and lon: %s are not within polygon: %s' \
+                        % ( latVal, lonVal, ft['bnaPolygon'] ) )
+                        noSend = True
+                else:
+                    seiscomp.logging.warning("There is no polygon whose name is %s " % ft['bnaPolygon'])
+                            
+                            
+            if noSend:
+                seiscomp.logging.debug('No alert for this origin and magnitude')
+                continue
+            else:
+                seiscomp.logging.debug('Sending and alert....')
+                self.sendAlert( magID )
+                break
+                            
+        if len(self.profilesDic) == 0:
+            #no profiles. Any origin and mag is reported
+            seiscomp.logging.info('No profiles but activeMQ enabled. sending an alert...')
+            self.sendAlert( magID )
+                    
     def handleComment(self, comment, parentID):
         """
         Update events based on special magnitude comments.
