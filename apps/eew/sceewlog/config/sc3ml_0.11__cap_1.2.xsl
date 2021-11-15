@@ -7,11 +7,7 @@
  * CAP and SC3ML are not similar schemas. They have different purposes. CAP
  * messages are meant for alerting about any emergency events and S3CM has
  * the purpose of representing seismological data.
- *
- * Changelog: clean variable selection based on preferred Origin and magnitude.
- * Two info elements as subelements of alert for spanish and english.
- * 2021-11-03 Billy Burgoa Rosso 
- *
+
  ********************************************************************** -->
 <xsl:stylesheet version="1.0"
         xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -67,41 +63,42 @@
             <headline>
                 <xsl:value-of select="$agency"/> - Magnitude: <xsl:value-of select="round($magnitude*10) div 10"/>, date and Time (UTC): <xsl:value-of select="$originTime"/>
             </headline>
+            <!-- <headline><xsl:value-of select="$agency"/> Info - Sismo Mag: <xsl:value-of select="round($mag*10) div 10"/>, <xsl:value-of select="$region"></headline> -->
             <instruction>Drop, Cover and Hold on</instruction> 
             <parameter>
-                <valueName>magnitudeCreationTime</valueName>
-                <value><xsl:value-of select="$creationTime"/></value>
-            </parameter>
+	            <valueName>magnitudCreationTime</valueName>
+	            <value><xsl:value-of select="$creationTime"/></value>
+	        </parameter>
             <parameter>
-                <valueName>originTime</valueName>
-                <value><xsl:value-of select="$originTime"/> </value>
-            </parameter>
+	            <valueName>originTime</valueName>
+	            <value><xsl:value-of select="$originTime"/> </value>
+	        </parameter>
             <parameter>
-                <valueName>magnitude</valueName>
-                <value><xsl:value-of select="$magnitude"/></value>
-            </parameter>
-            <parameter>
-                <valueName>latitude</valueName>
-                <value><xsl:value-of select="$latitude"/></value>
-            </parameter>
-            <parameter>
-                <valueName>longitude</valueName>
-                <value><xsl:value-of select="$longitude"/></value>
-            </parameter>
-            <parameter>
-                <valueName>depth</valueName>
-                <value><xsl:value-of select="$depth"/></value>
-            </parameter>
-            <parameter>
-                <valueName>status</valueName>
-                <value><xsl:value-of select="$evaluationMode"/> solution</value>
-            </parameter>
+				<valueName>magnitude</valueName>
+				<value><xsl:value-of select="$magnitude"/></value>
+			</parameter>
+			<parameter>
+				<valueName>latitude</valueName>
+				<value><xsl:value-of select="$latitude"/></value>
+			</parameter>
+			<parameter>
+				<valueName>longitude</valueName>
+				<value><xsl:value-of select="$longitude"/></value>
+			</parameter>
+			<parameter>
+				<valueName>depth</valueName>
+				<value><xsl:value-of select="$depth"/></value>
+			</parameter>
+			<parameter>
+				<valueName>status</valueName>
+				<value><xsl:value-of select="$evaluationMode"/> solution</value>
+			</parameter>
             <area>
                 <areaDesc><xsl:value-of select="$region"/></areaDesc>
-        </area>
+	        </area>
         </info>
         <info>
-            <language>es-US</language>
+			<language>es-US</language>
             <category>Geo</category>
             <event>Sismo</event>
             <urgency>Immediata</urgency>
@@ -115,37 +112,37 @@
             <!-- <headline><xsl:value-of select="$agency"/> Info - Sismo Mag: <xsl:value-of select="round($mag*10) div 10"/>, <xsl:value-of select="$region"></headline> -->
             <instruction>Mantengase alejado de ventanas y objetos que puedan caer. Vaya a un lugar seguro y cubrase.</instruction> 
             <parameter>
-                <valueName>magnitudeCreationTime</valueName>
-            <value><xsl:value-of select="$creationTime"/></value>
-            </parameter>
+	            <valueName>magnitudCreationTime</valueName>
+	            <value><xsl:value-of select="$creationTime"/></value>
+	        </parameter>
             <parameter>
-                <valueName>originTime</valueName>
-                <value><xsl:value-of select="$originTime"/> </value>
-            </parameter>
+	            <valueName>originTime</valueName>
+	            <value><xsl:value-of select="$originTime"/> </value>
+	        </parameter>
             <parameter>
-                <valueName>magnitude</valueName>
-                <value><xsl:value-of select="$magnitude"/></value>
-            </parameter>
-            <parameter>
-                <valueName>latitude</valueName>
-                <value><xsl:value-of select="$latitude"/></value>
-            </parameter>
-            <parameter>
-                <valueName>longitude</valueName>
-                <value><xsl:value-of select="$longitude"/></value>
-            </parameter>
-            <parameter>
-                <valueName>depth</valueName>
-                <value><xsl:value-of select="$depth"/></value>
-            </parameter>
-            <parameter>
-                <valueName>status</valueName>
-                <value><xsl:value-of select="$evaluationMode"/> solution</value>
-            </parameter>
+				<valueName>magnitude</valueName>
+				<value><xsl:value-of select="$magnitude"/></value>
+			</parameter>
+			<parameter>
+				<valueName>latitude</valueName>
+				<value><xsl:value-of select="$latitude"/></value>
+			</parameter>
+			<parameter>
+				<valueName>longitude</valueName>
+				<value><xsl:value-of select="$longitude"/></value>
+			</parameter>
+			<parameter>
+				<valueName>depth</valueName>
+				<value><xsl:value-of select="$depth"/></value>
+			</parameter>
+			<parameter>
+				<valueName>Estado</valueName>
+				<value><xsl:value-of select="$evaluationMode"/> solution</value>
+			</parameter>
             <area>
                 <areaDesc><xsl:value-of select="$region"/></areaDesc>
-            </area>
-        </info>
+	        </area>
+		</info>
     </alert>
     </xsl:template>
 </xsl:stylesheet>
