@@ -81,7 +81,7 @@ class HeadlineAlert:
     
     def findRegion( self, epiLat, epiLon):
         #Regions are in English
-        return seiscomp.seismology.Regions.getRegionName(epiLat, epiLon)
+        return seiscomp3.Seismology.Regions.getRegionName(epiLat, epiLon)
     
     def distance( self, points ):
         #points is a list [refLat, epiLat, refLon, epiLon]
