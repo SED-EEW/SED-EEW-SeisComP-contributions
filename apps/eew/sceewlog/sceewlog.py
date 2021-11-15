@@ -912,7 +912,7 @@ class Listener(seiscomp3.Client.Application):
             if ft['bnaFeature']:
                 tmpList = list( filter ( lambda x : x.name() == ft['bnaPolygon'], self.fs.features() ) )
                 if len(tmpList) > 0:
-                    if not tmpList[0].contains( seiscomp.geo.GeoCoordinate(float('%.3f' % latVal),float('%.3f' %lonVal)) ):
+                    if not tmpList[0].contains( seiscomp3.Geo.GeoCoordinate(float('%.3f' % latVal),float('%.3f' %lonVal)) ):
                         seiscomp3.Logging.debug('lat: %s and lon: %s are not within polygon: %s' \
                         % ( latVal, lonVal, ft['bnaPolygon'] ) )
                         noSend = True
