@@ -156,6 +156,21 @@
 					Profile names for regionalized alert filter. Use comma for more than one profile.
 					</description>
 				</parameter>
+				<parameter name="changeHeadline" type="boolean" default="false">
+					<description>
+					Change the headline in the cap1.2 XML alert.
+					</description>
+				</parameter>
+				<parameter name="hlLanguage" type="string" default="en-US">
+					<description>
+					Language for the string text on headline (cap1.2 XML).
+					</description>
+				</parameter>
+				<parameter name="hlCitiesFile" type="string" default="@ROOTDIR@/share/sceewlog/world_cities_english.csv">
+					<description>
+					CSV file that contains the location of cities. It is mandatory when changeHeadline is true.
+					</description>
+				</parameter>
 			</group>
 			
 		</configuration>
