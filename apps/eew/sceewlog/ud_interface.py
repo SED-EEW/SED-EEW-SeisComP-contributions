@@ -132,10 +132,10 @@ class CoreEventInfo(UDConnection):
                     self.hlalert = hl(self.hlWorldCitiesFile)
                     seiscomp.logging.info("loading cities file: %s" % self.hlWorldCitiesFile)
                     self.dic = self.hlalert.csvFile2dic(self.hlalert.dataFile)
-                except:
-                    seiscomp.logging.warning('Not possible to load the world cities file for language: %s' % self.hlLangCities)
-                    seiscomp.logging.warning('alert messages in cap1.2 format will present default headline strings.')
-                    pass
+            except:
+                seiscomp.logging.warning('Not possible to load the world cities file for language: %s' % self.hlLangCities)
+                seiscomp.logging.warning('alert messages in cap1.2 format will present default headline strings.')
+                pass
                 
             xslt = ET.parse(os.path.join(ei.shareDir(), 'sceewlog',
                             'sc3ml_0.11__cap_1.2.xsl'))
