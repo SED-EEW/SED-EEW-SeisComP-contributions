@@ -125,6 +125,54 @@ profile this parameter will be -1 which means no considering this filter, wherea
    #
    activeMQ.America.maxTime = 60
 
+Headline Change for CAP1.2 XML alerts
+=====================================
+The converted CAP1.2 xml alert message for every EQ and its updates contains a headline for both English and Spanish languages.
+The default message in the headline is: 
+
+@AGENCY@ Magnitude X.X Date and Time (UTC): YYYY-MM-dd HH:mm:s.sssZ.
+
+To change this headline with the format of:
+
+ENGLISH:
+
+@AGENCY@/Earhquake Magnitude X.X, XX km NNW of SOMECITY, SOMECOUNTRY
+
+SPANISH:
+
+
+@AGENCY@/Sismo Magnitud X.X, XX km al SSO de SOMECITY, SOMECOUNTRY
+
+There is one option on the configuration file that must be enable:
+
+.. code-block:: sh
+   
+   #enalbe this if you want to change the headline
+   ActiveMQ.changeHeadline = true
+
+If this is true then it is mandatory to specify the language and the world cities CSV file of the corresponding selected language. Both the selected language and CSV file must be in the same language.
+
+For languages there are two options that can be selected, Spanish and English:
+
+.. code-block:: sh
+  
+   #Uncomment the next line to select English
+   ActiveMQ.hlLanguage = en-US
+   #Uncomment the next line to select Spanish
+   #ActiveMQ.hlLanguage = es-US
+
+About the world cities csv file, this must be in the next format:
+
+.. code-block:: sh
+  
+   city,country,lon,lat
+   Tokyo,Japan,139.6922,35.6897
+   Jakarta,Indonesia,106.8451,-6.2146
+   Delhi,India,77.23,28.66
+   Mumbai,India,72.8333,18.9667
+   Manila,Philippines,120.9833,14.6
+   Shanghai,China,121.4667,31.1667
+   Sao Paulo,Brazil,-46.6339,-23.5504
 
 
 References
