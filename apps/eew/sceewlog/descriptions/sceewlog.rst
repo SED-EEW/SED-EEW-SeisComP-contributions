@@ -13,7 +13,8 @@ report files. These report files are saved to disk and can also be sent via
 email.
 
 It also implements an `ActiveMQ`_ interface which can
-send alert messages in real-time. Currently, messages can be sent in four
+send alert messages in real-time. It supports regionalized filter profiles (based on polygons and EQ parameter threshold values).
+Currently, messages can be sent in four
 different formats (SeisComPML, QuakeML, ShakeAlertML, CAP). The SED-ETHZ team provide a client that can
 display these alert messages, the `Earthquake Early Warning Display (EEWD)`_
 an OpenSource user interface developed within the European REAKT project and
@@ -68,6 +69,110 @@ origin and  *#St.(Ma.)* the number of envelope streams that contributed to the
 magnitude. *Str.* and *Len.* are the strike and length of the fault line
 provided by :ref:`scfinder`.
 
+Regionalized Filters
+====================
+
+To filter alerts to be sent out through ActiveMQ, it is necessary to set profiles on ActiveMQ section.
+Since this is using regions which are basically polygons, then the first step is to provide a BNA file that contains the polygons.
+If the user does not provide a BNA file, then the other profile parameters will be evaluated globally.
+
+.. code-block:: sh
+
+   activeMQ.bnaFile = /opt/seiscomp3/share/sceewlog/closedpolygons.bna
+   
+Then profile names have to be set. Two profile examples will be presented below.
+
+.. code-block:: sh
+
+   activeMQ.profiles = global, America
+   
+For global profile it won't be used a closed polygon since this spans on the entire world. For America profile it will be used 
+the "America" closed polygon which has to be in the activeMQ.bnaFile.
+
+.. code-block:: sh
+
+   activeMQ.global.bnaPolygonName = none
+   activeMQ.America.bnaPolygonName = America
+
+The magnitude and threshold values will be:
+
+.. code-block:: sh
+
+   activeMQ.global.magThresh = 6.0
+   activeMQ.global.likelihoodThresh = 0.5
+   activeMQ.America.magThresh = 5.0
+   activeMQ.America.likelihoodThresh = 0.3
+
+There are also a depth filter based on min-max range for each profile. Following the example for the global profile, it will be only for shallow EQs, whereas
+for America one the min depth will be 0 km and max depth 100 km.
+
+.. code-block:: sh
+
+   activeMQ.global.minDepth = 0
+   activeMQ.global.maxDepth = 33
+   activeMQ.America.minDepth = 0
+   activeMQ.America.maxDepth = 100
+
+Finally, to avoid sending alerts which are far from being considered ontime warnings, then a maxTime value can be set.
+This maxTime value is the maximum value in seconds of magnitude creation time minus origin time. For the examples, on the global
+profile this parameter will be -1 which means no considering this filter, whereas for America it is set to 60 seconds.
+
+ 
+.. code-block:: sh
+
+   #No considering this filter
+   activeMQ.global.maxTime = -1
+   #
+   activeMQ.America.maxTime = 60
+
+Headline Change for CAP1.2 XML alerts
+=====================================
+The converted CAP1.2 xml alert message for every EQ and its updates contains a headline for both English and Spanish languages.
+The default message in the headline is: 
+
+@AGENCY@ Magnitude X.X Date and Time (UTC): YYYY-MM-dd HH:mm:s.sssZ.
+
+To change this headline with the format of:
+
+ENGLISH:
+
+@AGENCY@/Earhquake Magnitude X.X, XX km NNW of SOMECITY, SOMECOUNTRY
+
+SPANISH:
+
+
+@AGENCY@/Sismo Magnitud X.X, XX km al SSO de SOMECITY, SOMECOUNTRY
+
+There is one option on the configuration file that must be enable:
+
+.. code-block:: sh
+   
+   #enalbe this if you want to change the headline
+   ActiveMQ.changeHeadline = true
+
+If this is true then it is mandatory to specify the language and the world cities CSV file of the corresponding selected language. Both the selected language and CSV file must be in the same language.
+
+For languages there are two options that can be selected, Spanish and English:
+
+.. code-block:: sh
+  
+   #Uncomment the next line to select English
+   ActiveMQ.hlLanguage = en-US
+   #Uncomment the next line to select Spanish
+   #ActiveMQ.hlLanguage = es-US
+
+About the world cities csv file, this must be in the next format:
+
+.. code-block:: sh
+  
+   city,country,lon,lat
+   Tokyo,Japan,139.6922,35.6897
+   Jakarta,Indonesia,106.8451,-6.2146
+   Delhi,India,77.23,28.66
+   Mumbai,India,72.8333,18.9667
+   Manila,Philippines,120.9833,14.6
+   Shanghai,China,121.4667,31.1667
+   Sao Paulo,Brazil,-46.6339,-23.5504
 
 
 References
