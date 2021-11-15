@@ -36,14 +36,6 @@
     <xsl:variable name="region" select="scs:seiscomp/scs:EventParameters/scs:event/scs:description/scs:text"/>
     <xsl:variable name="originTime" select="scs:seiscomp/scs:EventParameters/scs:origin[@publicID=$preferredOrigin]/scs:time/scs:value"/>
     <xsl:variable name="evaluationMode" select="scs:seiscomp/scs:EventParameters/scs:origin[@publicID=$preferredOrigin]/scs:time/scs:evaluationMode"/>
-    
-    <!-- Not used variables -->
-    <xsl:variable name="hour" select="substring($originTime,12,2)"/>
-    <xsl:variable name="minute" select="substring($originTime,15,2)"/>
-    <xsl:variable name="second" select="substring($originTime,18,2)"/>
-    <xsl:variable name="year" select="substring($originTime,1,4)"/>
-    <xsl:variable name="month" select="substring($originTime,6,2)"/>
-    <xsl:variable name="day" select="substring($originTime,9,2)"/>
   
     <!-- Starting point: Match the root node and select the one and only
          EventParameters node -->
@@ -60,10 +52,12 @@
             <category>Geo</category>
             <event>Earthquake</event>
             <urgency>Immediate</urgency>
-            <!-- The severity should be function of magnitude ? -->
-            <severity>Extreme</severity>
-            <!-- Possible to use likelihood value for certainty ? -->
-            <certainty>Observed</certainty>
+            <!-- The severity should be function of magnitude ? 
+            Severity values are: Extreme, Severe, Moderate, Minor, unknown -->
+            <severity>Unknown</severity>
+            <!-- Possible to use likelihood value for certainty ?
+            certainty values are: Observed,Likely, Possible, Unlikely, Unknown-->
+            <certainty>Unknown</certainty>
             <headline>
                 <xsl:value-of select="$agency"/> - Magnitude: <xsl:value-of select="round($magnitude*10) div 10"/>, date and Time (UTC): <xsl:value-of select="$originTime"/>
             </headline>
@@ -106,10 +100,12 @@
             <category>Geo</category>
             <event>Sismo</event>
             <urgency>Immediata</urgency>
-            <!-- The severity should be function of magnitude ? -->
-            <severity>Extrema</severity>
-            <!-- Possible to use likelihood value for certainty ? -->
-            <certainty>Observada</certainty>
+            <!-- The severity should be function of magnitude ? 
+            Severity values are: Extreme, Severe, Moderate, Minor, unknown -->
+            <severity>Unknown</severity>
+            <!-- Possible to use likelihood value for certainty ?
+            certainty values are: Observed,Likely, Possible, Unlikely, Unknown-->
+            <certainty>Unknown</certainty>
             <headline>
                 <xsl:value-of select="$agency"/> - Magnitud: <xsl:value-of select="round($magnitude*10) div 10"/>, Fecha y Hora (UTC): <xsl:value-of select="$originTime"/>
             </headline>
