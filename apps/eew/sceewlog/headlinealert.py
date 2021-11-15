@@ -8,11 +8,13 @@ class HeadlineAlert:
 
     def __init__(self, dataFile):
         self.dataFile = dataFile
+        self.scNamespace = '{http://geofon.gfz-potsdam.de/ns/seiscomp3-schema/0.11}'
+        self.capNamespace = '{urn:oasis:names:tc:emergency:cap:1.2}'
 
     def getEpiLatLonFromDom(self, dom):
         
         epi ={'lat':999,'lon':999}
-        namespace = '{http://geofon.gfz-potsdam.de/ns/seiscomp3-schema/0.11}'
+        
         ET.register_namespace("", "http://geofon.gfz-potsdam.de/ns/seiscomp3-schema/0.11")
         try:
             root = dom.getroot()
@@ -20,11 +22,11 @@ class HeadlineAlert:
             #is dom already root? assumming yes!
             root = dom
         #event to obtain preferred originID 
-        event = root[0].find(namespace+'event')
-        preferredOriginID = event.find(namespace + 'preferredOriginID')[0].text
-        preferredMagnitudeID = event.find(namespace + 'preferredMagnitudeID')[0].text
+        event = root[0].find(self.scNamespace+'event')
+        preferredOriginID = event.find(self.scNamespace + 'preferredOriginID')[0].text
+        preferredMagnitudeID = event.find(self.scNamespace + 'preferredMagnitudeID')[0].text
         
-        origins = root[0].findall(namespace+'origin')
+        origins = root[0].findall(self.scNamespace+'origin')
         
         preferredOrigin = None
         for origin in origins:
@@ -32,19 +34,19 @@ class HeadlineAlert:
                 preferredOrigin = origin
         
         if preferredOrigin is not None:
-            epi['lat'] = float(preferredOrigin.find(namespace+'latitude')[0].text)
-            epi['lon'] = float(preferredOrigin.find(namespace+'longitude')[0].text)
+            epi['lat'] = float(preferredOrigin.find(self.scNamespace+'latitude')[0].text)
+            epi['lon'] = float(preferredOrigin.find(self.scNamespace+'longitude')[0].text)
         
         else:
-            origin = root[0].find(namespace + 'origin')
-            epi['lat'] = float(origin.find(namespace+'latitude')[0].text)
-            epi['lon'] = float(origin.find(namespace+'longitude')[0].text)
+            origin = root[0].find(self.scNamespace + 'origin')
+            epi['lat'] = float(origin.find(self.scNamespace+'latitude')[0].text)
+            epi['lon'] = float(origin.find(self.scNamespace+'longitude')[0].text)
         
         return epi
         
     def replaceHeadline(self, hl, language, dom):
         ET.register_namespace("", "urn:oasis:names:tc:emergency:cap:1.2")
-        namespace = '{urn:oasis:names:tc:emergency:cap:1.2}'
+        
         root = None
         try:
             root = dom.getroot()
@@ -57,16 +59,17 @@ class HeadlineAlert:
             return dom
             
         try:
-            infoList = root.findall( namespace + 'info' )
+            infoList = root.findall( self.capNamespace + 'info' )
             mainInfo = None
             for info in infoList:
-                if info.find(namespace+'language').text == language:
+                if info.find(self.capNamespace + 'language' ).text == language:
                     mainInfo = info
             if mainInfo is not None:
-                mainInfo.find( namespace+ 'headline').text = hl
+                mainInfo.find( self.capNamespace + 'headline' ).text = hl
             
         except:
             pass
+            
         return dom
       
     def findNearestPlace( self, data, epi ):
@@ -74,11 +77,11 @@ class HeadlineAlert:
             return min( data, key=lambda p: self.distance( [epi['lat'], float(p['lat']), epi['lon'], float(p['lon'])] ) )
         except:
             return None
-            
+    
     def findRegion( self, epiLat, epiLon):
         #Regions are in English
         return seiscomp.seismology.Regions.getRegionName(epiLat, epiLon)
-        
+    
     def distance( self, points ):
         #points is a list [refLat, epiLat, refLon, epiLon]
         
@@ -91,7 +94,7 @@ class HeadlineAlert:
         
         distance = c * radius_earth # distance in km
         return int(round(distance))
-        
+    
     def azimuth( self, points ):
         #points is a list [refLat, epiLat, refLon, epiLon]
         refLat, epiLat, refLon, epiLon = map(radians, points)
@@ -183,10 +186,10 @@ class HeadlineAlert:
     def location(self, distKm, azText, city, country, language ):
         
         if language == 'es-US':
-            return str(distKm)+'km al '+ azText + ' de '+ city + ', '+ country
+            return str(distKm)+' km al '+ azText + ' de '+ city + ', '+ country
         else:
-            return str(distKm)+'km '+ azText + ' of '+ city + ', '+ country
-            
+            return str(distKm)+' km '+ azText + ' of '+ city + ', '+ country
+    
     def region( self, lat, lon):
         #only English
         return self.findRegion(lat, lon)
