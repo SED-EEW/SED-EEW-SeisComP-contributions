@@ -64,7 +64,7 @@
             <!-- <headline><xsl:value-of select="$agency"/> Info - Sismo Mag: <xsl:value-of select="round($mag*10) div 10"/>, <xsl:value-of select="$region"></headline> -->
             <instruction>Drop, Cover and Hold on</instruction> 
             <parameter>
-                <valueName>magnitudCreationTime</valueName>
+                <valueName>magnitudeCreationTime</valueName>
                 <value><xsl:value-of select="$creationTime"/></value>
             </parameter>
             <parameter>
@@ -112,7 +112,7 @@
             <!-- <headline><xsl:value-of select="$agency"/> Info - Sismo Mag: <xsl:value-of select="round($mag*10) div 10"/>, <xsl:value-of select="$region"></headline> -->
             <instruction>Mantengase alejado de ventanas y objetos que puedan caer. Vaya a un lugar seguro y cubrase.</instruction> 
             <parameter>
-                <valueName>magnitudCreationTime</valueName>
+                <valueName>magnitudeCreationTime</valueName>
             <value><xsl:value-of select="$creationTime"/></value>
             </parameter>
             <parameter>
