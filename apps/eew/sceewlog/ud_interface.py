@@ -129,6 +129,7 @@ class CoreEventInfo(UDConnection):
                     self.hlalert = hl(self.hlWorldCitiesFile)
                     seiscomp3.Logging.info("loading cities file: %s" % self.hlWorldCitiesFile)
                     self.dic = self.hlalert.csvFile2dic(self.hlalert.dataFile)
+                    seiscomp3.Logging.info('The number of cities in this file is %s' % len(self.dic))
             except:
                 seiscomp3.Logging.warning('Not possible to load the world cities file for language: %s' % self.hlLangCities)
                 seiscomp3.Logging.warning('alert messages in cap1.2 format will present default headline strings.')
@@ -175,7 +176,7 @@ class CoreEventInfo(UDConnection):
                 azTextSp = self.hlalert.direction(azVal, 'es-US')
                 azTextEn = self.hlalert.direction(azVal, 'en-US')
                 #Location string text based on distance, direction, city name, country name, language
-                location = self.hlalert.location(dis, azTextSp, np['city'],np['country'], self.language) 
+                location = self.hlalert.location(dis, azTextSp, np['city'],np['country'], self.hlLangCities) 
                 #
                 region = self.hlalert.region( epi['lat'], epi['lon'] )
                 #
@@ -191,8 +192,10 @@ class CoreEventInfo(UDConnection):
                 
                 if hlEnglish is not None:
                     dom = self.hlalert.replaceHeadline(hlEnglish, 'en-US',dom)
-        except:
-            #Something went wrong. Returning the same dom 
+        except Exception as e:
+            #Something went wrong. Returning the same dom
+            seiscomp3.Logging.warning('There was an error while collecting information to change the headline')
+            seiscomp3.Logging.warning(repr(e))
             return dom
         
         return dom
@@ -209,8 +212,9 @@ class CoreEventInfo(UDConnection):
             dom = self.transform(dom)
             #replacing the headline in spanish and english
             if self.changeHeadline and self.hlalert and self.dic:
+                seiscomp3.Logging.info('modifying the headline for CAP1.2 alert message')
                 dom = self.modify_headline(ep, dom)
-                
+            
         return ET.tostring(dom, pretty_print=pretty_print)
 
 if __name__ == '__main__':
