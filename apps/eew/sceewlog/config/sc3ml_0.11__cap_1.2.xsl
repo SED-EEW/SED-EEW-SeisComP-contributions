@@ -7,7 +7,11 @@
  * CAP and SC3ML are not similar schemas. They have different purposes. CAP
  * messages are meant for alerting about any emergency events and S3CM has
  * the purpose of representing seismological data.
-
+ *
+ * Change log: clean variable selection based on preferred Origin and magnitude.
+ * Two elements info elements as subelements of alert for spanish and english
+ * 2021-11-03 Billy Burgoa Rosso 
+ *
  ********************************************************************** -->
 <xsl:stylesheet version="1.0"
         xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -32,14 +36,6 @@
     <xsl:variable name="region" select="scs:seiscomp/scs:EventParameters/scs:event/scs:description/scs:text"/>
     <xsl:variable name="originTime" select="scs:seiscomp/scs:EventParameters/scs:origin[@publicID=$preferredOrigin]/scs:time/scs:value"/>
     <xsl:variable name="evaluationMode" select="scs:seiscomp/scs:EventParameters/scs:origin[@publicID=$preferredOrigin]/scs:time/scs:evaluationMode"/>
-    
-    <!-- Not used variables -->
-    <xsl:variable name="hour" select="substring($originTime,12,2)"/>
-    <xsl:variable name="minute" select="substring($originTime,15,2)"/>
-    <xsl:variable name="second" select="substring($originTime,18,2)"/>
-    <xsl:variable name="year" select="substring($originTime,1,4)"/>
-    <xsl:variable name="month" select="substring($originTime,6,2)"/>
-    <xsl:variable name="day" select="substring($originTime,9,2)"/>
   
     <!-- Starting point: Match the root node and select the one and only
          EventParameters node -->
@@ -56,93 +52,97 @@
             <category>Geo</category>
             <event>Earthquake</event>
             <urgency>Immediate</urgency>
-            <!-- The severity should be function of magnitude ? -->
-            <severity>Extreme</severity>
-            <!-- Possible to use likelihood value for certainty ? -->
-            <certainty>Observed</certainty>
+            <!-- The severity should be function of magnitude ? 
+            Severity values are: Extreme, Severe, Moderate, Minor, unknown -->
+            <severity>Unknown</severity>
+            <!-- Possible to use likelihood value for certainty ?
+            certainty values are: Observed,Likely, Possible, Unlikely, Unknown-->
+            <certainty>Unknown</certainty>
             <headline>
                 <xsl:value-of select="$agency"/> - Magnitude: <xsl:value-of select="round($magnitude*10) div 10"/>, date and Time (UTC): <xsl:value-of select="$originTime"/>
             </headline>
             <!-- <headline><xsl:value-of select="$agency"/> Info - Sismo Mag: <xsl:value-of select="round($mag*10) div 10"/>, <xsl:value-of select="$region"></headline> -->
             <instruction>Drop, Cover and Hold on</instruction> 
             <parameter>
-	            <valueName>magnitudCreationTime</valueName>
-	            <value><xsl:value-of select="$creationTime"/></value>
-	        </parameter>
+                <valueName>magnitudeCreationTime</valueName>
+                <value><xsl:value-of select="$creationTime"/></value>
+            </parameter>
             <parameter>
-	            <valueName>originTime</valueName>
-	            <value><xsl:value-of select="$originTime"/> </value>
-	        </parameter>
+                <valueName>originTime</valueName>
+                <value><xsl:value-of select="$originTime"/> </value>
+            </parameter>
             <parameter>
-				<valueName>magnitude</valueName>
-				<value><xsl:value-of select="$magnitude"/></value>
-			</parameter>
-			<parameter>
-				<valueName>latitude</valueName>
-				<value><xsl:value-of select="$latitude"/></value>
-			</parameter>
-			<parameter>
-				<valueName>longitude</valueName>
-				<value><xsl:value-of select="$longitude"/></value>
-			</parameter>
-			<parameter>
-				<valueName>depth</valueName>
-				<value><xsl:value-of select="$depth"/></value>
-			</parameter>
-			<parameter>
-				<valueName>status</valueName>
-				<value><xsl:value-of select="$evaluationMode"/> solution</value>
-			</parameter>
+                <valueName>magnitude</valueName>
+                <value><xsl:value-of select="$magnitude"/></value>
+            </parameter>
+            <parameter>
+                <valueName>latitude</valueName>
+                <value><xsl:value-of select="$latitude"/></value>
+            </parameter>
+            <parameter>
+                <valueName>longitude</valueName>
+                <value><xsl:value-of select="$longitude"/></value>
+            </parameter>
+            <parameter>
+                <valueName>depth</valueName>
+                <value><xsl:value-of select="$depth"/></value>
+            </parameter>
+            <parameter>
+                <valueName>status</valueName>
+                <value><xsl:value-of select="$evaluationMode"/> solution</value>
+            </parameter>
             <area>
                 <areaDesc><xsl:value-of select="$region"/></areaDesc>
-	        </area>
+        </area>
         </info>
         <info>
-			<language>es-US</language>
+            <language>es-US</language>
             <category>Geo</category>
             <event>Sismo</event>
             <urgency>Immediata</urgency>
-            <!-- The severity should be function of magnitude ? -->
-            <severity>Extrema</severity>
-            <!-- Possible to use likelihood value for certainty ? -->
-            <certainty>Observada</certainty>
+            <!-- The severity should be function of magnitude ? 
+            Severity values are: Extreme, Severe, Moderate, Minor, unknown -->
+            <severity>Unknown</severity>
+            <!-- Possible to use likelihood value for certainty ?
+            certainty values are: Observed,Likely, Possible, Unlikely, Unknown-->
+            <certainty>Unknown</certainty>
             <headline>
                 <xsl:value-of select="$agency"/> - Magnitud: <xsl:value-of select="round($magnitude*10) div 10"/>, Fecha y Hora (UTC): <xsl:value-of select="$originTime"/>
             </headline>
             <!-- <headline><xsl:value-of select="$agency"/> Info - Sismo Mag: <xsl:value-of select="round($mag*10) div 10"/>, <xsl:value-of select="$region"></headline> -->
             <instruction>Mantengase alejado de ventanas y objetos que puedan caer. Vaya a un lugar seguro y cubrase.</instruction> 
             <parameter>
-	            <valueName>magnitudCreationTime</valueName>
-	            <value><xsl:value-of select="$creationTime"/></value>
-	        </parameter>
+                <valueName>magnitudeCreationTime</valueName>
+            <value><xsl:value-of select="$creationTime"/></value>
+            </parameter>
             <parameter>
-	            <valueName>originTime</valueName>
-	            <value><xsl:value-of select="$originTime"/> </value>
-	        </parameter>
+                <valueName>originTime</valueName>
+                <value><xsl:value-of select="$originTime"/> </value>
+            </parameter>
             <parameter>
-				<valueName>magnitude</valueName>
-				<value><xsl:value-of select="$magnitude"/></value>
-			</parameter>
-			<parameter>
-				<valueName>latitude</valueName>
-				<value><xsl:value-of select="$latitude"/></value>
-			</parameter>
-			<parameter>
-				<valueName>longitude</valueName>
-				<value><xsl:value-of select="$longitude"/></value>
-			</parameter>
-			<parameter>
-				<valueName>depth</valueName>
-				<value><xsl:value-of select="$depth"/></value>
-			</parameter>
-			<parameter>
-				<valueName>Estado</valueName>
-				<value><xsl:value-of select="$evaluationMode"/> solution</value>
-			</parameter>
+                <valueName>magnitude</valueName>
+                <value><xsl:value-of select="$magnitude"/></value>
+            </parameter>
+            <parameter>
+                <valueName>latitude</valueName>
+                <value><xsl:value-of select="$latitude"/></value>
+            </parameter>
+            <parameter>
+                <valueName>longitude</valueName>
+                <value><xsl:value-of select="$longitude"/></value>
+            </parameter>
+            <parameter>
+                <valueName>depth</valueName>
+                <value><xsl:value-of select="$depth"/></value>
+            </parameter>
+            <parameter>
+                <valueName>status</valueName>
+                <value><xsl:value-of select="$evaluationMode"/> solution</value>
+            </parameter>
             <area>
                 <areaDesc><xsl:value-of select="$region"/></areaDesc>
-	        </area>
-		</info>
+            </area>
+        </info>
     </alert>
     </xsl:template>
 </xsl:stylesheet>
