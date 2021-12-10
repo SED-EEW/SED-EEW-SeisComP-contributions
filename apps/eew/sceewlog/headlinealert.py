@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from math import asin, cos, radians, sin, sqrt, atan2, pi
 import csv
+import seiscomp
 import seiscomp.seismology
 import xml.etree.ElementTree as ET
 
@@ -65,10 +66,11 @@ class HeadlineAlert:
                 if info.find(self.capNamespace + 'language' ).text == language:
                     mainInfo = info
             if mainInfo is not None:
-                mainInfo.find( self.capNamespace + 'headline' ).text = hl
+                mainInfo.find( self.capNamespace + 'headline' ).text = unicode(hl, 'utf8')
             
-        except:
-            pass
+        except Exception as e:
+            seiscomp.logging.warning('something went wrong with changing the headline: %s' % e)
+            seiscomp.logging.warning('returning the same DOM')
             
         return dom
       
@@ -114,13 +116,13 @@ class HeadlineAlert:
         if azVal >= 0 and azVal<10:
             return "N"
                 
-        elif azVal >= 10 and azVal<40:
+        elif azVal >= 10 and azVal < 40:
             return "NNE"
             
-        elif azVal >= 40 and azVal<50:
+        elif azVal >= 40 and azVal < 50:
             return "NE"
             
-        elif azVal >= 50 and azVal<80:
+        elif azVal >= 50 and azVal < 80:
             return "ENE"
             
         elif azVal >= 80 and azVal < 100:
@@ -180,7 +182,7 @@ class HeadlineAlert:
             else:
                 return "NNW"
             
-        elif azVal >= 350 and azVal < 360:
+        elif azVal >= 350 and azVal <= 360:
             return "N"
     
     def location(self, distKm, azText, city, country, language ):
