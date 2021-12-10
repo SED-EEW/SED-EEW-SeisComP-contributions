@@ -168,21 +168,31 @@ class CoreEventInfo(UDConnection):
             if self.hlalert is not None and self.dic is not None:
                 
                 np = dis = azVal = azTextSp = azTextEn = None
-                
+                seiscomp.logging.info('finding the nearest place to the epicenter:')
+                seiscomp.logging.info('lat %s lon %s' % (lat, lon))
                 epi = {'lat': lat,'lon': lon}
                 #nearest city or place from self.dic (dictionary)
                 np = self.hlalert.findNearestPlace(self.dic, epi)
+                seiscomp.logging.info('the nearest place is %s' % np)
                 #distance to the nearest place
                 dis = self.hlalert.distance([ float(np['lat']), epi['lat'], float(np['lon']), epi['lon'] ] )
+                seiscomp.logging.info('distance in km is: %s'%dis)
                 #azimuth from the nearest place to the epicenter
                 azVal = self.hlalert.azimuth([ float(np['lat']), epi['lat'], float(np['lon']), epi['lon'] ] )
+                seiscomp.logging.info('azimuth %s'%azVal)
                 #azimuth in abbreviated way of cardianal direction
                 azTextSp = self.hlalert.direction(azVal, 'es-US')
+                seiscomp.logging.info('Abreviated Cardinal Direction in Spanish: %s' % azTextSp)
                 azTextEn = self.hlalert.direction(azVal, 'en-US')
+                seiscomp.logging.info('Abreviated Cardinal Direction in English: %s' % azTextEn)
                 #Location string text based on distance, direction, city name, country name, language
-                location = self.hlalert.location(dis, azTextSp, np['city'],np['country'], self.hlLangCities) 
-                #
+                if self.hlLangCities == 'es-US':
+                    location = self.hlalert.location(dis, azTextSp, np['city'],np['country'], self.hlLangCities)
+                else:
+                    location = self.hlalert.location(dis, azTextEn, np['city'],np['country'], self.hlLangCities)
+                seiscomp.logging.info('Location: %s' % location)
                 region = self.hlalert.region( epi['lat'], epi['lon'] )
+                seiscomp.logging.info('Region: %s' % region)
                 #
                 if self.hlLangCities == 'es-US':
                     hlSpanish = agency + '/Sismo - Magnitud '+str( round(mag, 1) )+ ', '+location
@@ -190,11 +200,16 @@ class CoreEventInfo(UDConnection):
                 else:
                     hlSpanish = agency + '/Sismo - Magnitud '+str( round(mag, 1) )+ ', '+region
                     hlEnglish = agency + '/Earthquake - Magnitude '+str( round(mag, 1) )+ ', ' + location
-                    
+                
+                seiscomp.logging.info('new HL Spanish: %s' % hlSpanish)
++               seiscomp.logging.info('new HL English: %s' % hlEnglish)   
+                
                 if hlSpanish is not None:
+                    seiscomp.logging.info('Replacing in Spanish')
                     dom = self.hlalert.replaceHeadline(hlSpanish, 'es-US',dom)
                 
                 if hlEnglish is not None:
+                    seiscomp.logging.info('Replacing in English')
                     dom = self.hlalert.replaceHeadline(hlEnglish, 'en-US',dom)
         except Exception as e:
             seiscomp.logging.warning('There was an error while collecting information to change the headline')
@@ -219,7 +234,7 @@ class CoreEventInfo(UDConnection):
                 seiscomp.logging.info('modifying the headline for CAP1.2 alert message')
                 dom = self.modify_headline(ep, dom)
                 
-        return ET.tostring(dom, pretty_print=pretty_print)
+        return ET.tostring(dom, encoding='utf8', pretty_print=pretty_print)
 
 if __name__ == '__main__':
     pass
