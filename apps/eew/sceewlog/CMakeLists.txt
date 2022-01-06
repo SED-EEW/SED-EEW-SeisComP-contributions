@@ -14,11 +14,14 @@ ENDIF()
 
 IF(SC_GLOBAL_PYTHON_WRAPPER)
 # UD interface
-INSTALL(FILES ud_interface.py DESTINATION ${PYTHON_LIBRARY_PATH})
+INSTALL(FILES ud_interface.py headlinealert.py DESTINATION ${PYTHON_LIBRARY_PATH})
 
 SET(UD_DATA config/sc3ml_0.11__quakeml_1.2-RT_eewd.xsl
 config/sc3ml_0.11__shakealert.xsl
 config/sc3ml_0.11__cap_1.2.xsl
+config/closedpolygons.bna
+config/world_cities_spanish.csv
+config/world_cities_english.csv
 )
 SC_INSTALL_DATA(UD ${EEWLOG_TARGET})
 ENDIF(SC_GLOBAL_PYTHON_WRAPPER)
