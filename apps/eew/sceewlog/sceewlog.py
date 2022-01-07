@@ -786,8 +786,11 @@ class Listener(seiscomp.client.Application):
                        self.email_recipients, msg.as_string())
         except Exception as e:
             seiscomp.logging.warning('Email could not be sent: %s' % e)
-        s.quit()
-
+        try:
+            s.quit()  
+        except Exception as e:
+            seiscomp.logging.warning("Error quiting smtp conexion: %s" % e)
+        
     def processComments(self):
         """
         Process received comments not yet associated to the corresponding event
