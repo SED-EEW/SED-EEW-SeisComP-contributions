@@ -753,7 +753,11 @@ class Listener(seiscomp3.Client.Application):
             s.sendmail(self.email_sender, self.email_recipients, msg.as_string())
         except Exception, e:
             seiscomp3.Logging.warning('Email could not be sent: %s' % e)
-        s.quit()
+        
+        try:
+            s.quit()  
+        except Exception, e:
+            seiscomp3.Logging.warning("Error quiting smtp conexion: %s" % e)
 
     def processComments(self):
         """
