@@ -19,30 +19,6 @@ Please see the SeisComP [README](https://github.com/SeisComP/seiscomp/blob/maste
 # Installing *sed-addons*
 For installation, the *sed-addons* sources have to be added as a SeisComP submodule and compiled together with SeisComP.
 
-## Using SeisComP3
-If you have not installed SeisComP3 before, checkout the SeisComP3 source code using
-
-```bash
-git clone https://github.com/SeisComP3/seiscomp3.git .
-```
-
-Make sure your select the branch of the last release and add the *sed-addons* as a submodule
-
-```bash
-cd seiscomp3
-git checkout release/jakarta
-git submodule add -f https://gitlab.seismo.ethz.ch/SED-EEW/sed-addons.git src/sed-addons
-```
-
-If you have already performed the previous steps and just want to update to latest version, run
-
-```bash
-cd <Path to your copy of>/seiscomp3
-git pull
-cd src/sed-addons
-git pull
-```
-
 ## Using the latest SeisComP version
 
 To compile the *sed-addons* modules with the latest version of SeisComP (currently 4.2.0), run
@@ -68,6 +44,31 @@ cd src/extras/sed-addons
 git pull
 ```
 
+## Using SeisComP3
+If you have not installed SeisComP3 before, checkout the SeisComP3 source code using
+
+```bash
+git clone https://github.com/SeisComP3/seiscomp3.git .
+```
+
+Make sure your select the branch of the last release and add the *sed-addons* as a submodule
+
+```bash
+cd seiscomp3
+git checkout release/jakarta
+git submodule add -f https://gitlab.seismo.ethz.ch/SED-EEW/sed-addons.git src/sed-addons
+```
+
+If you have already performed the previous steps and just want to update to latest version, run
+
+```bash
+cd <Path to your copy of>/seiscomp3
+git pull
+cd src/sed-addons
+git pull
+git checkout jakarta
+```
+
 ## Adding scfinder
 
 If you intend to use the scfinder SeisComP module you need to indicate **where FinDer was installed** by
@@ -86,23 +87,23 @@ echo 'export FinDer_LIBRARY=/usr/local/lib/libFinder.a' >> ~/.bashrc
 
 ## Compilation
 
-SeisComP uses cmake to to manage the build process. In the case of SeisComP3 run
+SeisComP uses cmake to to manage the build process. In the case of SeisComP (v4+) run
+
+```bash
+cd <Path to your clone of>/seiscomp
+make
+```
+
+and in case of SeisComP3, use
 
 ```bash
 cd <Path to your clone of>/seiscomp3
 make -f Makefile.cvs
 ```
 
-and in case of SeisComP 4, use
-
-```bash
-cd <Path to your clone of>/seiscomp
-make
-```
 Press *c* to start configuring the build and *g* to save the configuration.
 If you need to run the configuration in headless mode you can just run cmake
 directly
-
 
 ``` bash
 cd <Path to your clone of>/seiscomp
