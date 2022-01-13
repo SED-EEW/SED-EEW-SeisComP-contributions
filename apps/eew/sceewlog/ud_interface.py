@@ -15,7 +15,7 @@ GNU Affero General Public License for more details.
 @author: behry
 """
 
-from stomp import Connection 
+from stomp import Connection
 from io import BytesIO
 from twisted.internet import reactor
 import datetime
@@ -54,23 +54,23 @@ class UDConnection:
             self.password = password
             self.host = host
             self.port = port
-            self.stomp = Connection([(self.host, self.port)]) 
-            self.stomp.connect(self.username, self.password, wait=True) 
+            self.stomp = Connection([(self.host, self.port)])
+            self.stomp.connect(self.username, self.password, wait=True)
         except Exception as e:
             raise UDException('Cannot connect to message broker (%s@%s:%d): %s.'\
                                % (username, host, port, e))
 
     def send(self, msg):
         try:
-            self.stomp.send(self.topic, msg) 
+            self.stomp.send(self.topic, msg)
         except Exception as e:
             seiscomp.logging.error("ActiveMQ connection lost.")
             # Wait for a bit in case the ActiveMQ broker is restarting
             time.sleep(10)
             try:
                 del self.stomp
-                self.stomp = Connection([(self.host, self.port)]) 
-                self.stomp.connect(self.username, self.password, wait=True) 
+                self.stomp = Connection([(self.host, self.port)])
+                self.stomp.connect(self.username, self.password, wait=True)
             except Exception as e:
                 raise UDException('Cannot reconnect to server: %s' % e)
             seiscomp.logging.info('Connection re-established.')
@@ -95,7 +95,7 @@ class HeartBeat(UDConnection):
             now = dt.strftime('%a %B %d %H:%M:%S %Y')
         root.set('timestamp', now)
         tree = ET.ElementTree(root)
-        f = BytesIO() 
+        f = BytesIO()
         tree.write(f, encoding="UTF-8", xml_declaration=True, method='xml')
         msg = f.getvalue()
         self.send(msg)
@@ -108,15 +108,15 @@ class CoreEventInfo(UDConnection):
                  change_headline, language, worldCitiesFile, format='qml1.2-rt' ):
         UDConnection.__init__(self, host, port, topic, username, password)
         ei = seiscomp.system.Environment.Instance()
-        
+
         self.transform = None
         #this is the path to the world cities file
         self.changeHeadline = change_headline
         self.hlLangCities = language
         self.hlWorldCitiesFile = worldCitiesFile
         self.hlalert = None
-        self.dic = None 
-        
+        self.dic = None
+
         if format == 'qml1.2-rt':
             xslt = ET.parse(os.path.join(ei.shareDir(), 'sceewlog',
                                          'sc3ml_0.11__quakeml_1.2-RT_eewd.xsl'))
@@ -137,12 +137,12 @@ class CoreEventInfo(UDConnection):
                 seiscomp.logging.warning('Not possible to load the world cities file for language: %s' % self.hlLangCities)
                 seiscomp.logging.warning('alert messages in cap1.2 format will present default headline strings.')
                 pass
-                
+
             xslt = ET.parse(os.path.join(ei.shareDir(), 'sceewlog',
                             'sc3ml_0.11__cap_1.2.xsl'))
-            
+
             self.transform = ET.XSLT(xslt)
-            
+
         elif format == 'sc3ml':
             pass
         else:
@@ -159,14 +159,14 @@ class CoreEventInfo(UDConnection):
             prefOrID = evt.preferredOriginID()
             prefMagID = evt.preferredMagnitudeID()
             origin = ep.findOrigin(prefOrID)
-            
+
             mag = origin.findMagnitude(prefMagID).magnitude().value()
             lat = origin.latitude().value()
             lon = origin.longitude().value()
             depth = origin.depth().value()
-            
+
             if self.hlalert is not None and self.dic is not None:
-                
+
                 np = dis = azVal = azTextSp = azTextEn = None
                 seiscomp.logging.info('finding the nearest place to the epicenter:')
                 seiscomp.logging.info('lat %s lon %s' % (lat, lon))
@@ -200,40 +200,40 @@ class CoreEventInfo(UDConnection):
                 else:
                     hlSpanish = agency + '/Sismo - Magnitud '+str( round(mag, 1) )+ ', '+region
                     hlEnglish = agency + '/Earthquake - Magnitude '+str( round(mag, 1) )+ ', ' + location
-                
+
                 seiscomp.logging.info('new HL Spanish: %s' % hlSpanish)
-+               seiscomp.logging.info('new HL English: %s' % hlEnglish)   
-                
+                seiscomp.logging.info('new HL English: %s' % hlEnglish)
+
                 if hlSpanish is not None:
                     seiscomp.logging.info('Replacing in Spanish')
                     dom = self.hlalert.replaceHeadline(hlSpanish, 'es-US',dom)
-                
+
                 if hlEnglish is not None:
                     seiscomp.logging.info('Replacing in English')
                     dom = self.hlalert.replaceHeadline(hlEnglish, 'en-US',dom)
         except Exception as e:
             seiscomp.logging.warning('There was an error while collecting information to change the headline')
             seiscomp.logging.warning(repr(e))
-            #Something went wrong. Returning the same dom 
+            #Something went wrong. Returning the same dom
             return dom
-        
+
         return dom
-        
+
     def message_encoder(self, ep, pretty_print=True):
         exp = Exporter.Create('trunk')
-        io = BytesIO() 
+        io = BytesIO()
         sink = Sink(io)
         exp.write(sink, ep)
         dom = ET.fromstring(io.getvalue())
         # apply XSLT
         if self.transform is not None:
             dom = self.transform(dom)
-            
+
             #replacing the headline in spanish and english
             if self.changeHeadline and self.hlalert and self.dic:
                 seiscomp.logging.info('modifying the headline for CAP1.2 alert message')
                 dom = self.modify_headline(ep, dom)
-                
+
         return ET.tostring(dom, encoding='utf8', pretty_print=pretty_print)
 
 if __name__ == '__main__':
