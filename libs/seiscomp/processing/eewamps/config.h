@@ -20,7 +20,7 @@
 #define __SEISCOMP_PROCESSING_EEWAMPS_CONFIG_H__
 
 
-#include <seiscomp3/processing/eewamps/api.h>
+#include <seiscomp/processing/eewamps/api.h>
 #include <seiscomp3/processing/waveformprocessor.h>
 #include <boost/function.hpp>
 

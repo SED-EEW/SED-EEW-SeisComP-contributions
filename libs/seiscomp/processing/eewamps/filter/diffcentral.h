@@ -16,11 +16,11 @@
  ******************************************************************************/
 
 
-#ifndef __SEISCOMP_PROCESSING_EEWAMPS_FILTER_TAUP_H__
-#define __SEISCOMP_PROCESSING_EEWAMPS_FILTER_TAUP_H__
+#ifndef __SEISCOMP_PROCESSING_EEWAMPS_FILTER_DIFFCENTRAL_H__
+#define __SEISCOMP_PROCESSING_EEWAMPS_FILTER_DIFFCENTRAL_H__
 
 
-#include <seiscomp3/processing/eewamps/api.h>
+#include <seiscomp/processing/eewamps/api.h>
 #include <seiscomp3/math/filter.h>
 
 
@@ -30,13 +30,13 @@ namespace Filtering {
 
 
 template <typename TYPE>
-class TauP : public InPlaceFilter<TYPE> {
+class DiffCentral : public InPlaceFilter<TYPE> {
 	// ----------------------------------------------------------------------
 	//  X'truction
 	// ----------------------------------------------------------------------
 	public:
 		//! C'tor
-		TauP();
+		DiffCentral();
 
 
 	// ------------------------------------------------------------------
@@ -57,11 +57,9 @@ class TauP : public InPlaceFilter<TYPE> {
 	//  Private members
 	// ------------------------------------------------------------------
 	private:
-		TYPE _V, _D;
-		TYPE _last;
-		double _alpha;
-		double _fsamp;
-		bool _init;
+		double _factor;
+		bool   _init;
+		TYPE   _prevVal;
 };
 
 

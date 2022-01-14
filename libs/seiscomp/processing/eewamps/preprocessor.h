@@ -22,7 +22,7 @@
 
 #include <seiscomp3/datamodel/waveformstreamid.h>
 #include <seiscomp3/processing/waveformprocessor.h>
-#include <seiscomp3/processing/eewamps/api.h>
+#include <seiscomp/processing/eewamps/api.h>
 #include <seiscomp3/io/recordfilter.h>
 #include <vector>
 

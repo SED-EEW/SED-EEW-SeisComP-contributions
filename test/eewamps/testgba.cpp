@@ -4,7 +4,7 @@
 #include <seiscomp3/client/streamapplication.h>
 #include <seiscomp3/client/inventory.h>
 #include <seiscomp3/io/records/mseedrecord.h>
-#include <seiscomp3/processing/eewamps/processor.h>
+#include <seiscomp/processing/eewamps/processor.h>
 #include <string>
 
 

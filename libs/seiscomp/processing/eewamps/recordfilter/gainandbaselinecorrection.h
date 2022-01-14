@@ -20,7 +20,7 @@
 #define __SEISCOMP_PROCESSING_EEWAMPS_RECORDFILTER_GAINANDBASELINECORRECTION_H__
 
 
-#include <seiscomp3/processing/eewamps/api.h>
+#include <seiscomp/processing/eewamps/api.h>
 #include <seiscomp3/datamodel/inventory.h>
 #include <seiscomp3/io/recordfilter.h>
 #include <seiscomp3/math/filter/average.h>

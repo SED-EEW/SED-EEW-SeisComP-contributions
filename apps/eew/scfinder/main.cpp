@@ -49,7 +49,7 @@
 
 
 #include <seiscomp3/io/archive/xmlarchive.h>
-#include <seiscomp3/processing/eewamps/processor.h>
+#include <seiscomp/processing/eewamps/processor.h>
 #include <seiscomp3/math/geo.h>
 
 #include "finder.h"

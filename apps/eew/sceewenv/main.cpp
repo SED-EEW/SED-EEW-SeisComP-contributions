@@ -32,7 +32,7 @@
 #include <seiscomp3/client/inventory.h>
 #include <seiscomp3/io/records/mseedrecord.h>
 #include <seiscomp3/io/archive/xmlarchive.h>
-#include <seiscomp3/processing/eewamps/processor.h>
+#include <seiscomp/processing/eewamps/processor.h>
 
 // This is required as datamodel/vs now resides in contrib-sed
 #if SC_API_VERSION < SC_API_VERSION_CHECK(14,0,0)
