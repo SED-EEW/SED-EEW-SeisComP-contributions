@@ -5,7 +5,8 @@ MAINTAINER Fred Massin  <fmassin@sed.ethz.ch>
 ENV    WORK_DIR /usr/local/src
 ENV INSTALL_DIR /opt/seiscomp
 ENV   REPO_PATH https://github.com/SeisComP
-ENV         TAG 4.5.0
+ENV         TAG master
+#ENV         TAG 4.8.0
 ENV           D "-DSC_GLOBAL_GUI=ON \
                     -DSC_IPGPADDONS_GUI_APPS=ON \
                     -DSC_TRUNK_DB_MYSQL=ON \
@@ -94,7 +95,7 @@ RUN echo "Cloning base repository into $WORK_DIR/seiscomp" \
     && echo "Cloning external base components" \
     && git clone --branch $TAG $REPO_PATH/contrib-gns.git \
     && git clone --branch $TAG $REPO_PATH/contrib-ipgp.git \
-    && git clone --branch $TAG $REPO_PATH/contrib-sed.git \
+    && git clone --branch FMassin-patch-EEW-addons-release https://github.com/SED-EEW/sed-SeisComP-contributions contrib-sed \
     && echo "Done" 
 
 RUN mkdir -p $WORK_DIR/seiscomp/build \
@@ -105,9 +106,7 @@ RUN mkdir -p $WORK_DIR/seiscomp/build \
 
 # Install addons
 ADD ./ $WORK_DIR/seiscomp/src/base/sed-addons/
-RUN rm -r $WORK_DIR/seiscomp/src/base/contrib-sed/apps/scvsmag \
-    && sed -i 's/scvsmag//' $WORK_DIR/seiscomp/src/base/contrib-sed/apps/CMakeLists.txt \
-    && cd $WORK_DIR/seiscomp/build \
+RUN cd $WORK_DIR/seiscomp/build \
     && cmake .. $D \
     && make -j $(grep -c processor /proc/cpuinfo) \
     && make install
@@ -131,6 +130,8 @@ RUN groupadd --gid $GROUP_ID -r sysop && useradd -m -s /bin/bash --uid $USER_ID 
 RUN mkdir -p /home/sysop/.seiscomp \
     && chown -R sysop:sysop /home/sysop
 
+RUN apt-get install -y coreutils
+
 USER sysop
 
 #### SeisComp3 settings ###
@@ -148,20 +149,37 @@ RUN echo 'seiscomp status |grep "is running"' >> /home/sysop/.profile
 RUN echo 'seiscomp status |grep "WARNING"' >> /home/sysop/.profile
 
 
-## machinery for next
-#ENV SEISCOMP_ROOT=/opt/seiscomp3 PATH=/opt/seiscomp3/bin:$PATH \
-#     LD_LIBRARY_PATH=/opt/seiscomp3/lib:$LD_LIBRARY_PATH \
-#     PYTHONPATH=/opt/seiscomp3/lib/python:$PYTHONPATH \
-#     MANPATH=/opt/seiscomp3/share/man:$MANPATH \
-#     LC_ALL=C
-#
-## Copy default config
-#ADD volumes/SYSTEMCONFIGDIR/ $INSTALL_DIR/etc/
+RUN cp -r $WORK_DIR/seiscomp/src/base/sed-addons/test/vs/* /home/sysop/.seiscomp/ &&\
+    ls /home/sysop/.seiscomp/seedlink.ini 
+
+RUN mkdir -p $INSTALL_DIR/var/lib/seedlink \
+    && sed 's;/opt/seiscomp_test;'$INSTALL_DIR';g' /home/sysop/.seiscomp/seedlink.ini > $INSTALL_DIR/var/lib/seedlink/seedlink.ini
+
+RUN mkdir -p $INSTALL_DIR/var/run/seedlink \
+    && mkfifo $INSTALL_DIR/var/run/seedlink/mseedfifo
+
+RUN $INSTALL_DIR/bin/seiscomp enable seedlink scautopick scautoloc scevent sceewenv scvsmag sceewlog
 
 WORKDIR /home/sysop
 
 USER root
-    
+
+RUN /etc/init.d/mysql start && \
+    sleep 5 && \
+    mysql -u root -e "CREATE DATABASE seiscomp" && \
+    mysql -u root -e "CREATE USER 'sysop'@'localhost' IDENTIFIED BY 'sysop'" && \
+    mysql -u root -e "GRANT ALL PRIVILEGES ON * . * TO 'sysop'@'localhost'" && \
+    mysql -u root -e "FLUSH PRIVILEGES" && \
+    mysql -u root seiscomp <  $INSTALL_DIR/share/db/mysql.sql && \ 
+    #mysql -u root seiscomp <  $INSTALL_DIR/share/db/vs/mysql.sql && \ 
+    #mysql -u root seiscomp <  $INSTALL_DIR/share/db/wfparam/mysql.sql  && \ 
+    #su sysop -s /bin/bash -c "source /home/sysop/.profile ;  scdb -i /home/sysop/.seiscomp/inventory.xml -d mysql://sysop:sysop@localhost/seiscomp" &&\
+    #su sysop -s /bin/bash -c "source /home/sysop/.profile ;  scdb -i /home/sysop/.seiscomp/bindings.xml -d mysql://sysop:sysop@localhost/seiscomp" &&\
+    su sysop -s /bin/bash -c "source /home/sysop/.profile ;  seiscomp start ; timeout -300 msrtsimul /home/sysop/.seiscomp/sorted.mseed ;seiscomp status ;  slinktool -Q : ;  seiscomp stop"
+
+RUN tail /home/sysop/.seiscomp/log/sc*.log
+RUN head /home/sysop/.seiscomp/log/*_reports/*
+
 EXPOSE 22
 
 ## Start sshd
