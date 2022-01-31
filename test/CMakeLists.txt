@@ -1,1 +1,1 @@
-SUBDIRS(eewamps)
+#SUBDIRS(eewamps)
