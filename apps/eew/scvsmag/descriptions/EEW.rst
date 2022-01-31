@@ -58,7 +58,8 @@ References
 ==========
 
 Massin, F., J. F. Clinton, M. Boese (2021) Status of Earthquake Early Warning in
-     Switzerland, Frontiers in Earth Science, submitted
+     Switzerland, Frontiers in Earth Science,  9:707654. 
+     doi:10.3389/feart.2021.707654
      
 Behr, Y., J. F. Clinton, C. Cauzzi, E. Hauksson, K. Jónsdóttir, C. G. Marius, A.
      Pinar, J. Salichon, and E. Sokos (2016) The Virtual Seismologist in

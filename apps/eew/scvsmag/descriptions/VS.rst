@@ -209,7 +209,8 @@ Cauzzi, C., Behr, Y. D., Clinton, J., Kastli, P., Elia, L., & Zollo, A. (2016)
      Letters, 87(3), 737–742, doi:10.1785/0220150284
 
 Massin, F., J. F. Clinton, M. Boese (2021) Status of Earthquake Early Warning in
-     Switzerland, Frontiers in Earth Science, submitted
+     Switzerland, Frontiers in Earth Science,  9:707654. 
+     doi:10.3389/feart.2021.707654
           
 Porras Loría, J.L., Massin, F., Arroyo-Solórzano, M., Arroyo, I., Linkimer, L.,
      Böse, M., and Clinton, J., (2021) Preliminary Results of an Earthquake
