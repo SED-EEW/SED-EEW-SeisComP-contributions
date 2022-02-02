@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5948948.svg)](https://doi.org/10.5281/zenodo.5948948)
+
 # Description
 
 The *sed-addons* package contains SeisComP-based software developed by the ETHZ-SED seismic network team that has not been integrated into the main SeisComP distribution. Software includes the modules

@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "SED-EEW-SeisComP-contributions"
+doi: 10.5281/zenodo.5948948
+url: "https://github.com/SED-EEW/SED-EEW-SeisComP-contributions"
+preferred-citation:
+  type: article
+  authors:
+  - family-names: "Massin"
+    given-names: "Frédérick"
+    orcid: "https://orcid.org/0000-0002-7532-5139"
+  - family-names: "Clinton"
+    given-names: "John"
+    orcid: "https://orcid.org/0000-0001-8626-2703"
+  - family-names: "Böse"
+    given-names: "Maren"
+    orcid: "https://orcid.org/0000-0003-4639-719X"
+  doi: "10.3389/feart.2021.707654"
+  journal: "Frontiers in Earth Science"
+  title: "Status of Earthquake Early Warning in Switzerland"
+  volume: 9
+  year: 2021
