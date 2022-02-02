@@ -5,13 +5,16 @@ MAINTAINER Fred Massin  <fmassin@sed.ethz.ch>
 ENV    WORK_DIR /usr/local/src
 ENV INSTALL_DIR /opt/seiscomp
 ENV   REPO_PATH https://github.com/SeisComP
-ENV         TAG master
-#ENV         TAG 4.8.0
+#ENV         TAG master
+ENV         TAG 4.8.3
 ENV           D "-DSC_GLOBAL_GUI=ON \
                     -DSC_IPGPADDONS_GUI_APPS=ON \
                     -DSC_TRUNK_DB_MYSQL=ON \
                     -DSC_TRUNK_DB_POSTGRESQL=ON \
                     -DSC_TRUNK_DB_SQLITE3=ON \
+                    -DSC_DOC_GENERATE=ON \
+                    -DSC_DOC_GENERATE_HTML=ON \
+                    -DSC_DOC_GENERATE_MAN=ON \
                     -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR"
 
 # Fix Debian  env
@@ -80,8 +83,12 @@ RUN echo 'force-unsafe-io' | tee /etc/dpkg/dpkg.cfg.d/02apt-speedup \
     # misc
     git \
     vim \
-    wget
-
+    wget \
+    # doc
+    python3-sphinx \
+    python3-pip \
+    && python3 -m pip install m2r \
+    && python3 -m pip install mistune==0.8.4
 
 # Install seiscomp
 RUN echo "Cloning base repository into $WORK_DIR/seiscomp" \
@@ -107,6 +114,7 @@ RUN mkdir -p $WORK_DIR/seiscomp/build \
 # Install addons
 ADD ./ $WORK_DIR/seiscomp/src/base/sed-addons/
 RUN cd $WORK_DIR/seiscomp/build \
+    && find $WORK_DIR/seiscomp/src/base/sed-addons/ -name "Icon*" -exec rm {} \; \
     && cmake .. $D \
     && make -j $(grep -c processor /proc/cpuinfo) \
     && make install
@@ -148,9 +156,9 @@ RUN echo 'echo \$SEISCOMP_ROOT is $SEISCOMP_ROOT' >> /home/sysop/.profile
 RUN echo 'seiscomp status |grep "is running"' >> /home/sysop/.profile
 RUN echo 'seiscomp status |grep "WARNING"' >> /home/sysop/.profile
 
-
-RUN cp -r $WORK_DIR/seiscomp/src/base/sed-addons/test/vs/* /home/sysop/.seiscomp/ &&\
-    ls /home/sysop/.seiscomp/seedlink.ini 
+RUN cp -r $WORK_DIR/seiscomp/src/base/sed-addons/test/vs/* /home/sysop/.seiscomp/ \
+    && sed -i 's;schema/0.*" version="0.*">;schema/0.9" version="0.9">;'  /home/sysop/.seiscomp/*xml \
+    && ls /home/sysop/.seiscomp/seedlink.ini 
 
 RUN mkdir -p $INSTALL_DIR/var/lib/seedlink \
     && sed 's;/opt/seiscomp_test;'$INSTALL_DIR';g' /home/sysop/.seiscomp/seedlink.ini > $INSTALL_DIR/var/lib/seedlink/seedlink.ini
