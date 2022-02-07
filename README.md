@@ -34,7 +34,7 @@ default submodules (see the step "Checkout the repositories"). Then, add *sed-ad
 
 ```bash
 cd seiscomp
-git submodule add -f https://gitlab.seismo.ethz.ch/SED-EEW/sed-addons.git src/extras/sed-addons
+git submodule add -f https://github.com/SED-EEW/SED-EEW-SeisComP-contributions src/extras/sed-addons
 ```
 
 If you have already performed the previous steps and just want to update to latest version, run
@@ -58,7 +58,7 @@ Make sure your select the branch of the last release and add the *sed-addons* as
 ```bash
 cd seiscomp3
 git checkout release/jakarta
-git submodule add -f https://gitlab.seismo.ethz.ch/SED-EEW/sed-addons.git src/sed-addons
+git submodule add -f https://github.com/SED-EEW/SED-EEW-SeisComP-contributions src/sed-addons
 ```
 
 If you have already performed the previous steps and just want to update to latest version, run
