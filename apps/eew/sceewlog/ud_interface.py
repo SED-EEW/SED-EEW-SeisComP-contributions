@@ -119,11 +119,11 @@ class CoreEventInfo(UDConnection):
 
         if format == 'qml1.2-rt':
             xslt = ET.parse(os.path.join(ei.shareDir(), 'sceewlog',
-                                         'sc3ml_0.11__quakeml_1.2-RT_eewd.xsl'))
+                                         'sc3ml_0.12__quakeml_1.2-RT_eewd.xsl'))
             self.transform = ET.XSLT(xslt)
         elif format == 'shakealert':
             xslt = ET.parse(os.path.join(ei.shareDir(), 'sceewlog',
-                            'sc3ml_0.11__shakealert.xsl'))
+                            'sc3ml_0.12__shakealert.xsl'))
             self.transform = ET.XSLT(xslt)
         elif format == 'cap1.2':
             try:
@@ -139,7 +139,7 @@ class CoreEventInfo(UDConnection):
                 pass
 
             xslt = ET.parse(os.path.join(ei.shareDir(), 'sceewlog',
-                            'sc3ml_0.11__cap_1.2.xsl'))
+                            'sc3ml_0.12__cap_1.2.xsl'))
 
             self.transform = ET.XSLT(xslt)
 

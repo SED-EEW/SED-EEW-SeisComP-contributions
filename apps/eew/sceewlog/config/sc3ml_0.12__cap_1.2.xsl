@@ -15,7 +15,7 @@
  ********************************************************************** -->
 <xsl:stylesheet version="1.0"
         xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-        xmlns:scs="http://geofon.gfz-potsdam.de/ns/seiscomp3-schema/0.11"
+        xmlns:scs="http://geofon.gfz-potsdam.de/ns/seiscomp3-schema/0.12"
         exclude-result-prefixes="scs xsl">
     <!-- <xsl:output method="xml" encoding="UTF-8" indent="yes" omit-xml-declaration="yes"/> -->
         <xsl:output method="xml" encoding="UTF-8" indent="yes"/>
