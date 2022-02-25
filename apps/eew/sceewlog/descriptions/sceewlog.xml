@@ -151,11 +151,50 @@
 					Path of BNA file that contains closed polygons.
 					</description>
 				</parameter>
-				<parameter name="profiles" type="string" default="none">
+				<parameter name="profiles" type="string" default="global">
 					<description>
 					Profile names for regionalized alert filter. Use comma for more than one profile.
 					</description>
 				</parameter>
+				<group name="profile">
+					<description>
+						Profiles containing the profile-specific alert filtering parameters.
+					</description>
+					<struct type="Alert profile" link = "ActiveMQ.profiles">
+						<parameter name="magThresh" type="double" default="0.0">
+							<description>
+							Magnitude threshold; can be any float value.
+							</description>
+						</parameter>
+						<parameter name="likelihoodThresh" type="double" default="0.0">
+							<description>
+							Likelihood threshold; can be between 0.0 to 1.0.
+							</description>
+						</parameter>
+						<parameter name="minDepth" type="double" default="0.0">
+							<description>
+							Minimum depth value; can be any float value but less than maxDepth.
+							</description>
+						</parameter>
+						<parameter name="maxDepth" type="double" default="800.0">
+							<description>
+							Maximum depth value; can be any float value but greater than minDepth.
+							</description>
+						</parameter>
+						<parameter name="bnaPolygonName" type="string" default="none">
+							<description>
+							The polygon name must be one of the closed polygons that contains the ActiveMQ.bnaFile.
+							if this is set to none, then the origin won't be checked if it is within a polygon.
+							</description>
+						</parameter>
+						<parameter name="maxTime" type="double" default="-1">
+							<description>
+							maxTime is the difference in time (in seconds) between origin time and magnitude creation time.
+							This can be >= 0 to be evaluated. If this is -1 then the evaluation is skipped.
+							</description>
+						</parameter>
+					</struct>
+				</group>
 				<parameter name="changeHeadline" type="boolean" default="false">
 					<description>
 					Change the headline in the cap1.2 XML alert.

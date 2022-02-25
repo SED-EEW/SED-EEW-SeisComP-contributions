@@ -255,45 +255,45 @@ class Listener(seiscomp.client.Application):
                 
                 #Mag Threshold
                 try:
-                    tmpDic['magThresh'] = self.configGetDouble( 'ActiveMQ.' + prof + '.magThresh')
+                    tmpDic['magThresh'] = self.configGetDouble( 'ActiveMQ.profile.' + prof + '.magThresh')
                 except:
-                    seiscomp.logging.warning('not possible to parse: '+'ActiveMQ.' + prof + '.magThresh' )
-                    seiscomp.logging.warning('setting '+'ActiveMQ.' + prof + '.magThresh = 0.0')
+                    seiscomp.logging.warning('not possible to parse: '+'ActiveMQ.profile.' + prof + '.magThresh' )
+                    seiscomp.logging.warning('setting '+'ActiveMQ.profile.' + prof + '.magThresh = 0.0')
                     tmpDic['magThresh'] = 0.0
                     pass
                 
                 #Likelihood Threshold
                 try:
-                    tmpVal = self.configGetDouble( 'ActiveMQ.' + prof + '.likelihoodThresh')
+                    tmpVal = self.configGetDouble( 'ActiveMQ.profile.' + prof + '.likelihoodThresh')
                 except:
-                    seiscomp.logging.warning('Not possible to parse: '+'ActiveMQ.' + prof + '.likelihoodThresh' )
-                    seiscomp.logging.info('setting '+'ActiveMQ.' + prof + '.likelihoodThresh = 0.0')
+                    seiscomp.logging.warning('Not possible to parse: '+'ActiveMQ.profile.' + prof + '.likelihoodThresh' )
+                    seiscomp.logging.info('setting '+'ActiveMQ.profile.' + prof + '.likelihoodThresh = 0.0')
                     tmpDic['likelihoodThresh'] = 0.0
                     pass
                 
                 if tmpVal >= 0.0 and tmpVal <= 1:
                     tmpDic['likelihoodThresh'] = tmpVal
                 else:
-                    seiscomp.logging.error('Incorrect ActiveMQ.' + prof + '.likelihoodThresh. It must be between 0.0 to 1.0' )
+                    seiscomp.logging.error('Incorrect ActiveMQ.profile.' + prof + '.likelihoodThresh. It must be between 0.0 to 1.0' )
                     sys.exit(-1)
                 
                 #Min depth
                 try:
                     
-                    tmpDic['minDepth'] = self.configGetDouble( 'ActiveMQ.' + prof + '.minDepth')
+                    tmpDic['minDepth'] = self.configGetDouble( 'ActiveMQ.profile.' + prof + '.minDepth')
                 except:
-                    seiscomp.logging.warning('not possible to parse: '+'ActiveMQ.' + prof + '.minDepth' )
-                    seiscomp.logging.warning('setting '+'ActiveMQ.' + prof + '.minDepth = 0.0')
+                    seiscomp.logging.warning('not possible to parse: '+'ActiveMQ.profile.' + prof + '.minDepth' )
+                    seiscomp.logging.warning('setting '+'ActiveMQ.profile.' + prof + '.minDepth = 0.0')
                     tmpDic['minDepth'] = 0.0
                     pass
                 
                 #Max depth
                 try:
                     
-                    tmpDic['maxDepth'] = self.configGetDouble( 'ActiveMQ.' + prof + '.maxDepth')
+                    tmpDic['maxDepth'] = self.configGetDouble( 'ActiveMQ.profile.' + prof + '.maxDepth')
                 except:
-                    seiscomp.logging.warning('not possible to parse: '+'ActiveMQ.' + prof + '.maxDepth' )
-                    seiscomp.logging.warning('setting '+'ActiveMQ.' + prof + '.maxDepth = 700.0')
+                    seiscomp.logging.warning('not possible to parse: '+'ActiveMQ.profile.' + prof + '.maxDepth' )
+                    seiscomp.logging.warning('setting '+'ActiveMQ.profile.' + prof + '.maxDepth = 700.0')
                     tmpDic['maxDepth'] = 700.0
                     pass
                 
@@ -303,18 +303,18 @@ class Listener(seiscomp.client.Application):
                     
                 #max time - seconds
                 try:
-                    tmpDic['maxTime'] = self.configGetInt( 'ActiveMQ.' + prof + '.maxTime')
+                    tmpDic['maxTime'] = self.configGetInt( 'ActiveMQ.profile.' + prof + '.maxTime')
                 except:
-                    seiscomp.logging.warning('not possible to parse: '+'ActiveMQ.' + prof + '.maxTime' )
-                    seiscomp.logging.warning('setting '+'ActiveMQ.' + prof + '.maxTime = -1')
+                    seiscomp.logging.warning('not possible to parse: '+'ActiveMQ.profile.' + prof + '.maxTime' )
+                    seiscomp.logging.warning('setting '+'ActiveMQ.profile.' + prof + '.maxTime = -1')
                     tmpDic['maxTime'] = -1
                     pass
                 
                 #BNA closed polygon
                 try:
-                    tmpDic['bnaPolygon'] = self.configGetString( 'ActiveMQ.' + prof + '.bnaPolygonName')
+                    tmpDic['bnaPolygon'] = self.configGetString( 'ActiveMQ.profile.' + prof + '.bnaPolygonName')
                 except:
-                    seiscomp.logging.error('not possible to parse: '+'ActiveMQ.' + prof + '.bnaPolygonName' )
+                    seiscomp.logging.error('not possible to parse: '+'ActiveMQ.profile.' + prof + '.bnaPolygonName' )
                     seiscomp.logging.error('please check in detail')                    
                     sys.exit(-1) #TODO: another clean way to exit?
                 
