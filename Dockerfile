@@ -186,9 +186,14 @@ RUN /etc/init.d/mysql start && \
     su sysop -s /bin/bash -c "source /home/sysop/.profile ;  seiscomp start ; timeout -300 msrtsimul /home/sysop/.seiscomp/sorted.mseed ;seiscomp status ;  slinktool -Q : ;  seiscomp stop"
 
 RUN tail /home/sysop/.seiscomp/log/sc*.log
-RUN head /home/sysop/.seiscomp/log/*_reports/*
+#RUN head /home/sysop/.seiscomp/log/*_reports/*
 
-EXPOSE 22
 
 ## Start sshd
+RUN passwd -d sysop
+RUN sed -i'' -e's/^#PermitRootLogin prohibit-password$/PermitRootLogin yes/' /etc/ssh/sshd_config \
+    && sed -i'' -e's/^#PasswordAuthentication yes$/PasswordAuthentication yes/' /etc/ssh/sshd_config \
+    && sed -i'' -e's/^#PermitEmptyPasswords no$/PermitEmptyPasswords yes/' /etc/ssh/sshd_config \
+    && sed -i'' -e's/^UsePAM yes/UsePAM no/' /etc/ssh/sshd_config
+EXPOSE 22
 CMD ["/usr/sbin/sshd", "-D"]
