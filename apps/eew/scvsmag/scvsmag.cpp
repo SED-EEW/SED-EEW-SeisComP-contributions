@@ -334,13 +334,16 @@ bool VsMagnitude::init() {
 	_creationInfo.setAuthor(author());
 
 	// Log into processing/info to avoid logging the same information into the global info channel
+	appname = author();
+	appname.replace(appname.find("@"), 99, "");
+
 	_processingInfoChannel =
 			SEISCOMP_DEF_LOGCHANNEL("processing/info", Logging::LL_INFO);
 	if ( commandline().hasOption("processing-log") ){
 		_processingInfoFile = new Logging::FileOutput(_proclogfile.c_str());
 	} else {
 		_processingInfoFile = new Logging::FileRotatorOutput(
-				Environment::Instance()->logFile("scvsmag-processing-info").c_str(),
+				Environment::Instance()->logFile(appname+"-processing-info").c_str(),
 				60 * 60 * 24, 30);
 	}
 	_processingInfoFile->subscribe(_processingInfoChannel);
@@ -353,7 +356,7 @@ bool VsMagnitude::init() {
 		_envelopeInfoChannel =
 				SEISCOMP_DEF_LOGCHANNEL("envelope/info", Logging::LL_INFO);
 		_envelopeInfoFile = new Logging::FileRotatorOutput(
-				Environment::Instance()->logFile("envelope-logging-info").c_str(),
+				Environment::Instance()->logFile(appname+"-envelope-logging-info").c_str(),
 				60 * 60 * 24, 30);
 		_envelopeInfoFile->subscribe(_envelopeInfoChannel);
 	}

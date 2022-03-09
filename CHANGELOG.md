@@ -1,6 +1,22 @@
 # Jakarta
 
-## Release 2021.??? patch?
+## Release 2022 ?
+
+* scvsmag: Fix appname in log files
+
+## Release 2022 Fev 2 tag 4.8.3
+
+* Dockerfile: 
+
+  * Disable compilation tests
+
+  * Fix inventory xml version issue in built test
+
+* Documentation: Update bibliography
+
+* License: Create LICENSE
+
+## Release 2022 Jan 15 tag v4
 
 * sceewenv
 

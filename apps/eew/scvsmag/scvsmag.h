@@ -160,6 +160,7 @@ private:
 	// Configuration
 	std::string _vs30filename;
 	std::string _proclogfile;
+	std::string appname;
 	int _backSlots;
 	int _headSlots;
 	bool _realtime;
