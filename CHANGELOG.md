@@ -1,8 +1,16 @@
-# Jakarta
+# Change Log
 
 ## Release 2022 ?
 
-* scvsmag: Fix appname in log files
+* libs/eewamps, sceewenv, scfinder: 
+
+  * Ignore envelopes with delays higher than 30s (configurable)
+
+  * Average delay logged (info channel) every minutes
+
+* scvsmag
+
+  * Fix appname in log files
 
 ## Release 2022 Fev 2 tag 4.8.3
 

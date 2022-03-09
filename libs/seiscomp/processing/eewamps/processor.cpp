@@ -41,6 +41,10 @@ struct Processor::Members {
 	Config                       config;  //!< Global configuration object
 	Router                       router;  //!< Record router
 	IO::RecordFilterInterfacePtr demuxer; //!< Record stream demultiplexer
+        Core::Time lastCall;
+        Core::TimeSpan totalCallTime;
+        unsigned numCalls;
+        Core::Time lastPrinted;
 };
 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -104,6 +108,7 @@ void Processor::showConfig() const {
 	SEISCOMP_DEBUG("hor-buffer-size     : %fs", (double)_members->config.horizontalBufferSize);
 	SEISCOMP_DEBUG("hor-max-delay       : %fs", (double)_members->config.horizontalMaxDelay);
 	SEISCOMP_DEBUG("max-delay           : %fs", (double)_members->config.maxDelay);
+	SEISCOMP_DEBUG("max-allowed-delay   : %fs", (double)_members->config.skipDataOlderThan);
 	SEISCOMP_DEBUG("enable-acc          : %s", _members->config.wantSignal[WaveformProcessor::MeterPerSecondSquared] ? "yes":"no");
 	SEISCOMP_DEBUG("enable-vel          : %s", _members->config.wantSignal[WaveformProcessor::MeterPerSecond] ? "yes":"no");
 	SEISCOMP_DEBUG("enable-disp         : %s", _members->config.wantSignal[WaveformProcessor::Meter] ? "yes":"no");
@@ -211,8 +216,7 @@ bool Processor::init(const Seiscomp::Config::Config &conf,
 		return false;
 
 	// ----------------------------------------------------------------------
-	// Read black- and whitelists
-	// ----------------------------------------------------------------------
+
 	try {
 		std::vector<std::string> tokens = conf.getStrings(configPrefix + "streams.whitelist");
 		for ( size_t i = 0; i < tokens.size(); ++i )
@@ -258,6 +262,10 @@ bool Processor::init(const Seiscomp::Config::Config &conf,
 
 	try {
 		_members->config.maxDelay = conf.getDouble(configPrefix + "debug.maxDelay");
+	}
+	catch ( ... ) {}
+	try {
+		_members->config.skipDataOlderThan = conf.getDouble(configPrefix + "debug.skipDataOlderThan");
 	}
 	catch ( ... ) {}
 
@@ -326,6 +334,7 @@ bool Processor::init(const Seiscomp::Config::Config &conf,
 	_members->demuxer = new IO::RecordDemuxFilter(tpl);
 	_members->router.setConfig(&_members->config);
 	_members->router.setInventory(_inventory);
+	_members->numCalls = 0;
 
 	return true;
 }
@@ -385,6 +394,20 @@ bool Processor::subscribeToChannels(IO::RecordStream *rs,
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 bool Processor::feed(const Seiscomp::Record *rec) {
+
+	Core::Time now =  Core::Time::GMT() ;
+	_members->totalCallTime += now - _members->lastCall;
+	_members->lastCall = now;
+	_members->numCalls++;
+	if ((double)(now - _members->lastPrinted) > 60) {
+		SEISCOMP_INFO("Average call time %.6f for %d iterations", 
+                              ((double)_members->totalCallTime)/_members->numCalls,
+                              _members->numCalls);
+		_members->numCalls = 0;
+		_members->totalCallTime = Core::TimeSpan(0.0);
+		_members->lastPrinted = now;
+	}
+
 	if ( _members->demuxer == NULL )
 		return false;
 
@@ -392,9 +415,14 @@ bool Processor::feed(const Seiscomp::Record *rec) {
 		return false;
 
 	try {
-		Core::TimeSpan delay = Core::Time::GMT() - rec->endTime();
+		Core::TimeSpan delay = now - rec->endTime();
+		if ( delay > Core::TimeSpan( _members->config.skipDataOlderThan ) ) {
+			SEISCOMP_WARNING("%s: max allowed delay exceeded (data skipped): %fs",
+			                 rec->streamID().c_str(), (double)delay);
+			return false;
+		}
 		if ( delay > _members->config.maxDelay ) {
-			SEISCOMP_WARNING("%s: max delay exceeded: %fs",
+			SEISCOMP_WARNING("%s: delay exceeded (data still used): %fs",
 			                 rec->streamID().c_str(), (double)delay);
 		}
 	}

@@ -129,8 +129,14 @@
 					</parameter>
 					<parameter name="maxDelay" type="double" default="3" unit="s">
 						<description>
-							Sets the maximum tolerated package delay before issuing a warning.
+							Sets the maximum package delay before issuing a warning.
 							The default is 3s.
+						</description>
+					</parameter>
+					<parameter name="skipDataOlderThan" type="double" default="60" unit="s">
+						<description>
+							Sets the maximum tolerated package delay before skipping data.
+							The default is 30s.
 						</description>
 					</parameter>
 				</group>
