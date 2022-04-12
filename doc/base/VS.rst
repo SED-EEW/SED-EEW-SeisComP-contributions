@@ -1,3 +1,12 @@
+.. _VS:
+
+================
+VS DOCUMENTATION
+================
+
+INTRODUCTION
+============
+
 Part of the :ref:`EEW` package.
 
 The  `Virtual Seismologist`_ in SeisComP (VS(SC)) provides near instantaneous

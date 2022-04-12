@@ -1,3 +1,10 @@
+======================
+SCEEWENV DOCUMENTATION
+======================
+
+INTRODUCTION
+============  
+
 Part of the :ref:`EEW` package.
 
 *sceewenv* is released under the GNU Affero General Public License (Free

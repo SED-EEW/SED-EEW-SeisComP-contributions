@@ -1,3 +1,12 @@
+.. _FINDER:
+
+====================
+FINDER DOCUMENTATION
+====================
+
+INTRODUCTION
+============
+
 Part of the :ref:`EEW` package.
 
 The ground motion observed during large earthquakes is controlled by the

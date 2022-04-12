@@ -1,3 +1,10 @@
+======================
+SCEEWLOG DOCUMENTATION
+======================
+
+INTRODUCTION
+============
+
 Part of the :ref:`EEW` package.
 
 *sceewlog*  logs the VS and FinDer magnitude messages received from :ref:`scvsmag` and 

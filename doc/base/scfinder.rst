@@ -1,3 +1,10 @@
+======================
+SCFINDER DOCUMENTATION
+======================
+
+INTRODUCTION
+============
+
 Part of the :ref:`EEW` package.
 
 *scfinder* is released under the GNU Affero General Public License (Free

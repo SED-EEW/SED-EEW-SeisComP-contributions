@@ -232,7 +232,7 @@
 			</group>
 
 			<group name="Streams">
-				<option name="dump">
+				<option long-flag="dump">
 					<description>
 						Enables dumping of incoming, transformed and combined records to stdout. This
 						mode is for debugging. The default is false.

@@ -1,3 +1,9 @@
+.. _EEW:
+
+=================
+EEW DOCUMENTATION
+=================
+
 Since 2021, the SED-ETHZ SeisComP EEW framework includes two EEW algorithms,
 the Virtual Seismologist and the Finite-Fault Rupture Detector. They are
 supported by generic pre-processing and post-processing modules. Their
@@ -25,12 +31,22 @@ alerts in real-time.
 
 .. _fig-EEW:
 
-.. figure:: media/EEW.png
+.. figure:: base/media/EEW.png
    :width: 16cm
    :align: center
 
    The SED-ETHZ SeisComP EEW modules
-   
+
+Table of Contents
+=================
+
+.. toctree::
+   :maxdepth: 3
+
+   /base/FinDer
+   /base/VS
+
+
 EEW License
 ===========
 
@@ -48,6 +64,7 @@ Timeline
   License for Seiscomp Contributions`_ to `GNU Affero General Public License`_.
 - 2021: FinDer added to the SED-ETHZ SeisComP EEW package, modules repackaged,
   from  SeisComP v4.6.0. Key changes:
+
 1. `scfinder` module added.
 2. Generic EEW pre-processing module `sceewenv` replaces VS-specific
    `scenvelope` (deprecated).

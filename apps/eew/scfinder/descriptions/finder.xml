@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<seiscomp>
-	<module name="FinDer" category="EEW" standalone="true" author="Swiss Seismological Service">
-		<description>
-		Near instantaneous tracking of earthquake magnitude.
-		</description>
-	</module>
-</seiscomp>
