@@ -1,13 +1,10 @@
 .. _FINDER:
 
-====================
-FINDER DOCUMENTATION
-====================
+=============================
+Finite-Fault Rupture Detector
+=============================
 
-INTRODUCTION
-============
-
-Part of the :ref:`EEW` package.
+Part of the :ref:`EEW<EEW>` package.
 
 The ground motion observed during large earthquakes is controlled by the
 distance to the rupturing fault, not by the hypocentral distance. Traditional
@@ -77,16 +74,16 @@ display EEW messages broadcast via ActiveMQ.
 
 
 EEW License
-===========
+-----------
 
 The SeisComP EEW modules are free and open source. They are distributed
 under the GNU Affero General Public License (Free Software Foundation, version 3
 or later). For licence information on SED-ETHZ SeisComP EEW modules released
-before SeisComP v4.0.0 see the Timeline in :ref:`EEW`.
+before SeisComP v4.0.0 see the Timeline in :ref:`EEW<EEW>`.
 
 
 References
-==========
+----------
 
 Böse, M., Heaton, T. H., & Hauksson, E., 2012: 
     Real‐time Finite Fault Rupture Detector (FinDer) for large earthquakes. 

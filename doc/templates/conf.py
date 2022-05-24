@@ -33,6 +33,7 @@ import sphinx
 # and html won't render math anymore.
 extensions = [
     # 'rst2pdf.pdfbuilder',
+    'sphinx.ext.intersphinx',
     'sphinx.ext.ifconfig', 'sphinx.ext.todo',
     'sphinx.ext.autodoc', 'sphinx.ext.viewcode',
     'sphinx.ext.graphviz']
@@ -62,7 +63,7 @@ source_suffix = ['.rst']
 master_doc = 'index'
 
 # General information about the project.
-project = u'Earthquake Early Warning SeisComP addons'
+project = u'SED-ETHZ EEW SeisComP contributions'
 copyright = u'2020, SED'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -239,6 +240,7 @@ man_pages = []
 
 # Example configuration for intersphinx: refer to the Python standard library.
 # intersphinx_mapping = {'http://docs.python.org/': None}
+intersphinx_mapping = {'seiscomp':('https://www.seiscomp.de/doc/', None)}
 
 
 def setup(app):
@@ -252,7 +254,7 @@ def setup(app):
 # PDF settings
 pdf_stylesheets = ['sphinx', 'kerning', 'a4']
 pdf_documents = [
-    ('index', u'eew', u'Earthquake Early Warning SeisComP addons', u'SED'),
+    ('index', u'eew', u'SED-ETHZ EEW SeisComP contributions', u'SED'),
 ]
 
 pdf_appendices = []

@@ -1,11 +1,4 @@
-=====================
-SCVSMAG DOCUMENTATION
-=====================
-
-INTRODUCTION
-============
-
-Part of the :ref:`EEW` package.
+Part of the :ref:`EEW<EEW>` package (used by :ref:`VS<VS>`).
 
 *scvsmag* is part of a new SeisComP implementation of the
 `Virtual Seismologist`_ (VS) Earthquake Early Warning algorithm (Cua, 2005; Cua

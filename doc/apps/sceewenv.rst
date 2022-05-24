@@ -1,11 +1,4 @@
-======================
-SCEEWENV DOCUMENTATION
-======================
-
-INTRODUCTION
-============  
-
-Part of the :ref:`EEW` package.
+Part of the :ref:`EEW<EEW>` package (in :ref:`VS<VS>`).
 
 *sceewenv* is released under the GNU Affero General Public License (Free
 Software Foundation, version 3 or later). It provides in effect continuous
@@ -13,7 +6,7 @@ real-time streams of envelope values for horizontal and vertical acceleration,
 velocity and displacement from raw acceleration and velocity waveforms.
 *sceewenv* was extended from the original SED-ETHZ VS-specific pre-processing
 module `scenvelope`, implemented to handle the waveform pre-processing necessary
-for the :ref:`scvsmag` module. Further parameters can also being calculated
+for the :ref:`scvsmag` module (`Virtual Seismologist`_). Further parameters can also being calculated
 using the core library included in *sceewenv*, such as spectral amplitudes and
 tauP, though these are not accessible via the current *sceewenv* implementation.
 
@@ -33,7 +26,7 @@ that are processed this can result in a significant number of messages
 
 In order to save the messages in the database and to provide them to other
 modules, the messaging system must to be able to handle these messages.
-Therefore, the plugins *dmvs* must be available to :ref:`scmaster` and the "EEW"
+Therefore, the plugins *dmvs* must be available to :ref:`seiscomp:scmaster`  and the "EEW"
 group must be added.
 
 The plugins can be most easily **added** through the configuration parameters
