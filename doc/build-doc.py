@@ -913,7 +913,7 @@ print("# One entry per manual page. List of tuples", file=f)
 print("# (source start file, name, description, authors, manual section).", file=f)
 print("man_pages = [", file=f)
 for man_page in man_pages:
-    author = "GFZ Potsdam"
+    author = "SED-ETHZ"
     if man_page[1]:
         author = man_page[1]
     print("    ('apps/%s', '%s', project + u' Documentation',\
