@@ -34,6 +34,7 @@ import sphinx
 extensions = [
     # 'rst2pdf.pdfbuilder',
     'sphinx.ext.intersphinx',
+    'sphinx_rtd_theme',
     'sphinx.ext.ifconfig', 'sphinx.ext.todo',
     'sphinx.ext.autodoc', 'sphinx.ext.viewcode',
     'sphinx.ext.graphviz']
@@ -115,7 +116,8 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'agogo'
+#html_theme = 'agogo'
+html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
 
 # Theme options are theme-specific and customize the look and feel of a theme
