@@ -14,4 +14,4 @@ build:
 
 sphinx:
   builder: html
-  configuration: doc/build-doc/src/conf.py
+  configuration: doc/templates/conf.py
