@@ -174,6 +174,121 @@ About the world cities csv file, this must be in the next format:
    Shanghai,China,121.4667,31.1667
    Sao Paulo,Brazil,-46.6339,-23.5504
 
+Magnitude Association and Scoring
+====================
+This is a new implementation and it is still on review. The magnitude association and scoring basically works with some rules for which the magnitude is first evaluated by its value and author. It can be also used the likelihood if user list this on the priorities. Finally, the number of arrivals that were used to locate the event is used. 
+First, it is needed to activate:
+
+.. code-block:: sh
+  
+   # Mag Association Priority and Scoring
+   # Valid only when ActiveMQ and/or FCM are enabled
+   #
+   # The scoring is basically number which is:
+   # score = magVal*likelihood*magAssociationAuthorWeight*numArrivals
+   #
+   magAssociation.activate = false
+  
+Then, the list of priorities can be set:
+
+.. code-block:: sh
+  
+   #The priority string values are:
+   # - magThresh
+   # - likelihood
+   # - author
+   magAssociation.priority = magThresh,likelihood,authors
+
+The priorities can be the three options or just one or two.
+
+If magThresh is listed on priorities then a list with mag type and its threshold value must be provide as below:
+
+.. code-block:: sh
+   #If magAssociation.priority contains magThesh then 
+   #the next parameter must contain valid inputs
+   # please consider for EEW the main magnitudes are
+   # Mfd and MVS
+   magAssociation.typeThresh = Mfd:6,MVS:3.5,Mlv:2.5
+
+In this example, the magnitude value for Mfd is added to the scoring list only if the its value is equal or greater than 6. If the Mfd is lower than this value then the score value for magnitude is zero. For MVS and Mlv is 3.5 and 2.5 respectively.
+
+The authors can be also used and its priority depends on the position on the list. For example:
+
+
+.. code-block:: sh
+
+   #if magAssociation.priority contains author then
+   #the next parameter must contain valid magnitude authors' names
+   magAssociation.authors = scvsmag@@@hostname@, \
+   scvsmag0@@@hostname@, \
+   scfd85sym@@@hostname@, \
+   scfd20asym@@@hostname@, \
+   scfdcrust@@@hostname@
+
+In this list of authors the highest value is for *scvsmag* if it is the author of the magnitude evaluated. In this case, this author has a value of 6. The author value reduces after each comma separator. For the same example *scvsmag0* is 5, *scfd85sym* is 4, and so.
+
+If likelihood is listed on priorities then its value is added to the scoring list and at the end it is multiplied for the other priorities.
+
+Finally, for the scoring the number of arrival used to locate the event is added to the scoring list.
+
+The final product of the score is:
+
+    *score = magVal x author x likelihood x num. arrivals*
+
+This score is set for each update. Score can be 0 in case that the magnitude value for a specific magnitude type is lower than the set on the magThresh.
+
+
+EEW Comment
+====================
+
+Each time an automatic solution passes the regionalized filters and the scoring (if activated this last one), then it is possible to add a comment for the magnitude. This comment will have as a ID the text: **EEW** and its value will be the number of times that an alert and its updates have been sent out to ActiveMQ and/or FCM.
+
+
+Firebase Cloud Messaging
+====================
+In order to send a notification with data through Google Cloud Messaging, an interface called eews2fcm is used. This interface is actually a python library. In this library there is a class that it is instance if the FCM.activate is enable:
+
+.. code-block:: sh
+
+   # Firebase Cloud Messaging
+   FCM.activate = true
+
+The data that is sent out comes from the event object and the prefered orID and magID. In order to understand the interface see:
+
+`Firebase Cloud Messaging <https://firebase.google.com/docs/cloud-messaging>`_
+
+`HTTP protocol <https://firebase.google.com/docs/cloud-messaging/http-server-ref>`_
+
+
+
+The current implementation is a non-standard format to send data through GCM. It can be customized by the user. 
+In order to send out a notification to clients subscribed to a topic, it is mandatory to set the next parameters.
+
+.. code-block:: sh
+
+   # FCM data file
+   # this contains the authorization key and 
+   # the topic name for Firebase
+   # see more about Autho. Key at:https://firebase.google.com/docs/cloud-messaging/auth-server 
+   # for topics: https://firebase.google.com/docs/cloud-messaging/android/topic-messaging
+   FCM.dataFile = /home/sysop/seiscomp/share/sceewlog/.fcmdatafile
+
+The *FCM.dataFile* must be in the next format:
+
+.. code-block:: python
+   
+   [AUTHKEY]
+   key=YOUR-AUTHORIZATION-KEY_GOES_HERE
+   [TOPICS]
+   topic=YOUR_TOPIC_NAME_GOES_HERE
+  
+See more about authorization key and topics following the next links:
+
+`authorization-key <https://stackoverflow.com/questions/37673205/what-is-the-authorization-part-of-the-http-post-request-of-googles-firebase-d>`_
+
+`Notification by Topics <https://firebase.google.com/docs/cloud-messaging/android/topic-messaging>`_
+
+
 
 References
 ==========

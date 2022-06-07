@@ -25,6 +25,7 @@ import random
 import seiscomp.client, seiscomp.core
 import seiscomp.config, seiscomp.datamodel, seiscomp.system, seiscomp.utils
 import seiscomp.geo
+import socket
 
 
 class Listener(seiscomp.client.Application):
@@ -85,7 +86,20 @@ class Listener(seiscomp.client.Application):
         self.changeHeadline = False
         self.hlCitiesFile = None
         self.hlLanguage = None
-
+        
+        self.assocMagActivate = False
+        self.assocMagPriority = ["magThresh","likelihood"]
+        self.assocMagTypeThresh = { "Mfd":6.0, "MVS": 3.5 }
+        self.assocMagAuthors = ["scvsmag"]
+        
+        self.fcm = False  #enabling FCM 
+        self.moFcm = None # eews2fcm object
+        self.fcmDataFile = None #File that contains keys and topic information for FCM
+        
+        self.eewComment = False #
+                               
+        
+        
     def validateParameters(self):
         try:
             if seiscomp.client.Application.validateParameters(self) == False:
@@ -165,9 +179,44 @@ class Listener(seiscomp.client.Application):
             seiscomp.logging.warning('not possible to check whether ActiveMQ is enable or not. Leaving this false')
             self.activeMQ = False
         
+        try:
+            self.assocMagActivate = self.configGetBool("magAssociation.activate")
+        except:
+            seiscomp.logging.warning('Not possible to read magAssociation.activate')
+            seiscomp.logging.warning('setting default value: likelihood')
+            self.assocMagActivate = False    
+        
+        
         if self.activeMQ:
-            self.activeMQinitConfig()
             
+            self.profilesInitConfig()
+            self.hlChangeInitConfig()
+            if self.assocMagActivate:
+                self.prioritiesInitConfig()
+            self.activeMQinitConfig()
+        
+        
+        try:
+            self.fcm = self.configGetBool("FCM.activate")
+        except:
+            self.fcm = False
+            seiscomp.logging.warning('FCM.activate value is missing or not a set a proper boolean value')
+            seiscomp.logging.warning('setting it to False')
+            pass
+        
+        if self.fcm:
+            self.profilesInitConfig()
+            self.hlChangeInitConfig()
+            if self.assocMagActivate:
+                self.prioritiesInitConfig()
+            self.fcmInitConfig()
+            
+        try:
+            self.eewComment = self.configGetBool("EEW.comment")
+        except Exception as e:
+            seiscomp.logging.warning('Not possible to read EEW.comment. Setting this to False')
+            self.eewComment = False
+
         try:
             self.storeReport = self.configGetBool("report.activate")
             self.expirationtime = self.configGetDouble("report.eventbuffer")
@@ -177,6 +226,8 @@ class Listener(seiscomp.client.Application):
             pass
 
         return True
+        
+    
     
     def activeMQinitConfig(self):
         """
@@ -193,8 +244,62 @@ class Listener(seiscomp.client.Application):
         except:
             seiscomp.logging.error('There was an error while reading the configuration for ActiveMQ. section. Please check it in detail' )
             sys.exit(-1)
+    
+    #Priorities
+    def prioritiesInitConfig(self):
+        try:
+            self.assocMagPriority = self.configGetStrings("magAssociation.priority")
+        except:
+            seiscomp.logging.warning('Not possible to read magAssociation.priority')
+            seiscomp.logging.warning('setting default value: likelihood')
+            self.assocMagPriority = ["likelihood"]
             
-        #cap headline change
+        
+        try:
+            tmpList = self.configGetStrings("magAssociation.typeThresh")
+            self.assocMagTypeThresh = {}
+            for tmp in tmpList:
+                magtype, magval = tmp.split(":")
+                self.assocMagTypeThresh[magtype] = float(magval)
+        except:
+            seiscomp.logging.warning('Not possible to read magAssociation.typeThresh')
+            seiscomp.logging.warning('setting default values: Mfd:6, MVS:3.5')
+            self.assocMagTypeThresh = { "Mfd":6.0, "MVS": 3.5 }
+        
+        try:
+            self.assocMagAuthors = self.configGetStrings("magAssociation.authors")
+            self.assocMagAuthors = b = list(map(lambda x: x.replace("@@hostname@",socket.gethostname()), self.assocMagAuthors))
+            seiscomp.logging.info('Authors to score are: %s' % str(self.assocMagAuthors) )
+        except:
+            seiscomp.logging.warning('Not possible to read magAssociation.authors')
+            seiscomp.logging.warning('setting default values: unknown')
+            self.assocMagAuthors = ["unknown"]
+    
+    #Firebase Cloud Messaging
+    def fcmInitConfig(self):
+        try:
+            self.fcmDataFile = self.configGetString("FCM.dataFile")
+            seiscomp.logging.info('Data file that contains Authorization Key and topic is:\n %s\n' % self.fcmDataFile )
+        except:
+            seiscomp.logging.warning('Not possible to read FCM.dataFile')
+            seiscomp.logging.warning('Disabling FCM')
+            self.fcm = False
+            pass
+        
+        
+        if self.fcm:   
+            from eews2fcm import eews2fcm
+            try:
+                self.moFcm = eews2fcm(self.fcmDataFile, self.hlCitiesFile)
+                self.moFcm.readFcmDataFile()
+            except Exception as e:
+                seiscomp.logging.error("Not possible to instancing eews2fcm object")
+                seiscomp.logging.error("error: %s" % e)
+                sys.exit(-1)
+                
+    #cap headline change    
+    def hlChangeInitConfig(self):
+        
         try:
             self.changeHeadline = self.configGetBool("ActiveMQ.changeHeadline")
         except:
@@ -222,12 +327,13 @@ class Listener(seiscomp.client.Application):
                 seiscomp.logging.error('ActiveMQ.hlCities must be a path to the file that contains cities and their location')
                 seiscomp.logging.error('please, check this and set the string value properly')
                 sys.exit(-1)
+    
+    #Region profiles 
+    def profilesInitConfig(self):
         
-        
-        #Region profiles 
         profiles = []
         try:
-            profiles =   self.configGetStrings('ActiveMQ.profiles')
+            profiles = self.configGetStrings('ActiveMQ.profiles')
         except:
             seiscomp.logging.error('Error while reading the ActiveMQ.profiles. Check it in detail' )
             sys.exit(-1)
@@ -246,6 +352,7 @@ class Listener(seiscomp.client.Application):
                 seiscomp.logging.error('Not possible to open the bnaFile')
                 sys.exit(-1)
         
+        #Assoc Mag
         if len(profiles) > 0:
             #reading each profile
             for prof in profiles:
@@ -383,6 +490,9 @@ class Listener(seiscomp.client.Application):
             seiscomp.logging.info('Cache connected to database.')
         self.enableTimer(1)
         try:
+            if not self.activeMQ.activate:
+                seiscomp.logging.info('ActiveMQ is deactivated')
+                return True
             import ud_interface
             self.udevt = ud_interface.CoreEventInfo(self.amqHost, self.amqPort,
                                                     self.amqTopic, self.amqUser,
@@ -575,7 +685,10 @@ class Listener(seiscomp.client.Application):
         self.event_dict[evID]['updates'][updateno]['diff'] = difftime.length()
         self.event_dict[evID]['updates'][updateno]['ot'] = \
             org.time().value().toString("%FT%T.%2fZ")
-
+        
+        self.event_dict[evID]['updates'][updateno]['score'] =  0
+        self.event_dict[evID]['updates'][updateno]['eew'] =  False
+        
         seiscomp.logging.info("Number of updates %d for event %s" % (
             len(self.event_dict[evID]['updates']), evID))
         seiscomp.logging.info("lat: %f; lon: %f; mag: %f; ot: %s" %
@@ -592,18 +705,24 @@ class Listener(seiscomp.client.Application):
         
         magType = self.event_dict[evID]['updates'][updateno]['type']
         
-        if magType in self.magTypes and magType != 'MVS' and self.activeMQ:
+        
+        # Evaluation to send alert in case of a magType different
+        # than MVS and Mfd
+        # Generally the other mag types do not have likelihood values
+        
+        if magType in self.magTypes and magType != 'MVS' and magType != 'Mfd' and ( self.activeMQ or self.fcm ):
             #collecting the event udpate
             evtDic =  self.event_dict[evID]['updates'][updateno]
             #evaluate to send or not the alert based on profiles
-            self.alertEvaluation( evtDic, magID ) 
+            self.alertEvaluation( evID, magID, updateno ) 
 
     def sendAlert(self, magID):
         """
         Send an alert to a UserDisplay, if one is configured
         """
-        if self.udevt is None:
+        if self.udevt is None and self.fcm == False:
             return
+        
 
         seiscomp.logging.debug("Sending an alert for magnitude %s " % magID)
         orgID = self.origin_lookup[magID]
@@ -634,8 +753,45 @@ class Listener(seiscomp.client.Application):
                     ep.add(pk)
         else:
             seiscomp.logging.debug("Cannot find origin %s in cache." % orgID)
-
-        self.udevt.send(self.udevt.message_encoder( ep ))
+        
+        if self.udevt is not None:
+            self.udevt.send( self.udevt.message_encoder( ep ) )
+        
+        if self.fcm:
+            self.moFcm.send( ep )
+        
+        # Adding a comment on magnitude object with
+        # the number of times of EEW alert was sent (if enabled)
+        if self.eewComment:
+            try:
+                #counting how many EEW alerts were sent out
+                listUpdates = list( self.event_dict[evID]['updates'].values() )
+                numEEW = sum( d['eew'] for d in listUpdates )
+                #Notifying a comment about EEW on the magnitude object
+                mag = self.cache.get(seiscomp.datamodel.Magnitude, magID)
+                comment = seiscomp.datamodel.Comment();
+                comment.setId("EEW")
+                comment.setText(str(numEEW))
+                
+                #creation info
+                ci = seiscomp.datamodel.CreationInfo()
+                ci.setCreationTime(seiscomp.core.Time().GMT())
+                comment.setCreationInfo(ci)
+                
+                #adding the comment object to mag object
+                mag.add(comment)
+                
+                #Notifies
+                n = seiscomp.datamodel.Notifier(mag.publicID(), seiscomp.datamodel.OP_ADD, comment)
+                seiscomp.logging.debug("Notifier is enabled?: %s" % seiscomp.datamodel.Notifier.IsEnabled() )
+                msg = seiscomp.datamodel.NotifierMessage()
+                msg.attach(n)
+                a=self.connection().send( 'MAGNITUDE', msg )
+                seiscomp.logging.debug("Comment sent? %s" % "Yes" if a else "No, failed" )
+                seiscomp.logging.debug("EEW alert sent so far: %s" % str( numEEW ) )
+            except Exception as e:
+                seiscomp.logging.error("There was an error while notifying a comment with the Num of time that EEW alert were sent")
+                seiscomp.logging.error("Error message: %s" % repr(e))
 
     def handleMagnitude(self, magnitude, parentID):
         """
@@ -897,57 +1053,129 @@ class Listener(seiscomp.client.Application):
                 
                 magType = self.event_dict[evID]['updates'][updateno]['type']
                 
-                #only evaluate an alert when there is a likelihood value for magnitude type MVS
-                if lhVal >= 0 and self.activeMQ and magType == 'MVS' and magType in self.magTypes:
+                #only evaluate an alert when there is a likelihood value for magnitude type MVS and Mfd
+                #if lhVal >= 0 and self.activeMQ and magType == 'MVS' and magType in self.magTypes:
+                if lhVal >= 0 and ( self.activeMQ or self.fcm ) and ( magType == 'MVS' or magType == 'Mfd' ) and magType in self.magTypes:
+
                     evtDic = self.event_dict[evID]['updates'][updateno]
                     #evaluate to send or not the alert based on profiles
-                    self.alertEvaluation(evtDic, magID )
+                    self.alertEvaluation( evID, magID, updateno )
                     
 
         self.received_comments = comments_to_keep
     
-    def alertEvaluation( self, evt, magID ):
+    def alertEvaluation( self, evID, magID, updateno ):
         """
-        Evaluation based on the profiles to send or not an alert
+        Evaluation based on the profiles to send or not an alert.
+        Additionally, there is a scoring option before evaluating 
+        profiles.
         """
         #collecting the variables
-        magVal = evt['magnitude']
-        depthVal = evt['depth']
-        latVal = evt['lat']
-        lonVal = evt['lon']
-        difftime = evt['diff']
+        evt = self.event_dict[evID]['updates'][updateno]
+        magVal = self.event_dict[evID]['updates'][updateno]['magnitude']
+        depthVal = self.event_dict[evID]['updates'][updateno]['depth']
+        latVal = self.event_dict[evID]['updates'][updateno]['lat']
+        lonVal = self.event_dict[evID]['updates'][updateno]['lon']
+        difftime = self.event_dict[evID]['updates'][updateno]['diff']
+        magType = self.event_dict[evID]['updates'][updateno]['type']
+        author = self.event_dict[evID]['updates'][updateno]['author']
+        numarrivals = self.event_dict[evID]['updates'][updateno]['nstorg']
         
+        seiscomp.logging.debug("scoring...")
+        
+        #list of scores based on the type
+        scores = []
+                    
         if 'likelihood' in evt:
             lhVal = evt['likelihood'] 
         else:
             lhVal = None
         
+        #going through priorities
+        if self.assocMagActivate:
+            for priority in self.assocMagPriority:
+            
+                if priority == "magThresh":
+                    #tmpMagThresh = 0
+                    for _magType, _magVal in self.assocMagTypeThresh.items():
+                        if magType == _magType:
+                            if magVal >= _magVal:
+                                seiscomp.logging.debug("Appending Magnitude type: %s with value %s for scoring" % ( magType, magVal ) )
+                                scores.append(round(magVal,1))
+                                break
+                            else:
+                                seiscomp.logging.debug("scoring 0 for mag type %s with mag value %s." % ( magType, magVal ) )
+                                scores.append(0)
+                     
+                if priority == "likelihood":
+                    if lhVal != None:
+                        seiscomp.logging.debug("Appending likelihood %s for scoring " % lhVal)
+                        scores.append(lhVal)
+		    
+                if priority == "authors":
+                    seiscomp.logging.debug("magnitude author: %s." % author )
+                    if author in self.assocMagAuthors:
+                        #index
+                        index = self.assocMagAuthors.index( author )
+                        scores.append( len(self.assocMagAuthors) + 1 - index )
+                        seiscomp.logging.debug("This author is listed. Appending for scoring a value of %s" % (len(self.assocMagAuthors) + 1 - index) )
+                    else:
+                        #the author is not listed, so it is assigned a value of 1.
+                        seiscomp.logging.debug("Author: %s not listed on assocMagAuthors" % author )
+                        scores.append(1)
+                
+            if numarrivals != None and numarrivals >0:
+                seiscomp.logging.debug("Appending number of arrivals for scoring: %s" % str(numarrivals) )
+                scores.append(numarrivals)
+            
+            #init the final score for this update
+            score = 1
+            
+            for x in scores:
+                score *= x
+            
+            seiscomp.logging.info("score of %s for evt update number %s " % ( score, updateno ) )
+            self.event_dict[evID]['updates'][updateno]['score'] = score
+            
+            
+            for _updateno, evtDic in self.event_dict[evID]['updates'].items():
+                if len(self.event_dict[evID]['updates']) == 1:
+                    seiscomp.logging.info("First Update of event with ID %s with score %s. Checking profiles." % ( evID, score) )
+                    break
+                if score <= evtDic["score"] and _updateno != updateno:
+                    seiscomp.logging.debug("This score is lower than a previous one. Not sending any alert")
+                    return
+            
+            if len(self.event_dict[evID]['updates']) > 1:
+                seiscomp.logging.debug("Score for event with ID %s higher than a previous one. checking profiles to send or not this update" % evID)
+        
         #first Checking if origin location is within a closed polygon
         #there might be more than one polygon but once
         #a condition is accomplished then it will only alert once 
+        
         for ft in self.profilesDic:
             noSend = False
             seiscomp.logging.debug( 'Evaluation for Profile: %s...' % ft['name'] )
             if magVal < ft['magThresh']:
-                seiscomp.logging.debug('magVal was less than %s' % ft['magThresh'])
+                seiscomp.logging.debug('magVal was less than %s' % ft['magThresh'] )
                 noSend = True
                 
             if depthVal < ft['minDepth']:
-                seiscomp.logging.debug('depth min value was less than %s' % ft['minDepth'])
+                seiscomp.logging.debug('depth min value was less than %s' % ft['minDepth'] )
                 noSend = True
             
             if depthVal > ft['maxDepth']:
-                seiscomp.logging.debug('depth max value was greater than %s' % ft['maxDepth'])
+                seiscomp.logging.debug('depth max value was greater than %s' % ft['maxDepth'] )
                 noSend = True
             
             if lhVal != None:
                 if lhVal < ft['likelihoodThresh']:
-                    seiscomp.logging.debug('likelihood threshold was less than %s' % ft['likelihoodThresh'])
+                    seiscomp.logging.debug('likelihood threshold was less than %s' % ft['likelihoodThresh'] )
                     noSend = True
                     
             if ft['maxTime'] != -1:
                 if ft['maxTime'] < difftime:
-                    seiscomp.logging.debug('Difftime of %s is greater than the maxTime for this profile' % difftime)
+                    seiscomp.logging.debug( 'Difftime of %s is greater than the maxTime for this profile' % difftime )
                     noSend = True
             
             if ft['bnaFeature']:
@@ -966,6 +1194,10 @@ class Listener(seiscomp.client.Application):
                 continue
             else:
                 seiscomp.logging.debug('Sending and alert....')
+                self.event_dict[evID]['updates'][updateno]['eew'] = True
+                
+                #TODO: Add a method to send a comment object of magnitude reported
+                
                 self.sendAlert( magID )
                 break
                             
@@ -1043,3 +1275,4 @@ if __name__ == '__main__':
     import sys
     app = Listener(len(sys.argv), sys.argv)
     sys.exit(app())
+
