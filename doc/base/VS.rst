@@ -1,6 +1,12 @@
-Part of the :ref:`EEW` package.
+.. _VS:
 
-The  `Virtual Seismologist`_ in SeisComP (VS(SC)) provides near instantaneous
+====================
+Virtual Seismologist
+====================
+
+Part of the :ref:`EEW<EEW>` package.
+
+The `Virtual Seismologist`_ in SeisComP (VS(SC)) provides near instantaneous
 estimates of earthquake magnitude as soon as SeisComP origins are available.
 With a well-configured SeisComP system running on a dense network, magnitudes
 for local events can be available within 4-20 s of origin time (Massin et al.,
@@ -157,15 +163,15 @@ by VS, combining information on location quality and station quality. See
 
 
 EEW License
-===========
+-----------
 
 The SeisComP EEW modules are free and open source. They are distributed
 under the GNU Affero General Public License (Free Software Foundation, version 3
 or later). For licence information on SED-ETHZ SeisComP EEW modules released
-before SeisComP v4.0.0 see the Timeline in :ref:`EEW`.
+before SeisComP v4.0.0 see the Timeline in :ref:`EEW<EEW>`.
 
 References
-===========
+----------
 
 Dietz, L., 2002: Notes on configuring BINDER_EW: Earthworm's phase associator, http://folkworm.ceri.memphis.edu/ew-doc/ovr/binder_setup.html (last accessed
     June 2013)

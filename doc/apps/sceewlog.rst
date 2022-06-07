@@ -1,4 +1,4 @@
-Part of the :ref:`EEW` package.
+Part of the :ref:`EEW<EEW>` package (used by :ref:`VS<VS>` and :ref:`FinDer<FINDER>`).
 
 *sceewlog*  logs the VS and FinDer magnitude messages received from :ref:`scvsmag` and 
 :ref:`scfinder` (configurable), and broadcasts these alerts and generates and disseminates reports.
@@ -72,29 +72,32 @@ provided by :ref:`scfinder`.
 Regionalized Filters
 ====================
 
-To filter alerts to be sent out through ActiveMQ, it is necessary to set profiles on ActiveMQ section.
-Since this is using regions which are basically polygons, then the first step is to provide a BNA file that contains the polygons.
-If the user does not provide a BNA file, then the other profile parameters will be evaluated globally.
+To filter alerts to be sent out through ActiveMQ, it is necessary to set 
+profiles on ActiveMQ section. Since this is using regions defined as closed 
+polygons, then the first step is to provide a BNA file that contains the 
+polygons. If the user does not provide a BNA file, then the other profile 
+parameters will be evaluated globally.
 
 .. code-block:: sh
 
    activeMQ.bnaFile = /opt/seiscomp3/share/sceewlog/closedpolygons.bna
    
-Then profile names have to be set. Two profile examples will be presented below.
+Then profile names have to be set. Two profile examples are provided below.
 
 .. code-block:: sh
 
    activeMQ.profiles = global, America
    
-For global profile it won't be used a closed polygon since this spans on the entire world. For America profile it will be used 
-the "America" closed polygon which has to be in the activeMQ.bnaFile.
+The **global** profile is not configured with polygon since this spans on the 
+entire world. The **America** profile uses the "America" closed polygon defined 
+in :confval:`activeMQ.bnaFile`.
 
 .. code-block:: sh
 
    activeMQ.global.bnaPolygonName = none
    activeMQ.America.bnaPolygonName = America
 
-The magnitude and threshold values will be:
+The magnitude and likelihood threshold values might be:
 
 .. code-block:: sh
 
@@ -103,8 +106,9 @@ The magnitude and threshold values will be:
    activeMQ.America.magThresh = 5.0
    activeMQ.America.likelihoodThresh = 0.3
 
-There are also a depth filter based on min-max range for each profile. Following the example for the global profile, it will be only for shallow EQs, whereas
-for America one the min depth will be 0 km and max depth 100 km.
+There might also be a depth filter for each profile. The following parameters 
+might be used to configure the **global** profile with shallow events, and 
+the **America** profile with events from 0 to 100 km deep.
 
 .. code-block:: sh
 
@@ -113,46 +117,53 @@ for America one the min depth will be 0 km and max depth 100 km.
    activeMQ.America.minDepth = 0
    activeMQ.America.maxDepth = 100
 
-Finally, to avoid sending alerts which are far from being considered ontime warnings, then a maxTime value can be set.
-This maxTime value is the maximum value in seconds of magnitude creation time minus origin time. For the examples, on the global
-profile this parameter will be -1 which means no considering this filter, whereas for America it is set to 60 seconds.
+Finally, to avoid sending alerts for events outside of the network of interest 
+for EEW applications, a :confval:`maxTime` can be set. The :confval:`maxTime` 
+is the maximum delay in seconds between the magnitude creation time since the 
+origin time. For the examples, on the **global** profile this parameter might 
+be "-1" in order to skip this filter, whereas it could be set to 60 seconds for 
+**America**. However, each of the :ref:`VS` and :ref:`FinDer` algorithms have 
+their own default thresholds superseding :confval:`maxTime` defined in 
+:ref:`sceewlog`.
 
- 
 .. code-block:: sh
 
-   #No considering this filter
    activeMQ.global.maxTime = -1
-   #
    activeMQ.America.maxTime = 60
 
 Headline Change for CAP1.2 XML alerts
 =====================================
-The converted CAP1.2 xml alert message for every EQ and its updates contains a headline for both English and Spanish languages.
-The default message in the headline is: 
 
-@AGENCY@ Magnitude X.X Date and Time (UTC): YYYY-MM-dd HH:mm:s.sssZ.
-
-To change this headline with the format of:
-
-ENGLISH:
-
-@AGENCY@/Earhquake Magnitude X.X, XX km NNW of SOMECITY, SOMECOUNTRY
-
-SPANISH:
-
-
-@AGENCY@/Sismo Magnitud X.X, XX km al SSO de SOMECITY, SOMECOUNTRY
-
-There is one option on the configuration file that must be enable:
+The converted CAP1.2 xml alert messages contains a headline. The default 
+headline is: 
 
 .. code-block:: sh
    
-   #enalbe this if you want to change the headline
+   @AGENCY@ Magnitude X.X Date and Time (UTC): YYYY-MM-dd HH:mm:s.sssZ.
+
+An alternative headline format might be preferred. The following alternative 
+format can be selected:
+
+.. code-block:: sh
+   
+   @AGENCY@/Earthquake Magnitude X.X, XX km NNW of SOMECITY, SOMECOUNTRY
+
+The aternative format supports both spanish and english languages. The 
+spanish version is:
+
+.. code-block:: sh
+   
+   @AGENCY@/Sismo Magnitud X.X, XX km al SSO de SOMECITY, SOMECOUNTRY
+
+The alternative format can be enable as follows:
+
+.. code-block:: sh
+   
    ActiveMQ.changeHeadline = true
 
-If this is true then it is mandatory to specify the language and the world cities CSV file of the corresponding selected language. Both the selected language and CSV file must be in the same language.
-
-For languages there are two options that can be selected, Spanish and English:
+The alternative format requires to specify the language and the corresponding 
+file listing the world cities :confval:`ActiveMQ.hlCitiesFileCSV`. The language
+can be selected as follows:
 
 .. code-block:: sh
   
@@ -161,7 +172,8 @@ For languages there are two options that can be selected, Spanish and English:
    #Uncomment the next line to select Spanish
    #ActiveMQ.hlLanguage = es-US
 
-About the world cities csv file, this must be in the next format:
+The file listing the world cities :confval:`ActiveMQ.hlCitiesFileCSV` must have 
+the following format:
 
 .. code-block:: sh
   
@@ -173,6 +185,10 @@ About the world cities csv file, this must be in the next format:
    Manila,Philippines,120.9833,14.6
    Shanghai,China,121.4667,31.1667
    Sao Paulo,Brazil,-46.6339,-23.5504
+
+Both an english and a spanish verion are provided in "@DATADIR@/sceewlog/world_cities_english.csv"
+and "@DATADIR@/sceewlog/world_cities_spanish.csv".
+
 
 Magnitude Association and Scoring
 ====================
@@ -246,7 +262,7 @@ Each time an automatic solution passes the regionalized filters and the scoring 
 
 Firebase Cloud Messaging
 ====================
-In order to send a notification with data through Google Cloud Messaging, an interface called eews2fcm is used. This interface is actually a python library. In this library there is a class that it is instance if the FCM.activate is enable:
+In order to send a notification with data through Google Cloud Messaging, an interface called eews2fcm is used. This interface is actually a python library. In this library there is a class that it is instanced if the *FCM.activate* is activated:
 
 .. code-block:: sh
 
@@ -261,7 +277,7 @@ The data that is sent out comes from the event object and the prefered orID and 
 
 
 
-The current implementation is a non-standard format to send data through GCM. It can be customized by the user. 
+The current implementation is a non-standard format to send data through FCM. It can be customized by the user. 
 In order to send out a notification to clients subscribed to a topic, it is mandatory to set the next parameters.
 
 .. code-block:: sh
@@ -287,6 +303,8 @@ See more about authorization key and topics following the next links:
 `authorization-key <https://stackoverflow.com/questions/37673205/what-is-the-authorization-part-of-the-http-post-request-of-googles-firebase-d>`_
 
 `Notification by Topics <https://firebase.google.com/docs/cloud-messaging/android/topic-messaging>`_
+
+=======
 
 
 

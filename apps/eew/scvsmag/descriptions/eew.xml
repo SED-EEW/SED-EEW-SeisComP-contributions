@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<seiscomp>
-	<module name="EEW" category="EEW" standalone="true" author="Swiss Seismological Service">
-		<description>
-            The SED-ETHZ SeisComP EEW modules.
-		</description>
-	</module>
-</seiscomp>

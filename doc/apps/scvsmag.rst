@@ -1,7 +1,7 @@
-Part of the :ref:`EEW` package.
+Part of the :ref:`EEW<EEW>` package (used by :ref:`VS<VS>`).
 
 *scvsmag* is part of a new SeisComP implementation of the
-`Virtual Seismologist`_(VS) Earthquake Early Warning algorithm (Cua, 2005; Cua
+`Virtual Seismologist`_ (VS) Earthquake Early Warning algorithm (Cua, 2005; Cua
 and Heaton, 2007) released under the GNU Affero General Public License (Free
 Software Foundation, version 3 or later). For a given origin it estimates single
 station magnitudes and a network magnitude based on  the envelope attenuation

@@ -1,4 +1,4 @@
-Part of the :ref:`EEW` package.
+Part of the :ref:`EEW<EEW>` package (used by :ref:`FinDer<FINDER>`).
 
 *scfinder* is released under the GNU Affero General Public License (Free
 Software Foundation, version 3 or later). It uses the same library as

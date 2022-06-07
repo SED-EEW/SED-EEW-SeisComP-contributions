@@ -184,13 +184,13 @@
 						<parameter name="bnaPolygonName" type="string" default="none">
 							<description>
 							The polygon name must be one of the closed polygons that contains the ActiveMQ.bnaFile.
-							if this is set to none, then the origin won't be checked if it is within a polygon.
+							If this is set to none, then the origin location will not be checked against any polygon.
 							</description>
 						</parameter>
 						<parameter name="maxTime" type="double" default="-1">
 							<description>
-							maxTime is the difference in time (in seconds) between origin time and magnitude creation time.
-							This can be >= 0 to be evaluated. If this is -1 then the evaluation is skipped.
+							Time difference between origin time and magnitude creation time (in seconds).
+							If this parameter is setup to -1, the time difference is not checked.
 							</description>
 						</parameter>
 					</struct>

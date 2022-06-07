@@ -1,4 +1,6 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5948948.svg)](https://doi.org/10.5281/zenodo.5948948)
+[![Docker](https://github.com/SED-EEW/SED-EEW-SeisComP-contributions/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/SED-EEW/SED-EEW-SeisComP-contributions/actions/workflows/docker-publish.yml)
+[![Documentation Status](https://readthedocs.org/projects/sed-eew-seiscomp-contributions/badge/?version=latest)](https://sed-eew-seiscomp-contributions.readthedocs.io/en/latest/?badge=latest)
 
 # Description
 
