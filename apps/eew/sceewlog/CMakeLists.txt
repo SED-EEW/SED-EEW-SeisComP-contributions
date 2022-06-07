@@ -14,7 +14,7 @@ ENDIF()
 
 IF(SC_GLOBAL_PYTHON_WRAPPER)
 # UD interface
-INSTALL(FILES ud_interface.py headlinealert.py DESTINATION ${PYTHON_LIBRARY_PATH})
+INSTALL(FILES ud_interface.py headlinealert.py eews2fcm.py DESTINATION ${PYTHON_LIBRARY_PATH})
 
 SET(UD_DATA config/sc3ml_0.12__quakeml_1.2-RT_eewd.xsl
 config/sc3ml_0.12__shakealert.xsl
