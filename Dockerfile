@@ -12,9 +12,9 @@ ENV           D "-DSC_GLOBAL_GUI=ON \
                     -DSC_TRUNK_DB_MYSQL=ON \
                     -DSC_TRUNK_DB_POSTGRESQL=ON \
                     -DSC_TRUNK_DB_SQLITE3=ON \
-                    -DSC_DOC_GENERATE=ON \
-                    -DSC_DOC_GENERATE_HTML=ON \
-                    -DSC_DOC_GENERATE_MAN=ON \
+                    #-DSC_DOC_GENERATE=ON \
+                    #-DSC_DOC_GENERATE_HTML=ON \
+                    #-DSC_DOC_GENERATE_MAN=ON \
                     -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR"
 
 # Fix Debian  env
