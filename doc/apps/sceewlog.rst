@@ -47,11 +47,9 @@ Firebase Cloud Messaging
 ========================
 It is beyond the scope of this documentation to explain the complete setup 
 Firebase Cloud Messaging. It sends EEW messages based on the magnitude prefered 
-internally (see 
-:ref:`the sceewlog internal scoring method<Magnitude Association and Scoring>`). 
-In order to understand the Firebase Cloud Messaging interface see 
-`Firebase Cloud Messaging`_ and `HTTP protocol`_. This interface is 
-activated with:
+internally (see section *Magnitude Association and Scoring*). In order to understand 
+the Firebase Cloud Messaging interface see `Firebase Cloud Messaging`_ and 
+`HTTP protocol`_. This interface is activated with:
 
 .. code-block:: sh
 
@@ -276,4 +274,4 @@ References
 .. _`Firebase Cloud Messaging` : https://firebase.google.com/docs/cloud-messaging
 .. _`HTTP protocol` : https://firebase.google.com/docs/cloud-messaging/http-server-ref
 .. _`authorization key` : https://stackoverflow.com/questions/37673205/what-is-the-authorization-part-of-the-http-post-request-of-googles-firebase-d
-.. _`Notification by Topics` : https://firebase.google.com/docs/cloud-messaging/android/topic-messaging
+.. _`notification topic` : https://firebase.google.com/docs/cloud-messaging/android/topic-messaging
