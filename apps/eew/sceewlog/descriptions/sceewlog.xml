@@ -224,12 +224,12 @@
 				</parameter>
 				<parameter name="typeThresh" type="string" default="Mfd:6,MVS:3.5">
 					<description>
-					Set the magnitud threshold value for mag types: Mfd, MVS or any other. For example: Mfd:6.0, MVS: 3.2. 
+					Set the minimum magnitude threshold values for each magnitude type configured in magTypes. 
 					</description>
 				</parameter>
-				<parameter name="authors" type="string" default="scvsmag@@@hostname@">
+				<parameter name="authors" type="string" default="scvsmag@@@hostname@,scfinder@@@hostname@">
 					<description>
-					Set the magnitude authors in a list comma separated. This should be generally the app name followed by the hostname. For example: scvsmag@@@hostname@.
+					Set the magnitude authors in a list comma separated. This should be generally the app name followed by the hostname.
 					</description>
 				</parameter>
 				

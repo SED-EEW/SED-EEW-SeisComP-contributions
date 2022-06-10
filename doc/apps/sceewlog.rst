@@ -12,18 +12,19 @@ Once an event has timed out, the modules generates
 report files. These report files are saved to disk and can also be sent via
 email.
 
-It also implements an `ActiveMQ`_ interface which can
+It also implements `ActiveMQ`_ and `Firebase Cloud Messaging`_ interfaces which can
 send alert messages in real-time. It supports regionalized filter profiles (based on polygons and EQ parameter threshold values).
-Currently, messages can be sent in four
-different formats (SeisComPML, QuakeML, ShakeAlertML, CAP). The SED-ETHZ team provide a client that can
-display these alert messages, the `Earthquake Early Warning Display (EEWD)`_
+Currently, messages can be sent in four different formats (*sc3ml*, *qml1.2-rt*, *shakealertml* the UserDisplay format, *CAP1.2*). Optionally, a comment 
+with ID **EEW** storing the EEW update number, can be added to each magnitude that
+passes all configured filters and scoring.
+
+The SED-ETHZ team provides a client that can display *qml1.2-rt* messages sent via ActiveMQ, the `Earthquake Early Warning Display (EEWD)`_
 an OpenSource user interface developed within the European REAKT project and
 based on early versions of the ShakeAlert `UserDisplay`_. 
 
 To receive alerts with the EEWD set the format to *qml1.2-rt*. There are
-currently no clients which can digest SeisComPML and the UserDisplay format
-(*shakealert*) is not supported. Using pipelines alerts can be sent out in
-more than one format.
+currently no clients which can digest *sc3ml* and the *shakealertml* is not 
+supported. Using pipelines alerts can be sent out in more than one format.
 
 The real-time ActiveMQ interface requires the Python packages 
 `stompy`_ and `lxml`_ to be installed.
@@ -40,6 +41,32 @@ to configuration of the ActiveMQ broker.
    </connector>
 
 Please refer to `ActiveMQ`_ for setting up an ActiveMQ broker.
+
+
+Firebase Cloud Messaging
+========================
+It is beyond the scope of this documentation to explain the complete setup 
+Firebase Cloud Messaging. It sends EEW messages based on the magnitude prefered 
+internally (see 
+:ref:`the sceewlog internal scoring method<Magnitude Association and Scoring>`). 
+In order to understand the Firebase Cloud Messaging interface see 
+`Firebase Cloud Messaging`_ and `HTTP protocol`_. This interface is 
+activated with:
+
+.. code-block:: sh
+
+   FCM.activate = true
+
+In order to send notifications, an `authorization key`_ and a `notification topic`_ 
+must be provided in a separate file (that can be configured with *FCM.dataFile*) 
+in the following format:
+
+.. code-block:: python 
+   
+   [AUTHKEY]
+   key=YOUR-AUTHORIZATION-KEY_GOES_HERE
+   [TOPICS]
+   topic=YOUR_TOPIC_NAME_GOES_HERE
 
 
 Reports
@@ -131,6 +158,50 @@ their own default thresholds superseding :confval:`maxTime` defined in
    activeMQ.global.maxTime = -1
    activeMQ.America.maxTime = 60
 
+
+Magnitude Association and Scoring
+=================================
+The magnitude association and scoring works similarly to :ref:`scevent` 
+preferred-origin selection. The magnitude association scoring is activated 
+with:
+
+.. code-block:: sh
+   
+   magAssociation.activate = false
+  
+The following priorities are available:
+
+.. code-block:: sh
+  
+   magAssociation.priority = magThresh,likelihood,authors
+
+*magThresh* is a list of minimal magnitude to be allowed for each type of magnitude:
+
+.. code-block:: sh
+   
+   magAssociation.typeThresh = Mfd:6,MVS:3.5,Mlv:2.5
+
+The authors can be also used and its priority depends on the position on the list. For example:
+
+.. code-block:: sh
+
+   #if magAssociation.priority contains author then
+   #the next parameter must contain valid magnitude authors' names
+   magAssociation.authors = scvsmag@@@hostname@, \
+   scvsmag0@@@hostname@, \
+   scfd85sym@@@hostname@, \
+   scfd20asym@@@hostname@, \
+   scfdcrust@@@hostname@
+
+In this list of authors the highest value is for *scvsmag* if it is the author of the magnitude evaluated. In this case, this author has a value of 6. The author value reduces after each comma separator. For the same example *scvsmag0* is 5, *scfd85sym* is 4, and so. If likelihood is listed on priorities then its value is added to the scoring list and at the end it is multiplied for the other priorities. Finally, for the scoring the number of arrival used to locate the event is added to the scoring list.
+
+The final product of the score is:
+
+    *score = magVal x author x likelihood x num. arrivals*
+
+This score is set for each update. Score can be 0 in case that the magnitude value for a specific magnitude type is lower than the set on the magThresh.
+
+
 Headline Change for CAP1.2 XML alerts
 =====================================
 
@@ -190,124 +261,6 @@ Both an english and a spanish verion are provided in "@DATADIR@/sceewlog/world_c
 and "@DATADIR@/sceewlog/world_cities_spanish.csv".
 
 
-Magnitude Association and Scoring
-====================
-This is a new implementation and it is still on review. The magnitude association and scoring basically works with some rules for which the magnitude is first evaluated by its value and author. It can be also used the likelihood if user list this on the priorities. Finally, the number of arrivals that were used to locate the event is used. 
-First, it is needed to activate:
-
-.. code-block:: sh
-  
-   # Mag Association Priority and Scoring
-   # Valid only when ActiveMQ and/or FCM are enabled
-   #
-   # The scoring is basically number which is:
-   # score = magVal*likelihood*magAssociationAuthorWeight*numArrivals
-   #
-   magAssociation.activate = false
-  
-Then, the list of priorities can be set:
-
-.. code-block:: sh
-  
-   #The priority string values are:
-   # - magThresh
-   # - likelihood
-   # - author
-   magAssociation.priority = magThresh,likelihood,authors
-
-The priorities can be the three options or just one or two.
-
-If magThresh is listed on priorities then a list with mag type and its threshold value must be provide as below:
-
-.. code-block:: sh
-   #If magAssociation.priority contains magThesh then 
-   #the next parameter must contain valid inputs
-   # please consider for EEW the main magnitudes are
-   # Mfd and MVS
-   magAssociation.typeThresh = Mfd:6,MVS:3.5,Mlv:2.5
-
-In this example, the magnitude value for Mfd is added to the scoring list only if the its value is equal or greater than 6. If the Mfd is lower than this value then the score value for magnitude is zero. For MVS and Mlv is 3.5 and 2.5 respectively.
-
-The authors can be also used and its priority depends on the position on the list. For example:
-
-
-.. code-block:: sh
-
-   #if magAssociation.priority contains author then
-   #the next parameter must contain valid magnitude authors' names
-   magAssociation.authors = scvsmag@@@hostname@, \
-   scvsmag0@@@hostname@, \
-   scfd85sym@@@hostname@, \
-   scfd20asym@@@hostname@, \
-   scfdcrust@@@hostname@
-
-In this list of authors the highest value is for *scvsmag* if it is the author of the magnitude evaluated. In this case, this author has a value of 6. The author value reduces after each comma separator. For the same example *scvsmag0* is 5, *scfd85sym* is 4, and so.
-
-If likelihood is listed on priorities then its value is added to the scoring list and at the end it is multiplied for the other priorities.
-
-Finally, for the scoring the number of arrival used to locate the event is added to the scoring list.
-
-The final product of the score is:
-
-    *score = magVal x author x likelihood x num. arrivals*
-
-This score is set for each update. Score can be 0 in case that the magnitude value for a specific magnitude type is lower than the set on the magThresh.
-
-
-EEW Comment
-====================
-
-Each time an automatic solution passes the regionalized filters and the scoring (if activated this last one), then it is possible to add a comment for the magnitude. This comment will have as a ID the text: **EEW** and its value will be the number of times that an alert and its updates have been sent out to ActiveMQ and/or FCM.
-
-
-Firebase Cloud Messaging
-====================
-In order to send a notification with data through Google Cloud Messaging, an interface called eews2fcm is used. This interface is actually a python library. In this library there is a class that it is instanced if the *FCM.activate* is activated:
-
-.. code-block:: sh
-
-   # Firebase Cloud Messaging
-   FCM.activate = true
-
-The data that is sent out comes from the event object and the prefered orID and magID. In order to understand the interface see:
-
-`Firebase Cloud Messaging <https://firebase.google.com/docs/cloud-messaging>`_
-
-`HTTP protocol <https://firebase.google.com/docs/cloud-messaging/http-server-ref>`_
-
-
-
-The current implementation is a non-standard format to send data through FCM. It can be customized by the user. 
-In order to send out a notification to clients subscribed to a topic, it is mandatory to set the next parameters.
-
-.. code-block:: sh
-
-   # FCM data file
-   # this contains the authorization key and 
-   # the topic name for Firebase
-   # see more about Autho. Key at:https://firebase.google.com/docs/cloud-messaging/auth-server 
-   # for topics: https://firebase.google.com/docs/cloud-messaging/android/topic-messaging
-   FCM.dataFile = /home/sysop/seiscomp/share/sceewlog/.fcmdatafile
-
-The *FCM.dataFile* must be in the next format:
-
-.. code-block:: python
-   
-   [AUTHKEY]
-   key=YOUR-AUTHORIZATION-KEY_GOES_HERE
-   [TOPICS]
-   topic=YOUR_TOPIC_NAME_GOES_HERE
-  
-See more about authorization key and topics following the next links:
-
-`authorization-key <https://stackoverflow.com/questions/37673205/what-is-the-authorization-part-of-the-http-post-request-of-googles-firebase-d>`_
-
-`Notification by Topics <https://firebase.google.com/docs/cloud-messaging/android/topic-messaging>`_
-
-=======
-
-
-
 References
 ==========
 
@@ -320,3 +273,7 @@ References
 .. _`UserDisplay` : http://www.eew.caltech.edu/research/userdisplay.html
 .. _`stompy` : https://pypi.python.org/pypi/stompy/
 .. _`lxml` : http://lxml.de/
+.. _`Firebase Cloud Messaging` : https://firebase.google.com/docs/cloud-messaging
+.. _`HTTP protocol` : https://firebase.google.com/docs/cloud-messaging/http-server-ref
+.. _`authorization key` : https://stackoverflow.com/questions/37673205/what-is-the-authorization-part-of-the-http-post-request-of-googles-firebase-d
+.. _`Notification by Topics` : https://firebase.google.com/docs/cloud-messaging/android/topic-messaging
