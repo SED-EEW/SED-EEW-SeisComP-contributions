@@ -34,6 +34,8 @@ import shutil
 import codecs
 import re
 import getopt
+import time
+
 try:
     # Python 2.5
     from xml.etree import ElementTree
@@ -369,7 +371,7 @@ except getopt.GetoptError as err:
 target_sc3 = False
 skip_category = False
 skip_build = False
-resolveDict = {}
+resolveDict = {'param.version':'Generated on %s'%time.strftime('%Y/%m/%d')}
 for o, a in opts:
     if o in ('-h', '--help'):
         usage()
