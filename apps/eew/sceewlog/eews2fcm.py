@@ -19,7 +19,7 @@ class eews2fcm:
         #this is the long string template for 
         self.dataTemplate = '''curl -s -H "Content-type: application/json" \
  -H "Authorization:key=AUTHORIZATION_KEY"  \
--X POST -d '{ "to": "/topics/TOPIC","data":{"title":"ATTAC Alerta de Terremotos","body":"Mag: MAG, LOCATION","message":"EVTID;MAG;DEPTH;LAT;LON;LIKELIHOOD;ORTIME;TIMENOW;NULL;AGENCY;STATUS;TYPE;LOCATION;ORID;MAGID;NUMARRIVALS"},"priority":"high","ttl":"5s"}' \
+-X POST -d '{ "to": "/topics/TOPIC","data":{"title":"ATTAC Alerta de Terremotos","body":"Mag: MAG, LOCATION","message":"EVTID;MAG;DEPTH;LAT;LON;LIKELIHOOD;ORTIME;TIMENOW;NULL;AGENCY;STATUS;TYPE;LOCATION;ORID;MAGID;STAMAGNUM"},"priority":"high","ttl":"5s"}' \
 https://fcm.googleapis.com/fcm/send'''
 
         self.notiTemplate = '''curl -s -H "Content-type: application/json" \
@@ -68,6 +68,7 @@ https://fcm.googleapis.com/fcm/send'''
             prefOrID = evt.preferredOriginID()
             prefMagID = evt.preferredMagnitudeID()
             origin = ep.findOrigin(prefOrID)
+            magnitude = origin.findMagnitude(prefMagID)
 
             mag = origin.findMagnitude(prefMagID).magnitude().value()
             magObj = origin.findMagnitude(prefMagID)
@@ -78,6 +79,13 @@ https://fcm.googleapis.com/fcm/send'''
             now = int(time.time()) #UTC
             likelihood = "0.0"
             numarrivals = 0
+            numStaMag = 0
+
+            try:
+                 numStaMag = magObj.stationCount()
+            except:
+                numStaMag = 0
+            
             try:
                 numarrivals = origin.arrivalCount()
             except Exception as e:
@@ -140,7 +148,7 @@ https://fcm.googleapis.com/fcm/send'''
         
         tmpData = tmpData.replace("MAGID", prefMagID)
         
-        tmpData = tmpData.replace("NUMARRIVALS", str(numarrivals) )
+        tmpData = tmpData.replace("STAMAGNUM", str(numStaMag) )
         
         try:
             output = subprocess.Popen(tmpData,stdout = subprocess.PIPE, stderr = subprocess.STDOUT, shell = True )
