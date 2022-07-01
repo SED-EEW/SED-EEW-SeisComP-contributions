@@ -1093,7 +1093,11 @@ class Listener(seiscomp.client.Application):
         magType = self.event_dict[evID]['updates'][updateno]['type']
         author = self.event_dict[evID]['updates'][updateno]['author']
         numarrivals = self.event_dict[evID]['updates'][updateno]['nstorg']
-        nstmag = int(self.event_dict[evID]['updates'][updateno]['nstmag'])
+        
+        if self.event_dict[evID]['updates'][updateno]['nstmag'] != '':
+            nstmag = int(self.event_dict[evID]['updates'][updateno]['nstmag'])
+        else:
+            nstmag = 0
         
         #Last reported sent - event dic
         lastupdatenoSent = self.event_dict[evID]['lastupdatesent']
@@ -1111,9 +1115,7 @@ class Listener(seiscomp.client.Application):
         #going through priorities
         if self.assocMagActivate:
             for priority in self.assocMagPriority:
-            
                 if priority == "magThresh":
-                    #tmpMagThresh = 0
                     for _magType, _magVal in self.assocMagTypeThresh.items():
                         if magType == _magType:
                             if magVal >= _magVal:
@@ -1123,7 +1125,8 @@ class Listener(seiscomp.client.Application):
                                 seiscomp.logging.debug("Priority NOT passed for magnitude value: %s and type: %s. No further evaluations" % (  magVal, magType ) )
                                 return
                                
-                if priority == "likelihood":#the first update WINS. Check the last preferred EEW sent
+                if priority == "likelihood":
+                    
                     if len(self.event_dict[evID]['updates']) == 1:
                         if lhVal != None:
                             seiscomp.logging.debug("First update. No likelihood evaluation in priorities")
@@ -1163,22 +1166,26 @@ class Listener(seiscomp.client.Application):
                         seiscomp.logging.debug("Author: %s not listed on assocMagAuthors" % author )
                         return
                         
-                
                 if priority == "stationMagNumber":
+                    #seiscomp.logging.info("This udpate has a mag %s = %s quantified in %s stations" % ( magType, str(magVal), str(nstmag) ) )
                     for _magType, _stationCount in self.assocMagStationNumber.items():
                         if magType == _magType:
-                            if nstmag >= _stationCount and len( lastEvtSent ) == 0 :
-                                seiscomp.logging.debug("Number of Stations for mag type %s is %s" % ( magType, str(nstmag) ) )
-                                break
-                            elif nstmag >= _stationCount and len( lastEvtSent ) > 0 :
-                                if nstmag > int(lastEvtSent['nstmag']):
+                            if len( lastEvtSent ) == 0:
+                                if  nstmag >= _stationCount: 
+                                    seiscomp.logging.debug("Number of Stations for mag type %s is %s" % ( magType, str(nstmag) ) )
+                                    break
+                                else:
+                                    seiscomp.logging.debug("The number of Stations for mag type %s: %s is lower than %s. No further evaluation" % ( magType, str(nstmag) ) )
+                                    return
+                            else:
+                                if nstmag >= _stationCount and nstmag > int(lastEvtSent['nstmag']):
                                     seiscomp.logging.debug("Current update has more stations: %s than the previous reported update: %s" % ( str(nstmag), str( lastEvtSent['nstmag'] ) ) )
                                     break
                                 else:
                                     seiscomp.logging.debug( "Current update has less or equal number of stations: %s than the previous reported update: %s. No further evaluation." % ( str(nstmag), str( lastEvtSent['nstmag'] ) ) )
                                     return
-            
-            #finally, checking if the mag, lat, lon and depth significantly change
+                            
+            #finally, checking if the mag, lat, lon and depth significantly changed
             if len( lastEvtSent ) > 0 :
                 latDiffAbs = abs(lastEvtSent['lat'] - evt['lat'])
                 lonDiffAbs = abs(lastEvtSent['lon'] - evt['lon'])
