@@ -88,10 +88,10 @@ class Listener(seiscomp.client.Application):
         self.hlLanguage = None
         
         self.assocMagActivate = False
-        self.assocMagPriority = ["magThresh","likelihood"]
+        self.assocMagPriority = ["magThresh","likelihood","stationMagNumber"]
         self.assocMagTypeThresh = { "Mfd":6.0, "MVS": 3.5 }
+        self.assocMagStationNumber = { "Mfd":6, "MVS": 4 }
         self.assocMagAuthors = ["scvsmag"]
-        
         self.fcm = False  #enabling FCM 
         self.moFcm = None # eews2fcm object
         self.fcmDataFile = None #File that contains keys and topic information for FCM
@@ -266,10 +266,22 @@ class Listener(seiscomp.client.Application):
             seiscomp.logging.warning('setting default values: Mfd:6, MVS:3.5')
             self.assocMagTypeThresh = { "Mfd":6.0, "MVS": 3.5 }
         
+        
+        try:
+            tmpList = self.configGetStrings("magAssociation.stationMagNumber")
+            self.assocMagStationNumber = {}
+            for tmp in tmpList:
+                magtype, numStations = tmp.split(":")
+                self.assocMagStationNumber[magtype] = int(numStations)
+        except:
+            seiscomp.logging.warning('Not possible to read magAssociation.stationMagNumber')
+            seiscomp.logging.warning('setting default values: Mfd:6, MVS:4')
+            self.assocMagStationNumber = { "Mfd":6, "MVS": 4 }
+        
         try:
             self.assocMagAuthors = self.configGetStrings("magAssociation.authors")
             self.assocMagAuthors = b = list(map(lambda x: x.replace("@@hostname@",socket.gethostname()), self.assocMagAuthors))
-            seiscomp.logging.info('Authors to score are: %s' % str(self.assocMagAuthors) )
+            seiscomp.logging.info('Listed Authors are: %s' % str(self.assocMagAuthors) )
         except:
             seiscomp.logging.warning('Not possible to read magAssociation.authors')
             seiscomp.logging.warning('setting default values: unknown')
@@ -490,7 +502,7 @@ class Listener(seiscomp.client.Application):
             seiscomp.logging.info('Cache connected to database.')
         self.enableTimer(1)
         try:
-            if not self.activeMQ.activate:
+            if not self.activeMQ:
                 seiscomp.logging.info('ActiveMQ is deactivated')
                 return True
             import ud_interface
@@ -686,7 +698,6 @@ class Listener(seiscomp.client.Application):
         self.event_dict[evID]['updates'][updateno]['ot'] = \
             org.time().value().toString("%FT%T.%2fZ")
         
-        self.event_dict[evID]['updates'][updateno]['score'] =  0
         self.event_dict[evID]['updates'][updateno]['eew'] =  False
         
         seiscomp.logging.info("Number of updates %d for event %s" % (
@@ -713,6 +724,7 @@ class Listener(seiscomp.client.Application):
         if magType in self.magTypes and magType != 'MVS' and magType != 'Mfd' and ( self.activeMQ or self.fcm ):
             #collecting the event udpate
             evtDic =  self.event_dict[evID]['updates'][updateno]
+            
             #evaluate to send or not the alert based on profiles
             self.alertEvaluation( evID, magID, updateno ) 
 
@@ -790,7 +802,7 @@ class Listener(seiscomp.client.Application):
                 seiscomp.logging.debug("Comment sent? %s" % "Yes" if a else "No, failed" )
                 seiscomp.logging.debug("EEW alert sent so far: %s" % str( numEEW ) )
             except Exception as e:
-                seiscomp.logging.error("There was an error while notifying a comment with the Num of time that EEW alert were sent")
+                seiscomp.logging.error("There was an error while notifying a comment with the Num of times that EEW alert were sent")
                 seiscomp.logging.error("Error message: %s" % repr(e))
 
     def handleMagnitude(self, magnitude, parentID):
@@ -882,6 +894,7 @@ class Listener(seiscomp.client.Application):
             if evID not in self.event_dict.keys():
                 self.event_dict[evID] = {}
                 self.event_dict[evID]['published'] = False
+                self.event_dict[evID]['lastupdatesent'] = None
                 self.event_dict[evID]['updates'] = {}
                 try:
                     self.event_dict[evID]['timestamp'] = \
@@ -1080,11 +1093,15 @@ class Listener(seiscomp.client.Application):
         magType = self.event_dict[evID]['updates'][updateno]['type']
         author = self.event_dict[evID]['updates'][updateno]['author']
         numarrivals = self.event_dict[evID]['updates'][updateno]['nstorg']
+        nstmag = int(self.event_dict[evID]['updates'][updateno]['nstmag'])
         
-        seiscomp.logging.debug("scoring...")
-        
-        #list of scores based on the type
-        scores = []
+        #Last reported sent - event dic
+        lastupdatenoSent = self.event_dict[evID]['lastupdatesent']
+        seiscomp.logging.debug("Last Update Sent: %s" % lastupdatenoSent if lastupdatenoSent != None else "NO UPDATE SENT YET" )
+        if lastupdatenoSent != None:
+            lastEvtSent = self.event_dict[evID]['updates'][lastupdatenoSent]
+        else:
+            lastEvtSent = {} #empty dic
                     
         if 'likelihood' in evt:
             lhVal = evt['likelihood'] 
@@ -1100,55 +1117,84 @@ class Listener(seiscomp.client.Application):
                     for _magType, _magVal in self.assocMagTypeThresh.items():
                         if magType == _magType:
                             if magVal >= _magVal:
-                                seiscomp.logging.debug("Appending Magnitude type: %s with value %s for scoring" % ( magType, magVal ) )
-                                scores.append(round(magVal,1))
+                                seiscomp.logging.debug("Priority passed for magnitude value: %s and type: %s" % ( magVal, magType ) )
                                 break
                             else:
-                                seiscomp.logging.debug("scoring 0 for mag type %s with mag value %s." % ( magType, magVal ) )
-                                scores.append(0)
-                     
-                if priority == "likelihood":
-                    if lhVal != None:
-                        seiscomp.logging.debug("Appending likelihood %s for scoring " % lhVal)
-                        scores.append(lhVal)
-		    
-                if priority == "authors":
-                    seiscomp.logging.debug("magnitude author: %s." % author )
-                    if author in self.assocMagAuthors:
-                        #index
-                        index = self.assocMagAuthors.index( author )
-                        scores.append( len(self.assocMagAuthors) + 1 - index )
-                        seiscomp.logging.debug("This author is listed. Appending for scoring a value of %s" % (len(self.assocMagAuthors) + 1 - index) )
+                                seiscomp.logging.debug("Priority NOT passed for magnitude value: %s and type: %s. No further evaluations" % (  magVal, magType ) )
+                                return
+                               
+                if priority == "likelihood":#the first update WINS. Check the last preferred EEW sent
+                    if len(self.event_dict[evID]['updates']) == 1:
+                        if lhVal != None:
+                            seiscomp.logging.debug("First update. No likelihood evaluation in priorities")
+                            priorityPassed = True
+                        
+                        else:
+                            seiscomp.logging.debug("No likehood value available for EEW magnitude value.")
+                        
                     else:
-                        #the author is not listed, so it is assigned a value of 1.
+                        #comparing likelihood values between last and current event
+                        if 'likelihood' in lastEvtSent:
+                            if lhVal >= lastEvtSent['likelihood']:
+                                seiscomp.logging.debug("Likelihood value current value: %s higher or equal than the previous reported one: %s" % ( str( lhVal ), str( lastEvtSent['likelihood'] ) ) )
+                            else:
+                                seiscomp.logging.debug("Likelihood current value: %s lower than the previous reported one: %s. No further evaluations" % ( str( lhVal ), str( lastEvtSent['likelihood'] ) ) )
+                                return
+                        else:
+                            seiscomp.logging.debug("Last Reported Event has no likelihood value")
+
+                    if magType != "MVS" and magType != "Mfd": 
+                        seiscomp.logging.debug("Magnitude value different than any EEW mag. Priority passed")
+                        
+                if priority == "authors":
+                    if author in self.assocMagAuthors:
+                        #author weight
+                        currentIndex = self.assocMagAuthors.index( author )
+                        weightCurrent = len(self.assocMagAuthors) - currentIndex
+                        lastIndex = self.assocMagAuthors.index( lastEvtSent['author'] ) if len(lastEvtSent)>0 else -1
+                        weightLast = len(self.assocMagAuthors) - ( lastIndex if lastIndex != -1 else len(self.assocMagAuthors) )
+                        if weightCurrent >= weightLast:
+                            seiscomp.logging.debug("Author with equal or higher priority %s than previous update: %s " % ( str(weightCurrent), str(weightLast) ) )
+                        else:
+                            seiscomp.logging.debug("This mag author has lower prioririty than the previous one" )
+                            return
+                    else:
+                        #the author is not listed. No further evaluations.
                         seiscomp.logging.debug("Author: %s not listed on assocMagAuthors" % author )
-                        scores.append(1)
+                        return
+                        
                 
-            if numarrivals != None and numarrivals >0:
-                seiscomp.logging.debug("Appending number of arrivals for scoring: %s" % str(numarrivals) )
-                scores.append(numarrivals)
+                if priority == "stationMagNumber":
+                    for _magType, _stationCount in self.assocMagStationNumber.items():
+                        if magType == _magType:
+                            if nstmag >= _stationCount and len( lastEvtSent ) == 0 :
+                                seiscomp.logging.debug("Number of Stations for mag type %s is %s" % ( magType, str(nstmag) ) )
+                                break
+                            elif nstmag >= _stationCount and len( lastEvtSent ) > 0 :
+                                if nstmag > int(lastEvtSent['nstmag']):
+                                    seiscomp.logging.debug("Current update has more stations: %s than the previous reported update: %s" % ( str(nstmag), str( lastEvtSent['nstmag'] ) ) )
+                                    break
+                                else:
+                                    seiscomp.logging.debug( "Current update has less or equal number of stations: %s than the previous reported update: %s. No further evaluation." % ( str(nstmag), str( lastEvtSent['nstmag'] ) ) )
+                                    return
             
-            #init the final score for this update
-            score = 1
-            
-            for x in scores:
-                score *= x
-            
-            seiscomp.logging.info("score of %s for evt update number %s " % ( score, updateno ) )
-            self.event_dict[evID]['updates'][updateno]['score'] = score
-            
-            
-            for _updateno, evtDic in self.event_dict[evID]['updates'].items():
-                if len(self.event_dict[evID]['updates']) == 1:
-                    seiscomp.logging.info("First Update of event with ID %s with score %s. Checking profiles." % ( evID, score) )
-                    break
-                if score <= evtDic["score"] and _updateno != updateno:
-                    seiscomp.logging.debug("This score is lower than a previous one. Not sending any alert")
+            #finally, checking if the mag, lat, lon and depth significantly change
+            if len( lastEvtSent ) > 0 :
+                latDiffAbs = abs(lastEvtSent['lat'] - evt['lat'])
+                lonDiffAbs = abs(lastEvtSent['lon'] - evt['lon'])
+                depthDiffAbs = abs(lastEvtSent['depth'] - evt['depth'])
+                magDiffAbs = abs(lastEvtSent['magnitude'] - evt['magnitude'])
+                
+                #evaluating the delta values
+                if latDiffAbs >= 0.5 or lonDiffAbs >= 0.5 or depthDiffAbs >= 20 or magDiffAbs >=0.2:
+                    seiscomp.logging.debug("Significant change -> deltaLat: %s, deltaLon: %s, deltaMag: %s, deltaDepth: %s" % \
+                    (latDiffAbs, lonDiffAbs, magDiffAbs, depthDiffAbs) )
+                    
+                else:
+                    seiscomp.logging.debug("Not significant change -> deltaLat: %s, deltaLon: %s, deltaMag: %s, deltaDepth: %s" % \
+                    (latDiffAbs, lonDiffAbs, magDiffAbs, depthDiffAbs) )
                     return
-            
-            if len(self.event_dict[evID]['updates']) > 1:
-                seiscomp.logging.debug("Score for event with ID %s higher than a previous one. checking profiles to send or not this update" % evID)
-        
+                        
         #first Checking if origin location is within a closed polygon
         #there might be more than one polygon but once
         #a condition is accomplished then it will only alert once 
@@ -1195,8 +1241,8 @@ class Listener(seiscomp.client.Application):
             else:
                 seiscomp.logging.debug('Sending and alert....')
                 self.event_dict[evID]['updates'][updateno]['eew'] = True
-                
-                #TODO: Add a method to send a comment object of magnitude reported
+                #saving the last update sent or reported
+                self.event_dict[evID]['lastupdatesent'] = updateno 
                 
                 self.sendAlert( magID )
                 break
