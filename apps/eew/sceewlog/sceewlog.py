@@ -1175,7 +1175,7 @@ class Listener(seiscomp.client.Application):
                                     seiscomp.logging.debug("Number of Stations for mag type %s is %s" % ( magType, str(nstmag) ) )
                                     break
                                 else:
-                                    seiscomp.logging.debug("The number of Stations for mag type %s: %s is lower than %s. No further evaluation" % ( magType, str(nstmag) ) )
+                                    seiscomp.logging.debug("The number of Stations for mag type %s: %s is lower than %s. No further evaluation" % ( magType, str(nstmag), str(_stationCount) ) )
                                     return
                             else:
                                 if nstmag >= _stationCount and nstmag > int(lastEvtSent['nstmag']):
