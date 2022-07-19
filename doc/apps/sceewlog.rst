@@ -46,8 +46,7 @@ Please refer to `ActiveMQ`_ for setting up an ActiveMQ broker.
 Firebase Cloud Messaging
 ========================
 It is beyond the scope of this documentation to explain the complete setup 
-Firebase Cloud Messaging. It sends EEW messages based on the magnitude prefered 
-internally (see section *Magnitude Association and Scoring*). In order to understand 
+Firebase Cloud Messaging. This implementation uses an auxilar python library or also named interface *eews2fcm.py* to send out EEW messages based on what it is configured at the sections of *Magnitude Association* and *Regionalized Profiles*. In order to understand 
 the Firebase Cloud Messaging interface see `Firebase Cloud Messaging`_ and 
 `HTTP protocol`_. This interface is activated with:
 
@@ -119,17 +118,17 @@ in :confval:`activeMQ.bnaFile`.
 
 .. code-block:: sh
 
-   activeMQ.global.bnaPolygonName = none
-   activeMQ.America.bnaPolygonName = America
+   activeMQ.profile.global.bnaPolygonName = none
+   activeMQ.profile.America.bnaPolygonName = America
 
 The magnitude and likelihood threshold values might be:
 
 .. code-block:: sh
 
-   activeMQ.global.magThresh = 6.0
-   activeMQ.global.likelihoodThresh = 0.5
-   activeMQ.America.magThresh = 5.0
-   activeMQ.America.likelihoodThresh = 0.3
+   activeMQ.profile.global.magThresh = 6.0
+   activeMQ.profile.global.likelihoodThresh = 0.5
+   activeMQ.profile.America.magThresh = 5.0
+   activeMQ.profile.America.likelihoodThresh = 0.3
 
 There might also be a depth filter for each profile. The following parameters 
 might be used to configure the **global** profile with shallow events, and 
@@ -137,10 +136,10 @@ the **America** profile with events from 0 to 100 km deep.
 
 .. code-block:: sh
 
-   activeMQ.global.minDepth = 0
-   activeMQ.global.maxDepth = 33
-   activeMQ.America.minDepth = 0
-   activeMQ.America.maxDepth = 100
+   activeMQ.profile.global.minDepth = 0
+   activeMQ.profile.global.maxDepth = 33
+   activeMQ.profile.America.minDepth = 0
+   activeMQ.profile.America.maxDepth = 100
 
 Finally, to avoid sending alerts for events outside of the network of interest 
 for EEW applications, a :confval:`maxTime` can be set. The :confval:`maxTime` 
@@ -153,37 +152,48 @@ their own default thresholds superseding :confval:`maxTime` defined in
 
 .. code-block:: sh
 
-   activeMQ.global.maxTime = -1
-   activeMQ.America.maxTime = 60
+   activeMQ.profile.global.maxTime = -1
+   activeMQ.profile.America.maxTime = 60
 
 
-Magnitude Association and Scoring
-=================================
-The magnitude association and scoring works similarly to :ref:`scevent` 
-preferred-origin selection. The magnitude association scoring is activated 
-with:
+Magnitude Association
+=====================
+The magnitude association is similar than the :ref:`scevent` 
+preferred-origin selection. The magnitude association evaluation is activated 
+with the next configuration key-value pair:
 
 .. code-block:: sh
    
-   magAssociation.activate = false
+   magAssociation.activate = true
   
 The following priorities are available:
 
+1. typeThresh
+2. likelihood
+3. Authors
+4. StationMagNumber
+
+and they can be listed on the next key-value:
+
 .. code-block:: sh
   
-   magAssociation.priority = magThresh,likelihood,authors
+   magAssociation.priority = magThresh,likelihood,authors,stationMagNumber
 
-*magThresh* is a list of minimal magnitude to be allowed for each type of magnitude:
+The priority decreases in the order of the parameters.
+
+The *magThresh* prority is a list of minimal magnitude to be allowed for each type of magnitude:
 
 .. code-block:: sh
    
-   magAssociation.typeThresh = Mfd:6,MVS:3.5,Mlv:2.5
+   magAssociation.typeThresh = Mfd:6.0,MVS:3.5,Mlv:2.5
 
-The authors can be also used and its priority depends on the position on the list. For example:
+For one specific update of an event, its magnitude type-value must be equal or higher than the listed ones to continue the evaluation. Otherwise, the evaluation ends and the evalution does not continue.
+
+The authors can be also used and their priority depends on the position on which they are listed. For example:
 
 .. code-block:: sh
 
-   #if magAssociation.priority contains author then
+   #if magAssociation.priority contains authors then
    #the next parameter must contain valid magnitude authors' names
    magAssociation.authors = scvsmag@@@hostname@, \
    scvsmag0@@@hostname@, \
@@ -191,13 +201,17 @@ The authors can be also used and its priority depends on the position on the lis
    scfd20asym@@@hostname@, \
    scfdcrust@@@hostname@
 
-In this list of authors the highest value is for *scvsmag* if it is the author of the magnitude evaluated. In this case, this author has a value of 6. The author value reduces after each comma separator. For the same example *scvsmag0* is 5, *scfd85sym* is 4, and so. If likelihood is listed on priorities then its value is added to the scoring list and at the end it is multiplied for the other priorities. Finally, for the scoring the number of arrival used to locate the event is added to the scoring list.
+In this list of authors the highest value is for *scvsmag* and for this particular example this author has a value of 5. The author value reduces after each comma separator. For the same example *scvsmag0* is 4, *scfd85sym* is 3, and so. The author is evaluated for every event update. If the author for a particular update has a higher o equal priority than an already evaluated and sent alert, then the evaluation continues, otherwise, whether the author is listed or not, the evaluation ends.
 
-The final product of the score is:
+If likelihood is listed on priorities then this is evaluated against with a previous update that has been sent out as alert. Only when there is a first event update the likelihood is not evaluated. In case that an update has been sent out as an alert, if the current likelihood is higher or equal than the previous one, then it goes to the next priority evaluation, otherwise, the update is discarted.
 
-    *score = magVal x author x likelihood x num. arrivals*
+For the *stationMagNumber* evaluation is necessary to have a similar list of Magtype and min number of stations used to quantify the magnitude value. For example:
 
-This score is set for each update. Score can be 0 in case that the magnitude value for a specific magnitude type is lower than the set on the magThresh.
+.. code-block:: sh
+   
+   magAssociation.stationMagNumber = Mfd:7,MVS:4
+
+In this example for the mag type *Mfd* is necessary to at least have 7 stations to pass this evaluation, otherwise, the evaluation ends. For *MVS* must be at least 4 stations that have been used to qunatify the magnitude, otherwise, the valution ends.
 
 
 Headline Change for CAP1.2 XML alerts

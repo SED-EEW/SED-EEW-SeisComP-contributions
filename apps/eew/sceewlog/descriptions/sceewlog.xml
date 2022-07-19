@@ -232,6 +232,11 @@
 					Set the magnitude authors in a list comma separated. This should be generally the app name followed by the hostname.
 					</description>
 				</parameter>
+				<parameter name="stationMagNumber" type="string" default="Mfd:5,MVS:4,Mlv:5">
+					<description>
+					Set the minimum number of stations on which magnitude was quantified for every magnitude type. 
+					</description>
+				</parameter>
 				
 			</group>
 			<group name="FCM">
