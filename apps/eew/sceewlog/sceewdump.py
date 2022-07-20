@@ -15,13 +15,14 @@ GNU Affero General Public License for more details.
 Author of the Software: Fred Massin
 """
 
-from __future__ import absolute_import, division, print_function
-
-import sys, os
-
-from seiscomp import client, core, datamodel, io
-
+import sys
+import os
 import lxml.etree as ET
+
+from seiscomp import client 
+from seiscomp import core
+from seiscomp import datamodel
+from seiscomp import io
 
 class eewDump(client.Application):
 
