@@ -18,13 +18,17 @@ GNU Affero General Public License for more details.
 from stomp import Connection
 from io import BytesIO
 from twisted.internet import reactor
+
 import datetime
 import time
 import os
 import lxml.etree as ET
+
 import seiscomp
 from seiscomp.io import Exporter, ExportSink
 
+from seiscomp.datamodel import SEISCOMP_DATAMODEL_XMLNS
+SEISCOMP_DATAMODEL_VERSION = SEISCOMP_DATAMODEL_XMLNS.split('/')[-1]
 
 class UDException(Exception): pass
 
@@ -119,11 +123,11 @@ class CoreEventInfo(UDConnection):
 
         if format == 'qml1.2-rt':
             xslt = ET.parse(os.path.join(ei.shareDir(), 'sceewlog',
-                                         'sc3ml_0.12__quakeml_1.2-RT_eewd.xsl'))
+                                         'sc3ml_%s__quakeml_1.2-RT_eewd.xsl'%SEISCOMP_DATAMODEL_VERSION))
             self.transform = ET.XSLT(xslt)
         elif format == 'shakealert':
             xslt = ET.parse(os.path.join(ei.shareDir(), 'sceewlog',
-                            'sc3ml_0.12__shakealert.xsl'))
+                            'sc3ml_%s__shakealert.xsl'%SEISCOMP_DATAMODEL_VERSION))
             self.transform = ET.XSLT(xslt)
         elif format == 'cap1.2':
             try:
@@ -139,7 +143,7 @@ class CoreEventInfo(UDConnection):
                 pass
 
             xslt = ET.parse(os.path.join(ei.shareDir(), 'sceewlog',
-                            'sc3ml_0.12__cap_1.2.xsl'))
+                            'sc3ml_%s__cap_1.2.xsl'%SEISCOMP_DATAMODEL_VERSION))
 
             self.transform = ET.XSLT(xslt)
 
