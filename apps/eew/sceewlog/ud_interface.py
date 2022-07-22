@@ -17,7 +17,6 @@ GNU Affero General Public License for more details.
 
 from stomp import Connection
 from io import BytesIO
-from twisted.internet import reactor
 
 import datetime
 import time
@@ -33,8 +32,6 @@ SEISCOMP_DATAMODEL_VERSION = SEISCOMP_DATAMODEL_XMLNS.split('/')[-1]
 class UDException(Exception): pass
 
 
-b_str = lambda s: s.encode('utf-8', 'replace')
-
 
 class Sink(ExportSink):
     def __init__(self, buf):
@@ -42,10 +39,10 @@ class Sink(ExportSink):
         self.buf = buf
         self.written = 0
 
-    def write(self, data, size):
-        self.buf.write(b_str(data[:size]))
-        self.written += size
-        return size
+    def write(self, data): 
+        self.buf.write(data)
+        self.written += len(data)
+        return len(data)
 
 
 class UDConnection:
