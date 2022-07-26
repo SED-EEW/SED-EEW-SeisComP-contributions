@@ -416,12 +416,12 @@ bool Processor::feed(const Seiscomp::Record *rec) {
 
 	try {
 		Core::TimeSpan delay = now - rec->endTime();
-		if ( delay > Core::TimeSpan( _members->config.skipDataOlderThan ) ) {
+		if ( fabs(delay) > Core::TimeSpan( _members->config.skipDataOlderThan ) ) {
 			SEISCOMP_WARNING("%s: max allowed delay exceeded (data skipped): %fs",
 			                 rec->streamID().c_str(), (double)delay);
 			return false;
 		}
-		if ( delay > _members->config.maxDelay ) {
+		if ( fabs(delay) > _members->config.maxDelay ) {
 			SEISCOMP_WARNING("%s: delay exceeded (data still used): %fs",
 			                 rec->streamID().c_str(), (double)delay);
 		}

@@ -6,7 +6,7 @@ ENV    WORK_DIR /usr/local/src
 ENV INSTALL_DIR /opt/seiscomp
 ENV   REPO_PATH https://github.com/SeisComP
 #ENV         TAG master
-ENV         TAG 4.8.3
+ENV         TAG 4.9.2
 ENV           D "-DSC_GLOBAL_GUI=ON \
                     -DSC_IPGPADDONS_GUI_APPS=ON \
                     -DSC_TRUNK_DB_MYSQL=ON \

@@ -118,25 +118,26 @@
 					</parameter>
 				</group>-->
 				<group name="debug">
-					<parameter name="maxHorizontalGap" type="double" default="60" unit="s">
+					<parameter name="maxHorizontalGap" type="double" default="30" unit="s">
 						<description>
-							Sets the maximum tolerated delay before issuing a warning. That
-							parameter does not configure buffers as such but only a threshold it
-							is being checked against to tell the user that something is not
-							real-time anymore. maxDelay as time span (in seconds with fractional
-							part). The default is 60s.
+							Sets the maximum combined horizontal channels delay before issuing a warning. That
+							parameter does not configure buffers as such but only a threshold (in seconds with 
+							fractional part) to warn the user that something is not real-time anymore. The 
+							default is 30s.
 						</description>
 					</parameter>
 					<parameter name="maxDelay" type="double" default="3" unit="s">
 						<description>
-							Sets the maximum package delay before issuing a warning.
+							Sets the maximum absolute value of packet delay before issuing a warning. That 
+							parameter does not configure buffers as such but only a threshold (in seconds 
+							with fractional part) to warn the user that something is not real-time anymore. 
 							The default is 3s.
 						</description>
 					</parameter>
 					<parameter name="skipDataOlderThan" type="double" default="60" unit="s">
 						<description>
-							Sets the maximum tolerated package delay before skipping data.
-							The default is 30s.
+							Sets the maximum absolute value of packet delay before skipping data packet. The 
+							default is 60s.
 						</description>
 					</parameter>
 				</group>

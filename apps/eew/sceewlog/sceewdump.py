@@ -35,7 +35,7 @@ class eewDump(client.Application):
 
         self.eventID = None
         self.inputFile = None
-        self.xltFile = None
+        self.xslFile = None
         self.inputFormat = "xml"
 
         self.magTypes = ['MVS','Mfd']
@@ -48,8 +48,8 @@ class eewDump(client.Application):
             "Input", "authors,a",
             "Author preferrence order (last is preferred)")
         self.commandline().addStringOption(
-            "Input", "xlt,x",
-            "convert using xlt")
+            "Input", "xsl,x",
+            "convert using xsl")
         self.commandline().addStringOption(
             "Input", "input,i",
             "read event from XML file instead of database. Use '-' to read "
@@ -74,7 +74,7 @@ class eewDump(client.Application):
             pass
 
         try:
-            self.xltFile = self.commandline().optionString("xlt")
+            self.xslFile = self.commandline().optionString("xsl")
         except BaseException:
             pass
 
@@ -116,7 +116,7 @@ Dump EEW parameters from a given event ID or file''')
         client.Application.printUsage(self)
 
         print('''Example (setup databse parameter in sceewdump.cfg):
-sceewdump -E smi:ch.ethz.sed/sc20d/Event/2022njvrzz  -i ~/playback_fm4test/2022njvrzz.xml --xlt /usr/local/share/sceewlog/sc3ml_0.12__quakeml_1.2-RT_eewd.xsl -a scvs,scfdfo
+sceewdump -E smi:ch.ethz.sed/sc20d/Event/2022njvrzz  -i ~/playback_fm4test/2022njvrzz.xml --xsl /usr/local/share/sceewlog/sc3ml_0.12__quakeml_1.2-RT_eewd.xsl -a scvs,scfdfo
 ''')
 
     def run(self):
@@ -210,9 +210,9 @@ sceewdump -E smi:ch.ethz.sed/sc20d/Event/2022njvrzz  -i ~/playback_fm4test/2022n
             ar.close()
 
             # Converts
-            if self.xltFile is not None:
+            if self.xslFile is not None:
                 dom = ET.parse("./%d.sc3xml"%dt)
-                xslt = ET.parse(self.xltFile) #"/usr/local/share/sceewlog/sc3ml_0.12__quakeml_1.2-RT_eewd.xsl")
+                xslt = ET.parse(self.xslFile) 
                 transform = ET.XSLT(xslt)
                 newdom = transform(dom)
                 with open("./%d.xml"%dt, "wb") as fd:
