@@ -14,6 +14,10 @@ This is the documentation for the SED-ETHZ EEW SeisComP modules.
 
    The SED-ETHZ SeisComP EEW modules (Massin, Clinton & Boese, 2021).
 
+.. figure:: base/media/SED-ETHZ.png
+   :width: 50%
+   :align: center
+   :target: http://www.seismo.ethz.ch/en/research-and-teaching/fields_of_research/earthquake-early-warning
 
 About 
 -----
