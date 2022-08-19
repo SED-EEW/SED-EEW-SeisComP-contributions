@@ -484,6 +484,14 @@ class App : public Client::StreamApplication {
 		void handleEnvelope(const Processing::EEWAmps::BaseProcessor *proc,
 		                    double value, const Core::Time &timestamp,
 		                    bool clipped) {
+			
+			if ( clipped ) {
+				SEISCOMP_DEBUG("Record %s.%s.%s has been clipped!", 
+				               proc->waveformID().networkCode().c_str(), 
+							   proc->waveformID().stationCode().c_str(), 
+							   sproc->waveformID().locationCode().c_str());
+			}
+
 			if ( proc->signalUnit() != Processing::WaveformProcessor::MeterPerSecondSquared ) {
 				SEISCOMP_WARNING("Unexpected envelope unit: %s",
 				                 proc->signalUnit().toString());
@@ -565,7 +573,7 @@ class App : public Client::StreamApplication {
 				if ( (it->second->maxPGA.timestamp < minAmplTime)
 				  || (timestamp < minAmplTime)
 				  || (value >= it->second->maxPGA.value) ) {
-					if ( it->second->updateMaximum(minAmplTime) ) {
+					if ( it->second->updateMaximum(minAmplTime, clipped) ) {
 						#if defined(LOG_AMPS)
 						std::cout << "M " << id << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.value << std::endl;
 						#endif
@@ -578,7 +586,7 @@ class App : public Client::StreamApplication {
 			if ( referenceTimeUpdated ) {
 				for ( it = _locationLookup.begin(); it != _locationLookup.end(); ++it ) {
 					if ( it->second->maxPGA.timestamp >= minAmplTime ) continue;
-					if ( it->second->updateMaximum(minAmplTime) ) {
+					if ( it->second->updateMaximum(minAmplTime, clipped) ) {
 						#if defined(LOG_AMPS)
 						std::cout << "M " << it->first << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.value << std::endl;
 						#endif
@@ -631,6 +639,14 @@ class App : public Client::StreamApplication {
 			#endif
 			for ( it = _locationLookup.begin(); it != _locationLookup.end(); ++it ) {
 				if ( !it->second->maxPGA.timestamp.valid() ) continue;
+				if ( it->second->maxPGA.clipped ) {}
+					SEISCOMP_DEBUG("Clipped PGA %s.%s.%s.%s has been ignored",
+						           it->second->meta->station()->code(),
+								   it->second->meta->station()->network()->code(),
+								   it->second->maxPGA.channel.c_str(),
+								   it->second->meta->code().empty()?"--":it->second->meta->code().c_str());
+					continue
+				}
 
 				_latestMaxPGAs.push_back(
 					PGA_Data(
@@ -974,7 +990,7 @@ class App : public Client::StreamApplication {
 	private:
 		struct Amplitude {
 			Amplitude() {}
-			Amplitude(double v, const Core::Time &ts, const std::string &cha) : value(v), timestamp(ts), channel(cha) {}
+			Amplitude(double v, const Core::Time &ts, const std::string &cha, bool c) : value(v), timestamp(ts), channel(cha), clipped(c) {}
 
 			bool operator==(const Amplitude &other) const {
 				return value == other.value && timestamp == other.timestamp;
@@ -987,6 +1003,7 @@ class App : public Client::StreamApplication {
 			double      value;
 			Core::Time  timestamp;
 			std::string channel;
+			bool        clipped;
 		};
 
 		typedef Ring<Amplitude> PGABuffer;
@@ -1036,12 +1053,12 @@ class App : public Client::StreamApplication {
 };
 
 
-bool App::Buddy::updateMaximum(const Core::Time &minTime) {
+bool App::Buddy::updateMaximum(const Core::Time &minTime, bool clipped) {
 	Amplitude lastMaximum = maxPGA;
 	maxPGA = Amplitude();
 
 	if ( !pgas.empty() && pgas.back().timestamp >= minTime ) {
-		// Update maxmimum
+		// Update maximum
 		PGABuffer::iterator it;
 		for ( it = pgas.begin(); it != pgas.end(); ++it ) {
 			if ( it->timestamp < minTime ) continue;
@@ -1049,6 +1066,7 @@ bool App::Buddy::updateMaximum(const Core::Time &minTime) {
 				maxPGA.timestamp = it->timestamp;
 				maxPGA.value = it->value;
 				maxPGA.channel = it->channel;
+				maxPGA.clipped = clipped;
 			}
 		}
 	}
