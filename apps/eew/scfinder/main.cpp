@@ -215,8 +215,10 @@ class App : public Client::StreamApplication {
 			_sentMessagesTotal = 0;
 			_testMode = false;
 			_playbackMode = false;
+			_defaultPGWindowLength = 30
 
 			_bufferLength = Core::TimeSpan(120,0);
+			_PGWindowLength = Core::TimeSpan(_defaultPGWindowLength,0);
 
 			// Default Finder call interval is 1s
 			_finderProcessCallInterval.set(1);
@@ -614,10 +616,11 @@ class App : public Client::StreamApplication {
 			// Changed by Maren, Jan 3 2017
 			//if ( !_finderAmplitudesDirty )
 			//	return;
+			
+			// Throttle call frequency
+			Core::Time now = Core::Time::GMT();
 
 			if ( _finderScanCallInterval != Core::TimeSpan(0,0) ) {
-				// Throttle call frequency
-				Core::Time now = Core::Time::GMT();
 				if ( now - _lastFinderScanCall < _finderScanCallInterval )
 					return;
 
@@ -639,6 +642,16 @@ class App : public Client::StreamApplication {
 			#endif
 			for ( it = _locationLookup.begin(); it != _locationLookup.end(); ++it ) {
 				if ( !it->second->maxPGA.timestamp.valid() ) continue;
+
+				if ( now - it->second->maxPGA.timestamp > _PGWindowLength ) {
+					SEISCOMP_DEBUG("PGA %s.%s.%s.%s older than %s s has been ignored", 
+								   it->second->meta->station()->code(),
+								   it->second->meta->station()->network()->code(),
+								   it->second->maxPGA.channel.c_str(),
+								   it->second->meta->code().empty()?"--":it->second->meta->code().c_str(),
+								   _PGWindowLength.c_str());
+					continue
+				}
 				if ( it->second->maxPGA.clipped ) {}
 					SEISCOMP_DEBUG("Clipped PGA %s.%s.%s.%s has been ignored",
 						           it->second->meta->station()->code(),
@@ -1029,6 +1042,9 @@ class App : public Client::StreamApplication {
 		std::string                    _finderConfig;
 
 		Core::TimeSpan                 _bufferLength;
+
+		int 						   _defaultPGWindowLength
+		Core::TimeSpan                 _PGWindowLength;
 
 		Processing::EEWAmps::Processor _eewProc;
 		CreationInfo                   _creationInfo;
