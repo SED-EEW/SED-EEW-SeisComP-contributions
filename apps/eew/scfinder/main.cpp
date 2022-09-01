@@ -319,8 +319,8 @@ class App : public Client::StreamApplication {
 			catch ( ... ) {}
 
 			try {
-				_bufDefaultLen = configGetDouble("finder.envelopeDefaultBufLen");
-				_bufVarLen = configGetDouble("finder.envelopeDefaultBufLen");
+				_bufDefaultLen = configGetDouble("finder.defaultFinDerEnvelopeLength");
+				_bufVarLen = configGetDouble("finder.defaultFinDerEnvelopeLength");
 			}
 			catch ( ... ) {}
 
