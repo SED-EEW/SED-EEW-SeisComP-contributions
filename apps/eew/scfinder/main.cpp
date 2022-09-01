@@ -217,6 +217,8 @@ class App : public Client::StreamApplication {
 			_playbackMode = false;
 
 			_bufferLength = Core::TimeSpan(120,0);
+      _bufDefaultLen = Core::TimeSpan(120,0);
+      _bufVarLen = Core::TimeSpan(120,0);
 
 			// Default Finder call interval is 1s
 			_finderProcessCallInterval.set(1);
@@ -313,6 +315,12 @@ class App : public Client::StreamApplication {
 
 			try {
 				_bufferLength = configGetDouble("finder.envelopeBufferSize");
+			}
+			catch ( ... ) {}
+
+			try {
+				_bufDefaultLen = configGetDouble("finder.envelopeDefaultBufLen");
+        _bufVarLen = configGetDouble("finder.envelopeDefaultBufLen");
 			}
 			catch ( ... ) {}
 
@@ -553,7 +561,8 @@ class App : public Client::StreamApplication {
 			}
 
 			// The minimum time for a valid amplitude
-			Core::Time minAmplTime = _referenceTime - _bufferLength;
+			//Core::Time minAmplTime = _referenceTime - _bufferLength;
+			Core::Time minAmplTime = _referenceTime - _bufVarLen;
 
 			#if defined(LOG_AMPS)
 			std::cout << "+ " << id << "." << proc->waveformID().channelCode() << "   " << _referenceTime.iso() << "   " << minAmplTime.iso() << "   " << timestamp.iso() << "   " << value << std::endl;
@@ -703,6 +712,7 @@ class App : public Client::StreamApplication {
 
 			#ifdef USE_FINDER
 			Finder_List::iterator fit;
+      double maxRupLen = 0.;
 			for ( fit = _finderList.begin(); fit != _finderList.end(); /* incrementing below */) {
 				// some method for getting the timestamp associated with the data
 				// event_continue == false when we want to stop processing
@@ -712,6 +722,9 @@ class App : public Client::StreamApplication {
 				catch ( FiniteFault::Error &e ) {
 					SEISCOMP_ERROR("Exception from FinDer::process: %s", e.what());
 				}
+        if ((*fit)->get_rupture_length() > maxRupLen) {
+          maxRupLen = (*fit)->get_rupture_length();
+        }
 
 				if ( (*fit)->get_finder_flags().get_message() &&
 				    ((*fit)->get_finder_length_list().size() > 0) )
@@ -726,6 +739,20 @@ class App : public Client::StreamApplication {
 				else
 					++fit;
 			}
+      if (_finderList.size() == 0) {
+        if (_bufVarLen != _bufDefaultLen) {
+ 					SEISCOMP_DEBUG("Resetting data window to %ld", _bufDefaultLen.seconds());
+        }
+        _bufVarLen = _bufDefaultLen;
+      } else {
+        double rup2time = 1.5;
+        if (maxRupLen > _bufVarLen * rup2time) {
+          double tmp = maxRupLen / rup2time;
+          _bufVarLen = min((long)tmp, _bufferLength.seconds());
+ 					SEISCOMP_DEBUG("Increasing data window to %ld because of active FinDer event rupture length %.1f", 
+              _bufVarLen.seconds(), maxRupLen);
+       }
+      }
 			#else
 			std::cerr << "ProcessData" << std::endl;
 			#endif
@@ -1012,6 +1039,8 @@ class App : public Client::StreamApplication {
 		std::string                    _finderConfig;
 
 		Core::TimeSpan                 _bufferLength;
+		Core::TimeSpan                 _bufDefaultLen;
+		Core::TimeSpan                 _bufVarLen;
 
 		Processing::EEWAmps::Processor _eewProc;
 		CreationInfo                   _creationInfo;
