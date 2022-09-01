@@ -87,9 +87,9 @@
 						rupture (in km) is less than the default time window (in seconds) * 1.5. 
 						Otherwise the window length (in seconds) is computed as
 						maximum rupture length (in km) / 1.5, up to the maximum size of the 
-            envelope buffer as defined by envelopeBufferSize. A smaller value will 
-            reduce false detections caused by noise, but the value should be large enough
-            to account for station spacing and the number of trigger stations used by FinDer.
+						envelope buffer as defined by envelopeBufferSize. A smaller value will 
+						reduce false detections caused by noise, but the value should be large enough
+						to account for station spacing and the number of trigger stations used by FinDer.
 					</description>
 				</parameter>
 				<parameter name="scanInterval" type="double" default="0.1" unit="s">
