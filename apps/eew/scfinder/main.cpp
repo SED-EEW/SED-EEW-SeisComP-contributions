@@ -217,8 +217,8 @@ class App : public Client::StreamApplication {
 			_playbackMode = false;
 
 			_bufferLength = Core::TimeSpan(120,0);
-			_bufDefaultLen = Core::TimeSpan(120,0);
-			_bufVarLen = Core::TimeSpan(120,0);
+			_bufDefaultLen = Core::TimeSpan(60,0);
+			_bufVarLen = Core::TimeSpan(60,0);
 
 			// Default Finder call interval is 1s
 			_finderProcessCallInterval.set(1);
