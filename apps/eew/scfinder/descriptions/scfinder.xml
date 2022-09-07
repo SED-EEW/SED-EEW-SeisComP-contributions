@@ -73,8 +73,23 @@
 				</parameter>
 				<parameter name="envelopeBufferSize" type="double" default="120" unit="s">
 					<description>
-						Size of envelope buffer in seconds. The envelope buffer is
-						a ring buffer and FinDer receives the maximum of this ring.
+						Size of envelope buffer in seconds. This value should be set 
+						large enough for the longest anticipated rupture duration.
+						The envelope buffer is a ring buffer and FinDer receives a 
+						maximum from it based on the time window defined by defaultFinDerEnvelopeLength. 
+					</description>
+				</parameter>
+				<parameter name="defaultFinDerEnvelopeLength" type="double" default="60" unit="s">
+					<description>
+						Default window length (in seconds) of envelope buffer to search when
+						passing maximum to FinDer. This default window length will be used 
+						when there are no active FinDer events, or the largest FinDer event
+						rupture (in km) is less than the default time window (in seconds) * 1.5. 
+						Otherwise the window length (in seconds) is computed as
+						maximum rupture length (in km) / 1.5, up to the maximum size of the 
+						envelope buffer as defined by envelopeBufferSize. A smaller value will 
+						reduce false detections caused by noise, but the value should be large enough
+						to account for station spacing and the number of trigger stations used by FinDer.
 					</description>
 				</parameter>
 				<parameter name="scanInterval" type="double" default="0.1" unit="s">

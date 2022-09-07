@@ -2,6 +2,10 @@
 
 ## Release 2022 ?
 
+* scfinder:
+
+  * Dynamic window length for envelope maxima.
+
 ## Release 2022 July 26 tag 4.9.2
 
 * libs/eewamps (included in sceewenv, scfinder): 
