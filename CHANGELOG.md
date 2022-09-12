@@ -2,6 +2,10 @@
 
 ## Release 2022 ?
 
+* scfinder:
+
+  * Dynamic window length for envelope maxima.
+
 ## Release 2022 July 26 tag 4.9.2
 
 * libs/eewamps (included in sceewenv, scfinder): 
@@ -23,8 +27,8 @@
   * Configurable alerting profiles with geographical, magnitude, likelihood, delay and 
     depth filters. 
 
-  * New optional magnitude comment with EEW usage status (0: not used for EEW, 1: used for 
-    initial EEW, 2+: used for updating EEW).
+  * New optional magnitude comment with EEW usage status (1: used for initial EEW, 2+: 
+    used for updating EEW).
   
   * New optional output format in CAP1.2.
   

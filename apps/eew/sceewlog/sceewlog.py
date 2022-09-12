@@ -96,7 +96,7 @@ class Listener(seiscomp.client.Application):
         self.moFcm = None # eews2fcm object
         self.fcmDataFile = None #File that contains keys and topic information for FCM
         
-        self.eewComment = False #
+        self.eewComment = True #
                                
         
         
@@ -212,10 +212,10 @@ class Listener(seiscomp.client.Application):
             self.fcmInitConfig()
             
         try:
-            self.eewComment = self.configGetBool("EEW.comment")
+            self.eewComment = self.configGetBool("eewStatus")
         except Exception as e:
-            seiscomp.logging.warning('Not possible to read EEW.comment. Setting this to False')
-            self.eewComment = False
+            seiscomp.logging.warning('Not possible to read EEW.comment. Setting this to True')
+            self.eewComment = True
 
         try:
             self.storeReport = self.configGetBool("report.activate")

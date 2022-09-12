@@ -17,6 +17,11 @@
 					received for the same event.
 				</description>
 			</parameter>
+			<parameter name="eewStatus" type="boolean" default="true">
+				<description>
+				Save a comment for each EEW alert sent out through ActiveMQ or FCM. The comment is part of the Magnitude object and stored on the Comment table of the DB.
+				</description>
+			</parameter>
 			<group name="email">
 				<parameter name="activate" type="boolean" default="true">
 					<description>
@@ -248,14 +253,6 @@
 				<parameter name="dataFile" type="string" default="/home/sysop/seiscomp/share/sceewlog/.fcmdatafile">
 					<description>
 					The datafile must contain the authorization key and topic to send out a message preformated on the eews2fcm interface.
-					</description>
-				</parameter>
-				
-			</group>
-			<group name="EEW">
-				<parameter name="activate" type="boolean" default="false">
-					<description>
-					Save a comment for each EEW alert sent out through ActiveMQ or FCM. The comment is part of the Magnitude object and stored on the Comment table of the DB.
 					</description>
 				</parameter>
 			</group>
