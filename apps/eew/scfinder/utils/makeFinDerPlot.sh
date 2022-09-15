@@ -1,5 +1,22 @@
 #!/bin/bash
 
+########
+# Copyright (C) by ETHZ/SED 
+#  
+# This program is free software: you can redistribute it and/or modify 
+# it under the terms of the GNU Affero General Public License as published 
+# by the Free Software Foundation, either version 3 of the License, or 
+# (at your option) any later version. 
+#  
+# This program is distributed in the hope that it will be useful, 
+# but WITHOUT ANY WARRANTY; without even the implied warranty of 
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+# GNU Affero General Public License for more details. 
+#  
+# Author of the Software: Jen Andrews (GNS)
+########
+
+########
 # This script is intended to be used with scalert, for the scripts.event option
 # For this to work with scfinder in SeisCompP >= 4 you must:
 # - enable and configure scxmldump
@@ -15,6 +32,7 @@
 # The script to be called when an event has been declared. The message string, a flag (1=new event, 
 # 0=update event), the EventID, the arrival count and the magnitude (optional when set) are passed 
 # as parameters $1, $2, $3, $4 and $5.
+########
 
 base=$(basename -- "$0")
 logfile=${base%.*}".log"

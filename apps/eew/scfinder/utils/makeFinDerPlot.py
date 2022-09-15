@@ -1,5 +1,19 @@
-# Author: Jen Andrews
-# Plotting from FinDer, with option for emailing
+""" 
+ Copyright (C) by ETHZ/SED 
+  
+ This program is free software: you can redistribute it and/or modify 
+ it under the terms of the GNU Affero General Public License as published 
+ by the Free Software Foundation, either version 3 of the License, or 
+ (at your option) any later version. 
+  
+ This program is distributed in the hope that it will be useful, 
+ but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ GNU Affero General Public License for more details. 
+  
+ Author of the Software: Jen Andrews (GNS)
+ """ 
+
 
 import os, sys, logging
 from matplotlib.figure import Figure
@@ -29,6 +43,11 @@ def prepareFinDerHTML(fdsols, fdevent):
     '''
     FinDer's final JSON output.
     Note that this is modelled on w-phase WPhaseResult class (psi/model.py)
+    Args:
+        fdsols: List of FinDer solutions dictionaries
+        fdevent: Final FinDer event parameters
+    Return:
+        Email subject line, Email HTML body text 
     '''
     def addText(fstr):
         nonlocal body
@@ -99,6 +118,16 @@ def prepareFinDerHTML(fdsols, fdevent):
 
 
 def sendHTML(subject, body, figbody, attachment):
+    '''
+    Send the HTML email as MIMEMultipart
+    Args:
+        subject: email subject line
+        body: email body
+        figbody: FinDer figure to include in the body
+        attachment: kml attachemnt
+    Return:
+        True if email could be created and sent
+    '''
     mail = MIMEMultipart('related')
 
     # Email body
@@ -160,7 +189,6 @@ def sendHTML(subject, body, figbody, attachment):
     except Exception as e:
         logging.warning('Email could not be sent: %s' % e)
     s.quit()
-
     return True
 
 
@@ -233,6 +261,13 @@ def importCityFile(fname):
 
 
 def getFinDerDataFileTimes(ddir):
+    '''
+    Get creation time of the data_ files to enable solution matching
+    Args:
+        ddir: data directory containing FinDer data_ files
+    Returns:
+        filetimes: list of filename and file creation time pairs
+    '''
     filetimes = []
     for f in os.listdir(ddir):
         if f.find('data_') == -1 or f.find('.') != -1:
@@ -463,6 +498,7 @@ def getDataBounds(data, pad=0.):
 def limitByBounds(cities, bounds):
     """Search for cities within a bounding box (xmin,xmax,ymin,ymax).
     Args:
+        cities: Cities dataframe
         bounds: Sequence containing xmin,xmax,ymin,ymax (decimal degrees).
     Returns:
         New Cities instance containing smaller cities data set.
@@ -529,6 +565,7 @@ def makeFinDerSolutionKML(fdsols, pgadata, odir='.', prefix=''):
         fdsols: List of FinDer solution dictionaries
         pgadata: pgadata but only used for locations, not PGA
         odir: Output directory
+        prefix: prefix for the plot files
     Returns:
         No return, kml is created and saved to file
     '''
@@ -704,6 +741,11 @@ def makeFinDerSolutionPlot(fdsol, pgadata, odir='.', prefix=''):
 
 
 def runStandalone():
+    '''
+    Run the script from offline files which have been passed as command line arguments:
+    -log is a FinDer log file
+    -datadir is the location of the data_ FinDer files
+    '''
     import argparse
     from fnmatch import filter
 
@@ -766,13 +808,10 @@ def runStandalone():
 
 def runSeisComp(scevid = None):
     '''
-    From seiscomp3 scalert:
-    The script to be called when an event has been declared. The message string, a flag (1=new 
-    event, 0=update event), the EventID, the arrival count and the magnitude (optional when set) 
-    are passed as parameters $1, $2, $3, $4 and $5.
+    Run the script for SeisComP solutions.
     FinDer solution information is obtained using a dump from the seiscomp database
     N.B. This REQUIRES scxmldump to be setup for the seiscomp database, if that step fails, check
-    for scxmldump.cfg in the .seiscomp3 directory
+    for scxmldump.cfg in the .seiscomp directory
     # database = <service>://<uname>:<pwd>@<host>/<db> (e.g. service=postgresql)
     PGA data are obtained from FinDer's data_ files, note that the pga_dir_loc must be set
     correctly. If a data directory, or associated data directory for the event (based on timestamp)
@@ -785,7 +824,7 @@ def runSeisComp(scevid = None):
         nonlocal len_xml
         nonlocal bPreferredOnly
         if retry_count == conf['retries']:
-            logging.error('scxmldump failed to get valid XML after 5 retries, exiting!')
+            logging.error('scxmldump failed to get valid XML after %d retries, exiting!'%conf['retries'])
             sys.exit()
         # Dump complete event parameters (may be slow). 
         command = ["scxmldump", "--config-file", conf['scxmldump_cfg'], "-m",  "-E", evid]
@@ -913,7 +952,8 @@ def runSeisComp(scevid = None):
             (UTCDateTime().now()-lfdsol['vtime']) <= conf['email_timelimit']:
         if conf['email_sanitychk'] and len(fdsols) < 5 and \
             fdsols[0]['vtime']-fdsols[0]['t0'] > 30.:
-                logging.warning('Event failed sanity criteria for emailing: only one report with creation time longer than 30s after origin')
+                logging.warning('Event failed sanity criteria for emailing: only one report with \
+                        creation time longer than 30s after origin')
         else:
             subject, body = prepareFinDerHTML(fdsols, fdevent)
             if False:
@@ -926,7 +966,8 @@ def runSeisComp(scevid = None):
 
 if __name__ == '__main__':
     '''
-    Script for plotting FinDer solution, can be called from command line or from SeisComp scalert
+    Script for plotting, and possibly emailing, FinDer solution
+    Designed to be called from command line or from SeisComp scalert
     '''
     if sys.argv[1] == '-h':
         print('\n\n\nScript for plotting FinDer solutions, it has two modes:\n \
