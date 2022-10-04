@@ -6,6 +6,8 @@
 
   * Dynamic window length for envelope maxima.
 
+  * Minor changes in compilation configuration for latest FinDer version. 
+
 ## Release 2022 July 26 tag 4.9.2
 
 * libs/eewamps (included in sceewenv, scfinder): 
