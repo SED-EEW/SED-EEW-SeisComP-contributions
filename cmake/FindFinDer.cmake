@@ -14,6 +14,11 @@ FIND_PATH(FinDer_INCLUDE_DIR finder.h
 	/usr/local/include/
 )
 
+FIND_PATH(GMT_INCLUDE_DIR gmt_version.h
+	/usr/include/
+	/usr/include/gmt
+)
+
 SET(FinDer_NAMES ${FinDer_NAMES} Finder)
 FIND_LIBRARY(FinDer_LIBRARY
 	NAMES ${FinDer_NAMES}
