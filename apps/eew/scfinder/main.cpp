@@ -54,7 +54,7 @@
 
 #include "finder.h"
 #include "finite_fault.h"
-
+#include "finder_util.h"
 
 #define USE_FINDER
 //#define LOG_AMPS
