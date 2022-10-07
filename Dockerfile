@@ -1,4 +1,4 @@
-FROM debian:buster-slim
+FROM amd64/debian:buster-slim
 
 MAINTAINER Fred Massin  <fmassin@sed.ethz.ch>
 
@@ -6,7 +6,7 @@ ENV    WORK_DIR /usr/local/src
 ENV INSTALL_DIR /opt/seiscomp
 ENV   REPO_PATH https://github.com/SeisComP
 #ENV         TAG master
-ENV         TAG 4.9.2
+ENV         TAG 5.1.1
 ENV           D "-DSC_GLOBAL_GUI=ON \
                     -DSC_IPGPADDONS_GUI_APPS=ON \
                     -DSC_TRUNK_DB_MYSQL=ON \
@@ -95,14 +95,14 @@ RUN echo "Cloning base repository into $WORK_DIR/seiscomp" \
     && git clone --branch $TAG $REPO_PATH/seiscomp.git $WORK_DIR/seiscomp \
     && echo "Cloning base components" \
     && cd $WORK_DIR/seiscomp/src/base \
-    && git clone --branch $TAG $REPO_PATH/seedlink.git \
     && git clone --branch $TAG $REPO_PATH/common.git \
     && git clone --branch $TAG $REPO_PATH/main.git \
+    #&& git clone --branch $TAG $REPO_PATH/seedlink.git \
     && git clone --branch $TAG $REPO_PATH/extras.git \
     && echo "Cloning external base components" \
-    && git clone --branch $TAG $REPO_PATH/contrib-gns.git \
-    && git clone --branch $TAG $REPO_PATH/contrib-ipgp.git \
-    && git clone --branch FMassin-patch-EEW-addons-release https://github.com/SED-EEW/sed-SeisComP-contributions contrib-sed \
+    #&& git clone --branch $TAG $REPO_PATH/contrib-gns.git \
+    #&& git clone --branch $TAG $REPO_PATH/contrib-ipgp.git \
+    && git clone https://github.com/swiss-seismological-service/sed-SeisComP-contributions.git contrib-sed \
     && echo "Done" 
 
 RUN mkdir -p $WORK_DIR/seiscomp/build \
