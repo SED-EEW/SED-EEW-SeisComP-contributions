@@ -142,7 +142,7 @@ class Listener(seiscomp.client.Application):
         for profile in self.profilesDic:
             seiscomp.logging.debug( 'Evaluation for profile: %s (author: %s, polygon: %s)...' % ( profile['name'], profile['author'], profile['polygon'] ) )
 
-            if origin.creationInfo().author() != profile['author']:
+            if origin.creationInfo().author().split('@')[0] != profile['author'].split('@')[0]:
                 continue
             
             coordinates = GeoCoordinate( origin.latitude().value(), 
