@@ -20,6 +20,20 @@ IF(FinDer_FOUND)
 
 	FILE(GLOB descs "${CMAKE_CURRENT_SOURCE_DIR}/descriptions/*.xml")
 	INSTALL(FILES ${descs} DESTINATION ${SC3_PACKAGE_APP_DESC_DIR})
+	
+	# scfilterfinder
+	SET(MAIN_PY scfilterfinder.py)
+	SET(FILTERFINDER_TARGET scfilterfinder)
+	SET(FILTERFINDER_FILES scfilterfinder.py)
+
+	SC_ADD_PYTHON_EXECUTABLE(FILTERFINDER)
+
+	IF(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../../../../trunk/apps/templates/initd.py")
+	SC_INSTALL_INIT(${FILTERFINDER_TARGET} ../../../../trunk/apps/templates/initd.py)
+	ELSE()
+	SC_INSTALL_INIT(${FILTERFINDER_TARGET} ../../../../../base/common/apps/templates/initd.py)
+	ENDIF()
+
 ELSE(FinDer_FOUND)
 	MESSAGE(STATUS "libFinder not found, disable compilation of scfinder")
 ENDIF(FinDer_FOUND)

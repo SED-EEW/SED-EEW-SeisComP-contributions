@@ -14,7 +14,6 @@ class Listener(seiscomp.client.Application):
         self.setPrimaryMessagingGroup(
             seiscomp.client.Protocol.LISTENER_GROUP)
         self.addMessagingSubscription("LOCATION")
-        self.addMessagingSubscription("MAGNITUDE")
 
     def validateParameters(self):
         try:
@@ -138,11 +137,12 @@ class Listener(seiscomp.client.Application):
 
     def geographicCheckOrigin(self, origin):
 
-        print("origin.publicID = {}".format(origin.publicID()))
+        seiscomp.logging.debug('Author: %s'%origin.creationInfo().author()+"origin.publicID = {}".format(origin.publicID()))
         for profile in self.profilesDic:
-            seiscomp.logging.debug( 'Evaluation for profile: %s (author: %s, polygon: %s)...' % ( profile['name'], profile['author'], profile['polygon'] ) )
+            seiscomp.logging.debug( 'Evaluation for profile %s (author: %s, polygon: %s)...' % ( profile['name'], profile['author'], profile['polygon'] ) )
 
             if origin.creationInfo().author().split('@')[0] != profile['author'].split('@')[0]:
+                seiscomp.logging.debug('Author: %s does not match with profile author %s'%(origin.creationInfo().author(),profile['author']))
                 continue
             
             coordinates = GeoCoordinate( origin.latitude().value(), 
@@ -156,23 +156,30 @@ class Listener(seiscomp.client.Application):
                 seiscomp.logging.debug('%s origin (lat: %s and lon: %s) is not within polygon %s.' % tmp )
                 continue
             else:
-                seiscomp.logging.debug('%s origin (lat: %s and lon: %s) within polygon %s and will be sent.' % tmp )
+                seiscomp.logging.debug('Will be sent: %s origin (lat: %s and lon: %s) within polygon %s.' % tmp )
 
             # Send the origin if it is in polygon
-            self.connection().send(origin)
+            return origin
+
+        return False
 
 
-    def handleOrigin(self, org, parentID):
+    def handleOrigin(self, org, op=seiscomp.datamodel.OP_ADD):
         """
-        Add origins to the cache.
+        Test origins and redirect those matching profiles
         """
         try:
             seiscomp.logging.debug("Received origin %s" % org.publicID())
-            self.geographicCheckOrigin(org)
+            org = self.geographicCheckOrigin(org)
         except:
             info = traceback.format_exception(*sys.exc_info())
             for i in info:
                 sys.stderr.write(i)
+        if org:
+            msg = seiscomp.datamodel.NotifierMessage()
+            n = seiscomp.datamodel.Notifier("EventParameters", op, org)
+            msg.attach(n)
+            self.connection().send(msg)
 
     def updateObject(self, parentID, object):
         """
@@ -180,7 +187,7 @@ class Listener(seiscomp.client.Application):
         """
         origin = seiscomp.datamodel.Origin.Cast(object)
         if origin:
-            self.handleOrigin(origin, parentID)
+            self.handleOrigin(origin, op=seiscomp.datamodel.OP_UPDATE)
 
     def addObject(self, parentID, object):
         """
@@ -188,7 +195,7 @@ class Listener(seiscomp.client.Application):
         """
         origin = seiscomp.datamodel.Origin.Cast(object)
         if origin:
-            self.handleOrigin(origin, parentID)
+            self.handleOrigin(origin)
  
     def run(self):
         """
