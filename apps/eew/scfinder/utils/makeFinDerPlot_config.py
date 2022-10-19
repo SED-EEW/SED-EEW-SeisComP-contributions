@@ -45,6 +45,7 @@
 conf = {
         'pga_dir_loc': 'temp_data',
         'plot_dir': 'plots',
+        'lastplotonly': True,
         'scxmldump_cfg': 'scxmldump.cfg',
         'event_timeout': 20.,
         'sleep_time': 2.,
@@ -54,6 +55,7 @@ conf = {
         'mask_file': 'mask.nc',
         'plot_stns': True,
         'plot_interp': True,
+        'plot_PGA_units': 'g', # Use g, %g or cm/s/s, otherwise it will default to cm/s/s
         'email_recipients': ['nemo@nemo.com'],
         'email_sender': 'sender@host',
         'subj_prefix': '',

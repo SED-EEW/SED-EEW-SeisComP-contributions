@@ -17,6 +17,7 @@
 
 import os, sys, logging
 from matplotlib.figure import Figure
+from matplotlib.colors import LogNorm
 from obspy import UTCDateTime
 from time import sleep
 import json
@@ -68,7 +69,7 @@ def prepareFinDerHTML(fdsols, fdevent):
     # Summary of final FinDer solution
     lastt = max([f['vtime'] for f in fdsols])
     fdsol = [f for f in fdsols if f['vtime'] == lastt][0]
-    body += '<p>Final FinDer solution for this event has the following rupture parameters:</p>\n'
+    body += '<p>Final FinDer (%s) solution for this event (%s) has the following rupture parameters:</p>\n' % (fdsol['author'], fdevent['evid'])
     body += '<ul>'
     body += '<li>Fault length: %.1f km</li>'%fdsol['flen']
     body += '<li>Fault strike: %d</li>'%fdsol['fstrike']
@@ -78,12 +79,14 @@ def prepareFinDerHTML(fdsols, fdevent):
     body += '<li>Magnitude: %.1f</li>'%fdsol['mag']
     body += '</ul>\n'
     body += '<br/>'
-    body += '<img src="cid:image0" alt="solutionmap" align=middle height="450">'
+    body += '<img src="cid:image2" alt="solutionmap" align=middle height="450">'
+    body += '<br/>'
+    body += '<img src="cid:image1" alt="timeevolution" align=middle width="700">'
     body += '<br/>\n'
 
     # Table of all FinDer solutions
     body += '<p>Full timeseries of FinDer solutions for this event:</p>\n'
-    body += '<table border=1, style="border: 2px, solid; border-collapse: collapse;">\n'
+    body += '<table border=1, style="border: 2px, solid; border-collapse: collapse; font-size: 14px;">\n'
     body += '<tr>'
     for head in ['Mag', 'Lat', 'Lon', 'Depth', 'Origin Time (UTC)', 'Likelihood', 'Length', 'Strike', 'Author', 'Creation time']:
         body += '<th style="padding: 2px;">' + head + '</th>'
@@ -111,7 +114,7 @@ def prepareFinDerHTML(fdsols, fdevent):
     addText(conf['email_footer'])
     if os.path.isfile(conf['email_footerfig']):
         body += '<br/><br/>'
-        body += '<img src="cid:image1" alt="rcet" align=middle height="100">'
+        body += '<img src="cid:image0" alt="rcet" align=middle height="100">'
         body += '<br/><br/>'
     body += '</p>\n</body>\n</html>'
     return subject, body
@@ -123,7 +126,7 @@ def sendHTML(subject, body, figbody, attachment):
     Args:
         subject: email subject line
         body: email body
-        figbody: FinDer figure to include in the body
+        figbody: List of FinDer figures to include in the body
         attachment: kml attachemnt
     Return:
         True if email could be created and sent
@@ -135,7 +138,8 @@ def sendHTML(subject, body, figbody, attachment):
     mail.attach(mailhtml)
 
     # Attach images
-    for iid, figname in zip([0, 1], [figbody, conf['email_footerfig']]):
+    figbody.append(conf['email_footerfig'])
+    for iid, figname in zip(range(len(figbody)-1, -1, -1), figbody):
         try:
             if os.path.isfile(figname):
                 fp = open(figname, 'rb')
@@ -215,8 +219,6 @@ def setBasemap(bounds = None):
     gl = ax.gridlines(draw_labels=True, linestyle='--')
     gl.top_labels = False
     gl.right_labels = False
-    #gl.xlabels_top = False
-    #gl.ylabels_right = False
     return fig, ax, ccrs.PlateCarree()
 
 
@@ -605,11 +607,45 @@ def makeFinDerSolutionKML(fdsols, pgadata, odir='.', prefix=''):
     try:
         kml.save(kmlname)
     except:
-        logging.warning('Cannot save %s', kmlname)
+        logging.warning('Cannot save %s' % kmlname)
     return kmlname
 
+def makeFinDerSolutionTimePlots(fdsols, odir='.', prefix=''):
+    '''
+    Create plots showing solution evoluion
+    Args:
+        fdsols: List of FinDer solution dictionaries
+        odir: Output directory
+        prefix: prefix for the plot files
+    Returns:
+        No return, figure is created and saved to file
+    '''
+    import matplotlib.pyplot as plt
+    mint = min([x['vtime'] for x in fdsols])
+    time = [x['vtime']-mint for x in fdsols]
+    fig, ax = plt.subplots(1,3,figsize=(9,2))
+    # Plot fault length
+    ax[0].scatter(time, [x['flen'] for x in fdsols], marker='x', c='r')
+    ax[0].set_ylabel('fault length (km)')
+    # Plot fault strike
+    ax[1].scatter(time, [x['fstrike'] for x in fdsols], marker='x', c='r')
+    ax[1].set_ylabel('fault strike (deg)')
+    # Plot inferred magnitude
+    ax[2].scatter(time, [x['mag'] for x in fdsols], marker='x', c='r')
+    ax[2].set_ylabel('mag')
+    for a in ax:
+        a.set_xlabel('time from 1st alert (s)')
+        a.grid(which='both')
+    plt.tight_layout()
+    figname = os.path.join(odir, '%sfinder_timesols.png'%prefix)
+    logging.info('Saving %s'%figname)
+    try:
+        plt.savefig(figname)
+    except:
+        logging.warning('Cannot save %s' % figname)
+    return figname
 
-def makeFinDerSolutionPlot(fdsol, pgadata, odir='.', prefix=''):
+def makeFinDerSolutionPlot(fdsol, pgadata, odir='.', prefix='', epihist=[]):
     '''
     Create plot with FinDer solution
     Args:
@@ -669,9 +705,22 @@ def makeFinDerSolutionPlot(fdsol, pgadata, odir='.', prefix=''):
     fig, ax, proj = setBasemap(bounds=mapBounds)
     # Plot PGA Data
     if conf['plot_stns']:
-        cb = ax.scatter([x[0] for x in pgadata], [x[1] for x in pgadata], c=[x[2] for x in pgadata], \
-                marker='^', cmap='jet', zorder=20, lw=0.5, edgecolors='k', s=100., transform=proj, vmin=0.3)
-        fig.colorbar(cb, ax=ax, label='log10(PGA) [cm/s/s]')
+        if conf['plot_PGA_units'] == 'g':
+            plotpga = [pow(10., x[2]-2.991521) for x in pgadata]
+            pgamin = 0.002039432
+        elif conf['plot_PGA_units'] == '%g':
+            plotpga = [pow(10., 2+x[2]-2.991521) for x in pgadata]
+            pgamin = 0.2039432
+        elif conf['plot_PGA_units'] == 'cm/s/s':
+            plotpga = [pow(10., x[2]) for x in pgadata]
+            pgamin = 2.
+        else:
+            conf['plot_PGA_units'] = 'cm/s/s' # invalid unit passed, so set to default
+            plotpga = [pow(10., x[2]) for x in pgadata]
+            pgamin = 2.
+        cb = ax.scatter([x[0] for x in pgadata], [x[1] for x in pgadata], c=plotpga, norm=LogNorm(vmin=pgamin), \
+                marker='^', cmap='jet', zorder=20, lw=0.5, edgecolors='k', s=100., transform=proj)
+        fig.colorbar(cb, ax=ax, label='PGA [%s]'%conf['plot_PGA_units'])
     # PyGMT
     if conf['plot_interp']:
         projection = 'M15c'
@@ -684,10 +733,12 @@ def makeFinDerSolutionPlot(fdsol, pgadata, odir='.', prefix=''):
         pgadata, bounds = addBorderData(pgadata)
         region = '/'.join(['%.2f'%x for x in bounds])
         # Blockmean to average the stations for spacing of regular grid
-        data_bmean = pygmt.blockmean(x=[x[0] for x in pgadata], y=[x[1] for x in pgadata], z=[x[2] for x in pgadata], region=region, spacing=spacing)
+        data_bmean = pygmt.blockmean(x=[x[0] for x in pgadata], y=[x[1] for x in pgadata], \
+                z=[x[2] for x in pgadata], region=region, spacing=spacing)
         # Triangulate to interpolate the stations to the same regular grid
         tri = pygmt.triangulate()
-        data_tri = tri.regular_grid(data=data_bmean, region=region, spacing=spacing) # regular_grid is equivalent of using -G
+        # regular_grid is equivalent of using -G
+        data_tri = tri.regular_grid(data=data_bmean, region=region, spacing=spacing) 
         # Grdfilter to apply a smoothing to the interpolated data
         data_filt = pygmt.grdfilter(grid=data_tri, filter='c1', distance='4', nans='i')
         mask_grid = pygmt.xyz2grd(data=mask, region=region, spacing=spacing)
@@ -708,6 +759,9 @@ def makeFinDerSolutionPlot(fdsol, pgadata, odir='.', prefix=''):
                 fdsol['mag'], \
                 fdsol['elat'], fdsol['elon'], fdsol['flen'], fdsol['fstrike'], fdsol['uncr'], \
                 fdsol['t0'].strftime('%Y/%m/%d %H:%M:%S'), fdsol['mag_rup'], fdsol['mag_regr']))
+    # Plot all epicenters
+    if len(epihist) > 0:
+        ax.scatter([x[0] for x in epihist], [x[1] for x in epihist], marker=(5,1), c='grey', s=50, transform=proj)
     # Plot faults
     faultFile = conf['faults_file']
     if os.path.isfile(faultFile):
@@ -736,7 +790,7 @@ def makeFinDerSolutionPlot(fdsol, pgadata, odir='.', prefix=''):
     try:
         fig.savefig(figname)
     except Exception as e:
-        logging.warning('Unable to save %s (%s)', figname, str(e))
+        logging.warning('Unable to save %s (%s)' % (figname, str(e)))
     return figname
 
 
@@ -762,13 +816,13 @@ def runStandalone():
 
     # Check input parameters are viable
     if not os.path.isfile(finderlog):
-        logging.error('Specified FinDer log file not available', finderlog)
+        logging.error('Specified FinDer log file not available %s' % finderlog)
         sys.exit()
     else:
         logging.info('Using FinDer log file %s' % finderlog)
 
     if not os.path.isdir(finderdata):
-        logging.error('Specified data directory not available', finderdata)
+        logging.error('Specified data directory not available %s' % finderdata)
         sys.exit()
     else:
         logging.info('Using FinDer data files at %s' % finderdata)
@@ -792,10 +846,11 @@ def runStandalone():
             if len(res) == 0:
                 continue
             if len(res) > 1:
-                logging.warning('No unique FinDer data for timestep',tstep)
+                logging.warning('No unique FinDer data for timestep %s' % tstep)
                 sys.exit()
             fdsol = res[0][1]
             ofig = makeFinDerSolutionPlot(fdsol, pgadata, prefix=fdev+'_')
+        tsfile = makeFinDerSolutionTimePlots(fdsols, prefix='%s_'%auth)
         okml = makeFinDerSolutionKML(fdsols, pgadata, prefix=fdev+'_')
         subject, body = prepareFinDerHTML(fdsols, fdevent)
         if conf['smtp_server'] == None:
@@ -834,19 +889,19 @@ def runSeisComp(scevid = None):
         data = p.communicate()[0]
         if p.returncode != 0:
             retry_count += 1
-            logging.warning('Failure to call scxmldump, retry %d', retry_count)
-            logging.warning('scxmldump failed command: %s', ' '.join(command))
+            logging.warning('Failure to call scxmldump, retry %d' % retry_count)
+            logging.warning('scxmldump failed command: %s' % ' '.join(command))
             xml = call_scxmldump(retry_count)
         else:
             xml = ''.join([line for line in str(data).split('\n') if line.startswith('<')])
         if not bPreferredOnly:
             if len(xml) == 0:
                 retry_count += 1
-                logging.warning('0 length XML, retry %d', retry_count)
+                logging.warning('0 length XML, retry %d' % retry_count)
                 xml = call_scxmldump(retry_count)
             if len(xml) < len_xml:
                 retry_count += 1
-                logging.warning('XML length decreased to %d from %d, retry %d', len(xml), len_xml, retry_count)
+                logging.warning('XML length decreased to %d from %d, retry %d' % (len(xml), len_xml, retry_count))
                 xml = call_scxmldump(retry_count)
         len_xml = len(xml)
         return xml
@@ -863,8 +918,8 @@ def runSeisComp(scevid = None):
             if retry_count == conf['retries']:
                 break
             retry_count += 1
-            logging.warning("XML wasn't valid when parsing, so retry %d", retry_count)
-            logging.info('Num_fdsols %d and len(fdsols) %d', num_fdsols, len(fdsols))
+            logging.warning("XML wasn't valid when parsing, so retry %d" % retry_count)
+            logging.info('Num_fdsols %d and len(fdsols) %d' % (num_fdsols, len(fdsols)))
             xml = call_scxmldump()
             try:
                 xmlvalid, fdsols, fdevent, lastt = scxml2fdsol(xml) 
@@ -893,74 +948,83 @@ def runSeisComp(scevid = None):
     bPreferredOnly = True
     xml = call_scxmldump()
     fdsols, fdevent, lastt = wrap_scxml2fdsol(xml) 
-    logging.info('Solutions %s %d', fdevent['evid'], len(fdsols))
+    logging.info('Solutions %s %d' % (fdevent['evid'], len(fdsols)))
     # Allow event timeout after last update before plotting
-    logging.info('Last update %s, (%.2f)', lastt.strftime('%Y%m%dT%H:%M:%S'), UTCDateTime.now()-lastt)
+    logging.info('Last update %s, (%.2f)' % (lastt.strftime('%Y%m%dT%H:%M:%S'), UTCDateTime.now()-lastt))
     while UTCDateTime.now() - lastt < conf['event_timeout']:
         logging.info('Sleeping to allow event timeout')
         sleep(conf['sleep_time'])
         xml = call_scxmldump()
         fdsols, fdevent, lastt = wrap_scxml2fdsol(xml) 
-        logging.info('Solutions %s %d', fdevent['evid'], len(fdsols))
-        logging.info('Last update %s, (%.2f, %s)', lastt.strftime('%Y%m%dT%H:%M:%S'), \
-                UTCDateTime.now()-lastt, UTCDateTime.now().strftime('%Y%m%dT%H:%M:%S'))
+        logging.info('Solutions %s %d' % (fdevent['evid'], len(fdsols)))
+        logging.info('Last update %s, (%.2f, %s)' % (lastt.strftime('%Y%m%dT%H:%M:%S'), \
+                UTCDateTime.now()-lastt, UTCDateTime.now().strftime('%Y%m%dT%H:%M:%S')))
 
     logging.info('Continuing for eventID %s'%evid)
     bPreferredOnly = False
     xml = call_scxmldump()
-    fdsols, fdevent, lastt = wrap_scxml2fdsol(xml) 
+    nfdsols, fdevent, lastt = wrap_scxml2fdsol(xml) 
 
-    # Get PGA data from data_ files
-    pga_dir = None
-    posix = int(min([f['vtime'] for f in fdsols])._get_ns()//1e9)
-    for t in range(posix-5, posix+6):
-        if os.path.isdir(os.path.join(conf['pga_dir_loc'], str(t))):
-            pga_dir = os.path.join(conf['pga_dir_loc'], str(t))
-            logging.info('Selected PGA data directory %d'%t)
-            break
-    if pga_dir == None:
-        logging.warning('Cannot find a PGA data directory for event [%d-%d]'%(posix-5, posix+5))
+    for auth in set([x['author'] for x in nfdsols]):
+        # filter fdsols based on author
+        fdsols = [x for x in nfdsols if x['author'] == auth]
+        lastt = max([f['vtime'] for f in fdsols])
 
-    # Call plotting routine
-    odir = conf['plot_dir']
-    if pga_dir != None:
-        filetimes = getFinDerDataFileTimes(pga_dir)
-    for fdsol in fdsols:
+        # Get PGA data from data_ files
+        pga_dir = None
+        posix = int(min([f['vtime'] for f in fdsols])._get_ns()//1e9)
+        for t in range(posix-5, posix+6):
+            if os.path.isdir(os.path.join(conf['pga_dir_loc'], str(t))):
+                pga_dir = os.path.join(conf['pga_dir_loc'], str(t))
+                logging.info('Selected PGA data directory %d'%t)
+                break
+        if pga_dir == None:
+            logging.warning('Cannot find a PGA data directory for event [%d-%d]'%(posix-5, posix+5))
+
+        # Call plotting routine
         pgadata = []
-        if 'fcoords' not in fdsol:
-            continue
+        odir = conf['plot_dir']
         if pga_dir != None:
-            allt = [(fdsol['vtime']-ft[1],ft[0]) for ft in filetimes if fdsol['vtime']-ft[1]>0.]
-            if len(allt) == 0:
-                allt = [(fdsol['vtime']-ft[1],ft[0]) for ft in filetimes]
-            mint = min([x[0] for x in allt])
-            fdsol['tstep'] = [x[1] for x in allt if x[0] == mint][0]
-            dfile = os.path.join(pga_dir, fdsol['tstep'])
-            if os.path.isfile(dfile):
-                logging.info('Making plot using FinDer solution version %d and %s file' \
-                        %(fdsol['version'], dfile))
-                pgadata = importFinDerDataFile(dfile, pgathresh=2.)
-        pngfile = makeFinDerSolutionPlot(fdsol, pgadata, odir)
-        # Keep the filename of the latest png
-        if fdsol['vtime'] == lastt:
-            pngname = pngfile
-            lfdsol = fdsol
-    kmlname = makeFinDerSolutionKML(fdsols, pgadata, odir)
-    # Emailing out the solution
-    # Perform solution checks for whether to proceed
-    if lfdsol['mag'] >= conf['email_maglimit'] and \
-            (UTCDateTime().now()-lfdsol['vtime']) <= conf['email_timelimit']:
-        if conf['email_sanitychk'] and len(fdsols) < 5 and \
-            fdsols[0]['vtime']-fdsols[0]['t0'] > 30.:
-                logging.warning('Event failed sanity criteria for emailing: only one report with \
-                        creation time longer than 30s after origin')
-        else:
-            subject, body = prepareFinDerHTML(fdsols, fdevent)
-            if False:
-                fout = open('debug.html', 'w')
-                fout.write(body)
-                fout.close()
-            sendHTML(subject, body, pngname, kmlname)
+            filetimes = getFinDerDataFileTimes(pga_dir)
+        for fdsol in fdsols:
+            if conf['lastplotonly'] and fdsol['vtime'] != lastt:
+                continue
+            pgadata = []
+            if 'fcoords' not in fdsol:
+                continue
+            if pga_dir != None:
+                allt = [(fdsol['vtime']-ft[1],ft[0]) for ft in filetimes if fdsol['vtime']-ft[1]>0.]
+                if len(allt) == 0:
+                    allt = [(fdsol['vtime']-ft[1],ft[0]) for ft in filetimes]
+                mint = min([x[0] for x in allt])
+                fdsol['tstep'] = [x[1] for x in allt if x[0] == mint][0]
+                dfile = os.path.join(pga_dir, fdsol['tstep'])
+                if os.path.isfile(dfile):
+                    logging.info('Making plot using FinDer solution version %d and %s file' \
+                            %(fdsol['version'], dfile))
+                    pgadata = importFinDerDataFile(dfile, pgathresh=2.)
+            epihist = [(f['elon'], f['elat']) for f in fdsols]
+            pngfile = makeFinDerSolutionPlot(fdsol, pgadata, odir=odir, prefix='%s_'%auth, epihist=epihist)
+            # Keep the filename of the latest png
+            if fdsol['vtime'] == lastt:
+                pngname = pngfile
+                lfdsol = fdsol
+        tsfile = makeFinDerSolutionTimePlots(fdsols, odir=odir, prefix='%s_'%auth)
+        kmlname = makeFinDerSolutionKML(fdsols, pgadata, odir=odir, prefix='%s_'%auth)
+        # Emailing out the solution
+        # Perform solution checks for whether to proceed
+        if lfdsol['mag'] >= conf['email_maglimit'] and \
+                (UTCDateTime().now()-lfdsol['vtime']) <= conf['email_timelimit']:
+            if conf['email_sanitychk'] and len(fdsols) < 5 and \
+                fdsols[0]['vtime']-fdsols[0]['t0'] > 30.:
+                    logging.warning('Event failed sanity criteria for emailing: only one report with creation time longer than 30s after origin')
+            else:
+                subject, body = prepareFinDerHTML(fdsols, fdevent)
+                if False:
+                    fout = open('debug.html', 'w')
+                    fout.write(body)
+                    fout.close()
+                sendHTML(subject, body, [pngname, tsfile], kmlname)
     return
 
 
