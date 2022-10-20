@@ -395,6 +395,10 @@ def scxml2fdsol(xml):
     '''
 
     def getElem(obj, name1, name2):
+        if obj is None:
+            return "-9"
+        if obj.find('solution:%s'%name1, ns) is None:
+            return "-9"
         return obj.find('solution:%s'%name1, ns).find('solution:%s'%name2, ns).text.rstrip().lstrip()
 
     def getLatLon(lat, lon, azi, dist):
@@ -910,7 +914,8 @@ def runSeisComp(scevid = None):
         nonlocal num_fdsols
         try:
             xmlvalid, fdsols, fdevent, lastt = scxml2fdsol(xml) 
-        except:
+        except Exception as e:
+            logging.warning(e)
             xmlvalid = False
             fdsols = []
         retry_count = 0
@@ -964,10 +969,10 @@ def runSeisComp(scevid = None):
     bPreferredOnly = False
     xml = call_scxmldump()
     nfdsols, fdevent, lastt = wrap_scxml2fdsol(xml) 
-
-    for auth in set([x['author'] for x in nfdsols]):
+    
+    for auth in set([x['author'] for x in nfdsols if 'author' in x]):
         # filter fdsols based on author
-        fdsols = [x for x in nfdsols if x['author'] == auth]
+        fdsols = [x for x in nfdsols if 'author' in x and x['author'] == auth]
         lastt = max([f['vtime'] for f in fdsols])
 
         # Get PGA data from data_ files
