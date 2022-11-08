@@ -31,7 +31,7 @@ SEISCOMP_DATAMODEL_VERSION = SEISCOMP_DATAMODEL_XMLNS.split('/')[-1]
 
 class UDException(Exception): pass
 
-
+b_str = lambda s: s.encode('utf-8', 'replace')
 
 class Sink(ExportSink):
     def __init__(self, buf):
@@ -40,10 +40,13 @@ class Sink(ExportSink):
         self.written = 0
 
     def write(self, data): 
-        self.buf.write(data)
+        try:
+            self.buf.write(data)
+        except:
+            print('Unicode conversion required')
+            self.buf.write(b_str(data))
         self.written += len(data)
         return len(data)
-
 
 class UDConnection:
 
