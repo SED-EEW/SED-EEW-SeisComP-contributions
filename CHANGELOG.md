@@ -1,6 +1,6 @@
 # Change Log
 
-## Release 2022 ?
+## Release 2022 November 15 tag 5.1.1
 
 * scfinder:
 
@@ -8,7 +8,9 @@
 
   * Minor changes in compilation configuration for latest FinDer version. 
 
-## Release 2022 July 26 tag 4.9.2
+  * New plotting utility script 
+
+## Release 2022 July 26 tag 5.0.0
 
 * libs/eewamps (included in sceewenv, scfinder): 
 
