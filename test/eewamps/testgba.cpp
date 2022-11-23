@@ -6,6 +6,7 @@
 #include <seiscomp3/io/records/mseedrecord.h>
 #include <seiscomp/processing/eewamps/processor.h>
 #include <string>
+#include <functional>
 
 
 using namespace std;
@@ -95,7 +96,13 @@ class App : public Client::StreamApplication {
 			eewCfg.wantSignal[Processing::WaveformProcessor::MeterPerSecond] = true;
 
 			_eewProc.setConfiguration(eewCfg);
-			_eewProc.setGbACallback(boost::bind(&App::handleFilterBank, this, _1, _2, _3, _4, _5, _6));
+			_eewProc.setGbACallback(bind(&App::handleFilterBank, this,
+			                                  placeholders::_1,
+			                                  placeholders::_2,
+			                                  placeholders::_3,
+			                                  placeholders::_4,
+			                                  placeholders::_5,
+			                                  placeholders::_6));
 			_eewProc.setInventory(Client::Inventory::Instance()->inventory());
 
 			if ( !_eewProc.init(configuration()) )

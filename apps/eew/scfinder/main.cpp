@@ -51,6 +51,7 @@
 #include <seiscomp3/io/archive/xmlarchive.h>
 #include <seiscomp/processing/eewamps/processor.h>
 #include <seiscomp3/math/geo.h>
+#include <functional>
 
 #include "finder.h"
 #include "finite_fault.h"
@@ -348,7 +349,11 @@ class App : public Client::StreamApplication {
 			eewCfg.wantSignal[Processing::WaveformProcessor::Meter] = false;
 
 			_eewProc.setConfiguration(eewCfg);
-			_eewProc.setEnvelopeCallback(boost::bind(&App::handleEnvelope, this, _1, _2, _3, _4));
+			_eewProc.setEnvelopeCallback(bind(&App::handleEnvelope, this,
+														placeholders::_1,
+														placeholders::_2,
+														placeholders::_3,
+														placeholders::_4));
 			_eewProc.setInventory(Client::Inventory::Instance()->inventory());
 
 			if ( !_eewProc.init(configuration(), "") )

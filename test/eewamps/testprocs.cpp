@@ -34,6 +34,7 @@
 #include <seiscomp3/io/records/mseedrecord.h>
 #include <seiscomp/processing/eewamps/processor.h>
 #include <string>
+#include <functional>
 
 
 using namespace std;
@@ -101,7 +102,11 @@ class App : public Client::StreamApplication {
 			eewCfg.wantSignal[Processing::WaveformProcessor::Meter] = true;
 
 			_eewProc.setConfiguration(eewCfg);
-			_eewProc.setEnvelopeCallback(boost::bind(&App::handleEnvelope, this, _1, _2, _3, _4));
+			_eewProc.setEnvelopeCallback(bind(&App::handleEnvelope, this,
+			                                  placeholders::_1,
+			                                  placeholders::_2,
+			                                  placeholders::_3,
+			                                  placeholders::_4));
 			_eewProc.setInventory(Client::Inventory::Instance()->inventory());
 
 			if ( !_eewProc.init(configuration()) )
