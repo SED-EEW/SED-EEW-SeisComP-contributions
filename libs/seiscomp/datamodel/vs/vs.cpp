@@ -62,10 +62,9 @@ VS::VS(const VS& other)
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 VS::~VS() {
-	std::for_each(_envelopes.begin(), _envelopes.end(),
-	              std::compose1(std::bind2nd(std::mem_fun(&Envelope::setParent),
-	                                         (PublicObject*)NULL),
-	                            std::mem_fun_ref(&EnvelopePtr::get)));
+	for ( auto &envelope : _envelopes ) {
+		envelope->setParent(nullptr);
+	}
 }
 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 

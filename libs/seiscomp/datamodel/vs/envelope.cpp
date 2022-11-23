@@ -76,10 +76,9 @@ Envelope::Envelope(const std::string& publicID)
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 Envelope::~Envelope() {
-	std::for_each(_envelopeChannels.begin(), _envelopeChannels.end(),
-	              std::compose1(std::bind2nd(std::mem_fun(&EnvelopeChannel::setParent),
-	                                         (PublicObject*)NULL),
-	                            std::mem_fun_ref(&EnvelopeChannelPtr::get)));
+	for ( auto &envelopeChannel : _envelopeChannels ) {
+		envelopeChannel->setParent(nullptr);
+	}
 }
 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
