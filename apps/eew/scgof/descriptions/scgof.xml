@@ -7,7 +7,8 @@
 		<configuration>
 			<parameter name="bnaFile" type="list:string" default="@DATADIR@/bna/custom.bna">
 				<description>
-					The BNA file defining regions (closed polygons) for each filter.
+					The BNA file defining regions (closed polygons) for each filter. BNA file 
+                    might be defined and extended interactively in the map of `scolv` or `scmv`.
 				</description>
 			</parameter>
 			<parameter name="profiles" type="list:string" default="none">
