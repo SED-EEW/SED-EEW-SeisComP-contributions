@@ -84,9 +84,9 @@ class Listener(seiscomp.client.Application):
 
                 # Closed BNA polygon
                 try:
-                    tmpDic['polygon'] = self.configGetString( 'profile.' + name + '.polygon')
+                    tmpDic['polygon'] = self.configGetString( 'profile.' + name + '.region')
                 except:
-                    seiscomp.logging.error('Please fix this: Impossible to parse profile.%s.polygon' % name )
+                    seiscomp.logging.error('Please fix this: Impossible to parse profile.%s.region' % name )
                     sys.exit(-1) 
                 
                 # Check if the polygon is setup 

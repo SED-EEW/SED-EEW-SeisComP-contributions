@@ -1,1 +1,1 @@
-SUBDIRS(sceewenv scfinder sceewlog scvsmag)
+SUBDIRS(sceewenv scfinder sceewlog scvsmag scgof)

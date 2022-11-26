@@ -82,6 +82,7 @@ Table of Contents
    /apps/scvsmag
    /apps/scfinder
    /apps/sceewlog
+   /apps/scgof
    Support <http://github.com/SED-EEW/SED-EEW-SeisComP-contributions/discussions>
 
 References
