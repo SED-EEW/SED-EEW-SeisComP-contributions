@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env seiscomp-python
 """
 Copyright (C) by ETHZ/SED
 
@@ -195,6 +195,9 @@ class Listener(seiscomp.client.Application):
                 self.prioritiesInitConfig()
             self.activeMQinitConfig()
         
+        if self.assocMagActivate:
+            self.prioritiesInitConfig()
+        
         
         try:
             self.fcm = self.configGetBool("FCM.activate")
@@ -206,7 +209,6 @@ class Listener(seiscomp.client.Application):
         
         if self.fcm:
             self.profilesInitConfig()
-            self.hlChangeInitConfig()
             if self.assocMagActivate:
                 self.prioritiesInitConfig()
             self.fcmInitConfig()
@@ -289,6 +291,9 @@ class Listener(seiscomp.client.Application):
     
     #Firebase Cloud Messaging
     def fcmInitConfig(self):
+        #loading cities and language
+        self.locationAndLanguage()
+        
         try:
             self.fcmDataFile = self.configGetString("FCM.dataFile")
             seiscomp.logging.info('Data file that contains Authorization Key and topic is:\n %s\n' % self.fcmDataFile )
@@ -308,35 +313,42 @@ class Listener(seiscomp.client.Application):
                 seiscomp.logging.error("Not possible to instancing eews2fcm object")
                 seiscomp.logging.error("error: %s" % e)
                 sys.exit(-1)
+        
+        self.locationAndLanguage()
                 
     #cap headline change    
     def hlChangeInitConfig(self):
         
         try:
-            self.changeHeadline = self.configGetBool("ActiveMQ.changeHeadline")
+            self.changeHeadline = self.configGetBool("CAPheadlineChange")
         except:
             self.changeHeadline = False
-            seiscomp.logging.warning('ActiveMQ.changeHeadline config value missing or not a set a proper boolean value')
+            seiscomp.logging.warning('ChangeHeadline config value missing or not a set a proper boolean value')
             seiscomp.logging.warning('setting it to False')
             pass
         
+        if self.changeHeadline:
+            self.locationAndLanguage()
+        
+    #This is for CAP1.2 headline change or FCM
+    def locationAndLanguage(self):
         try:
-            self.hlLanguage = self.configGetString('ActiveMQ.hlLanguage')
+            self.hlLanguage = self.configGetString('AlertTextLanguage')
         except:
             self.hlLanguage = 'en-US'
-            seiscomp.logging.warning('ActiveMQ.hlLanguage config value missing or not a set a proper string value')
+            seiscomp.logging.warning('AlertTextLanguage config value missing or not a set a proper string value')
             seiscomp.logging.warning('setting it to en-US')
         
         if self.hlLanguage not in ['es-US','en-US'] and self.changeHeadline:
-            seiscomp.logging.error('ActiveMQ.hlLanguage must be "en-US" or "es-US"')
+            seiscomp.logging.error('AlertTextLanguage must be "en-US" or "es-US"')
             seiscomp.logging.error('Please, fix this')
             sys.exit(-1)
             
         try:
-            self.hlCitiesFile = self.configGetString('ActiveMQ.hlCitiesFile')
+            self.hlCitiesFile = self.configGetString('CitiesFile')
         except:
             if self.changeHeadline:
-                seiscomp.logging.error('ActiveMQ.hlCities must be a path to the file that contains cities and their location')
+                seiscomp.logging.error('CitiesFile must be a path to the file that contains cities and their location')
                 seiscomp.logging.error('please, check this and set the string value properly')
                 sys.exit(-1)
     
@@ -345,23 +357,23 @@ class Listener(seiscomp.client.Application):
         
         profiles = []
         try:
-            profiles = self.configGetStrings('ActiveMQ.profiles')
+            profiles = self.configGetStrings('RegFilters.profiles')
         except:
-            seiscomp.logging.error('Error while reading the ActiveMQ.profiles. Check it in detail' )
+            seiscomp.logging.error('Error while reading the Profiles in RegFilters. Check it in detail' )
             sys.exit(-1)
         
         #
         try:
-            self.bnaFile = self.configGetString('ActiveMQ.bnaFile')
+            self.bnaFile = self.configGetString('RegFilters.bnaFile')
         except:
-            seiscomp.logging.error('Error while reading the ActiveMQ.bnaFile' )
+            seiscomp.logging.error('Error while reading the RegFilters.bnaFile' )
             sys.exit(-1)
         
         if self.bnaFile.lower() != 'none':
             self.fs = seiscomp.geo.GeoFeatureSet()
             fo = self.fs.readBNAFile(self.bnaFile, None)
             if not fo:
-                seiscomp.logging.error('Not possible to open the bnaFile')
+                seiscomp.logging.error('Not possible to open the RegFilters.bnaFile')
                 sys.exit(-1)
         
         #Assoc Mag
@@ -374,45 +386,45 @@ class Listener(seiscomp.client.Application):
                 
                 #Mag Threshold
                 try:
-                    tmpDic['magThresh'] = self.configGetDouble( 'ActiveMQ.profile.' + prof + '.magThresh')
+                    tmpDic['magThresh'] = self.configGetDouble( 'RegFilters.profile.' + prof + '.magThresh')
                 except:
-                    seiscomp.logging.warning('not possible to parse: '+'ActiveMQ.profile.' + prof + '.magThresh' )
-                    seiscomp.logging.warning('setting '+'ActiveMQ.profile.' + prof + '.magThresh = 0.0')
+                    seiscomp.logging.warning('not possible to parse: '+'Profile.' + prof + '.magThresh' )
+                    seiscomp.logging.warning('setting '+'Profile.' + prof + '.magThresh = 0.0')
                     tmpDic['magThresh'] = 0.0
                     pass
                 
                 #Likelihood Threshold
                 try:
-                    tmpVal = self.configGetDouble( 'ActiveMQ.profile.' + prof + '.likelihoodThresh')
+                    tmpVal = self.configGetDouble( 'RegFilters.profile.' + prof + '.likelihoodThresh')
                 except:
-                    seiscomp.logging.warning('Not possible to parse: '+'ActiveMQ.profile.' + prof + '.likelihoodThresh' )
-                    seiscomp.logging.info('setting '+'ActiveMQ.profile.' + prof + '.likelihoodThresh = 0.0')
+                    seiscomp.logging.warning('Not possible to parse: '+'Profile.' + prof + '.likelihoodThresh' )
+                    seiscomp.logging.info('setting '+'RegFilters.profile.' + prof + '.likelihoodThresh = 0.0')
                     tmpDic['likelihoodThresh'] = 0.0
                     pass
                 
                 if tmpVal >= 0.0 and tmpVal <= 1:
                     tmpDic['likelihoodThresh'] = tmpVal
                 else:
-                    seiscomp.logging.error('Incorrect ActiveMQ.profile.' + prof + '.likelihoodThresh. It must be between 0.0 to 1.0' )
+                    seiscomp.logging.error('Incorrect RegFilters.profile.' + prof + '.likelihoodThresh. It must be between 0.0 to 1.0' )
                     sys.exit(-1)
                 
                 #Min depth
                 try:
                     
-                    tmpDic['minDepth'] = self.configGetDouble( 'ActiveMQ.profile.' + prof + '.minDepth')
+                    tmpDic['minDepth'] = self.configGetDouble( 'RegFilters.profile.' + prof + '.minDepth')
                 except:
-                    seiscomp.logging.warning('not possible to parse: '+'ActiveMQ.profile.' + prof + '.minDepth' )
-                    seiscomp.logging.warning('setting '+'ActiveMQ.profile.' + prof + '.minDepth = 0.0')
+                    seiscomp.logging.warning('not possible to parse: '+'RegFilters.profile.' + prof + '.minDepth' )
+                    seiscomp.logging.warning('setting '+'RegFilters.profile.' + prof + '.minDepth = 0.0')
                     tmpDic['minDepth'] = 0.0
                     pass
                 
                 #Max depth
                 try:
                     
-                    tmpDic['maxDepth'] = self.configGetDouble( 'ActiveMQ.profile.' + prof + '.maxDepth')
+                    tmpDic['maxDepth'] = self.configGetDouble( 'RegFilters.profile.' + prof + '.maxDepth')
                 except:
-                    seiscomp.logging.warning('not possible to parse: '+'ActiveMQ.profile.' + prof + '.maxDepth' )
-                    seiscomp.logging.warning('setting '+'ActiveMQ.profile.' + prof + '.maxDepth = 700.0')
+                    seiscomp.logging.warning('not possible to parse: '+'RegFilters.profile.' + prof + '.maxDepth' )
+                    seiscomp.logging.warning('setting '+'RegFilters.profile.' + prof + '.maxDepth = 700.0')
                     tmpDic['maxDepth'] = 700.0
                     pass
                 
@@ -422,18 +434,18 @@ class Listener(seiscomp.client.Application):
                     
                 #max time - seconds
                 try:
-                    tmpDic['maxTime'] = self.configGetInt( 'ActiveMQ.profile.' + prof + '.maxTime')
+                    tmpDic['maxTime'] = self.configGetInt( 'RegFilters.profile.' + prof + '.maxTime')
                 except:
-                    seiscomp.logging.warning('not possible to parse: '+'ActiveMQ.profile.' + prof + '.maxTime' )
-                    seiscomp.logging.warning('setting '+'ActiveMQ.profile.' + prof + '.maxTime = -1')
+                    seiscomp.logging.warning('not possible to parse: '+'PRegFilters.profile.' + prof + '.maxTime' )
+                    seiscomp.logging.warning('setting '+'PRegFilters.profile.' + prof + '.maxTime = -1')
                     tmpDic['maxTime'] = -1
                     pass
                 
                 #BNA closed polygon
                 try:
-                    tmpDic['bnaPolygon'] = self.configGetString( 'ActiveMQ.profile.' + prof + '.bnaPolygonName')
+                    tmpDic['bnaPolygon'] = self.configGetString( 'RegFilters.profile.' + prof + '.bnaPolygonName')
                 except:
-                    seiscomp.logging.error('not possible to parse: '+'ActiveMQ.profile.' + prof + '.bnaPolygonName' )
+                    seiscomp.logging.error('not possible to parse: '+'RegFilters.profile.' + prof + '.bnaPolygonName' )
                     seiscomp.logging.error('please check in detail')                    
                     sys.exit(-1) #TODO: another clean way to exit?
                 
@@ -471,7 +483,7 @@ class Listener(seiscomp.client.Application):
                 self.profilesDic.append(tmpDic)
                 
         else:
-            seiscomp.logging.warning('No ActiveMQ message filtering. All the configured magnitudes will be sent')
+            seiscomp.logging.warning('No RegFilters. All the configured magnitudes will be sent')
             pass
 
     
