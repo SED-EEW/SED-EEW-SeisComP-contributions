@@ -51,10 +51,11 @@
 #include <seiscomp3/io/archive/xmlarchive.h>
 #include <seiscomp/processing/eewamps/processor.h>
 #include <seiscomp3/math/geo.h>
+#include <functional>
 
 #include "finder.h"
 #include "finite_fault.h"
-
+#include "finder_util.h"
 
 #define USE_FINDER
 //#define LOG_AMPS
@@ -217,6 +218,8 @@ class App : public Client::StreamApplication {
 			_playbackMode = false;
 
 			_bufferLength = Core::TimeSpan(120,0);
+			_bufDefaultLen = Core::TimeSpan(60,0);
+			_bufVarLen = Core::TimeSpan(60,0);
 
 			// Default Finder call interval is 1s
 			_finderProcessCallInterval.set(1);
@@ -317,6 +320,12 @@ class App : public Client::StreamApplication {
 			catch ( ... ) {}
 
 			try {
+				_bufDefaultLen = configGetDouble("finder.defaultFinDerEnvelopeLength");
+				_bufVarLen = configGetDouble("finder.defaultFinDerEnvelopeLength");
+			}
+			catch ( ... ) {}
+
+			try {
 				_finderProcessCallInterval = configGetDouble("finder.processInterval");
 			}
 			catch ( ... ) {}
@@ -340,7 +349,11 @@ class App : public Client::StreamApplication {
 			eewCfg.wantSignal[Processing::WaveformProcessor::Meter] = false;
 
 			_eewProc.setConfiguration(eewCfg);
-			_eewProc.setEnvelopeCallback(boost::bind(&App::handleEnvelope, this, _1, _2, _3, _4));
+			_eewProc.setEnvelopeCallback(bind(&App::handleEnvelope, this,
+														placeholders::_1,
+														placeholders::_2,
+														placeholders::_3,
+														placeholders::_4));
 			_eewProc.setInventory(Client::Inventory::Instance()->inventory());
 
 			if ( !_eewProc.init(configuration(), "") )
@@ -553,7 +566,8 @@ class App : public Client::StreamApplication {
 			}
 
 			// The minimum time for a valid amplitude
-			Core::Time minAmplTime = _referenceTime - _bufferLength;
+			//Core::Time minAmplTime = _referenceTime - _bufferLength;
+			Core::Time minAmplTime = _referenceTime - _bufVarLen;
 
 			#if defined(LOG_AMPS)
 			std::cout << "+ " << id << "." << proc->waveformID().channelCode() << "   " << _referenceTime.iso() << "   " << minAmplTime.iso() << "   " << timestamp.iso() << "   " << value << std::endl;
@@ -703,6 +717,7 @@ class App : public Client::StreamApplication {
 
 			#ifdef USE_FINDER
 			Finder_List::iterator fit;
+			double maxRupLen = 0.;
 			for ( fit = _finderList.begin(); fit != _finderList.end(); /* incrementing below */) {
 				// some method for getting the timestamp associated with the data
 				// event_continue == false when we want to stop processing
@@ -711,6 +726,9 @@ class App : public Client::StreamApplication {
 				}
 				catch ( FiniteFault::Error &e ) {
 					SEISCOMP_ERROR("Exception from FinDer::process: %s", e.what());
+				}
+				if ((*fit)->get_rupture_length() > maxRupLen) {
+					maxRupLen = (*fit)->get_rupture_length();
 				}
 
 				if ( (*fit)->get_finder_flags().get_message() &&
@@ -725,6 +743,20 @@ class App : public Client::StreamApplication {
 				}
 				else
 					++fit;
+			}
+			if (_finderList.size() == 0) {
+				if (_bufVarLen != _bufDefaultLen) {
+					SEISCOMP_DEBUG("Resetting data window to %ld", _bufDefaultLen.seconds());
+				}
+				_bufVarLen = _bufDefaultLen;
+			} else {
+				double rup2time = 1.5;
+				if (maxRupLen > _bufVarLen * rup2time) {
+					double tmp = maxRupLen / rup2time;
+					_bufVarLen = min((long)tmp, _bufferLength.seconds());
+					SEISCOMP_DEBUG("Increasing data window to %ld because of active FinDer event rupture length %.1f", 
+					  _bufVarLen.seconds(), maxRupLen);
+				}
 			}
 			#else
 			std::cerr << "ProcessData" << std::endl;
@@ -1012,6 +1044,8 @@ class App : public Client::StreamApplication {
 		std::string                    _finderConfig;
 
 		Core::TimeSpan                 _bufferLength;
+		Core::TimeSpan                 _bufDefaultLen;
+		Core::TimeSpan                 _bufVarLen;
 
 		Processing::EEWAmps::Processor _eewProc;
 		CreationInfo                   _creationInfo;

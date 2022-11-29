@@ -582,7 +582,14 @@ void VsMagnitude::handleEvent(Event *event) {
 		// set time to track how long it takes to estimate the magnitude
 		// and how long it took for the origin to arrive
 		vsevent->originArrivalTime = Core::Time::GMT();
-		vsevent->originCreationTime = org->creationInfo().creationTime();
+		
+		try {
+			vsevent->originCreationTime = org->creationInfo().creationTime();
+		}
+		catch ( ... ) {
+			vsevent->originCreationTime = Core::Time::GMT();
+			SEISCOMP_INFO("origin has no creationInfo or creationTime, setting originCreationTime to current time.");
+		}
 
 		// check whether event has been published already
 		EventIDBuffer::iterator cev = _publishedEvents.find(event->publicID());

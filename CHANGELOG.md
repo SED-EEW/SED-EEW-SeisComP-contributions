@@ -1,16 +1,50 @@
 # Change Log
 
-## Release 2022 ?
+## Release 2022 November 15 tag 5.1.1
 
-* libs/eewamps, sceewenv, scfinder: 
+* scfinder:
 
-  * Ignore envelopes with delays higher than 30s (configurable)
+  * Dynamic window length for envelope maxima.
 
-  * Average delay logged (info channel) every minutes
+  * Minor changes in compilation configuration for latest FinDer version. 
 
-* scvsmag
+  * New plotting utility script 
 
-  * Fix appname in log files
+## Release 2022 July 26 tag 5.0.0
+
+* libs/eewamps (included in sceewenv, scfinder): 
+
+  * Configurable envelopes delay threshold to ignore late envelope values.
+
+  * Average delay logged every minutes (information channel).
+
+* scvsmag:
+
+  * Fix appname in log files.
+
+* sceewlog:
+
+  * Configurable selection of the magnitude preferred for EEW based on magnitude 
+    attributes (available options are magnitude value, likelihood, authors, and number 
+    of stations).
+
+  * Configurable alerting profiles with geographical, magnitude, likelihood, delay and 
+    depth filters. 
+
+  * New optional magnitude comment with EEW usage status (1: used for initial EEW, 2+: 
+    used for updating EEW).
+  
+  * New optional output format in CAP1.2.
+  
+  * New optional interface for Firebase Cloud Messaging.
+  
+  * New utility sceewdump to extract EEW results.
+
+* Doc:
+
+  * Corrections and clarification.
+
+  * Automatic build in seiscomp.de.
 
 ## Release 2022 Fev 2 tag 4.8.3
 
