@@ -446,8 +446,8 @@ class Listener(seiscomp.client.Application):
                     tmpDic['bnaFeature'] = False
                 else:
                     try:
-                        #check if the closed polygon exists and if they are closed ones                   
-                        tmpList = list( filter ( lambda x : x.name() == tmpDic['bnaPolygon'] and x.closedPolygon() , self.fs.features() ) )
+                        #check if the closed polygon exists and if they are closed ones    
+                        tmpList = [self.fs.features()[i]  for i,x in enumerate(self.fs.features()) if self.fs.features()[i].name()==tmpDic['bnaPolygon'] and self.fs.features()[i].closedPolygon()]               
                         
                         if len(tmpList) == 0:
                             seiscomp.logging.error('Closed polygon: '+tmpDic['bnaPolygon']+' does not not exist in '+ self.bnaFile )
@@ -1232,7 +1232,7 @@ class Listener(seiscomp.client.Application):
                     noSend = True
             
             if ft['bnaFeature']:
-                tmpList = list( filter ( lambda x : x.name() == ft['bnaPolygon'], self.fs.features() ) )
+                tmpList = [self.fs.features()[i]  for i,x in enumerate(self.fs.features()) if self.fs.features()[i].name()==ft['bnaPolygon']]
                 if len(tmpList) > 0:
                     if not tmpList[0].contains( seiscomp.geo.GeoCoordinate(float('%.3f' % latVal),float('%.3f' %lonVal)) ):
                         seiscomp.logging.debug('lat: %s and lon: %s are not within polygon: %s' \
