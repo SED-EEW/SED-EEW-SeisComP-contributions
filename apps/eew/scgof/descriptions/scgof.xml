@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<seiscomp>
+	<module name="scgof" category="EEW" author="Swiss Seismological Service">
+		<description>
+			Geographic origin filter.
+		</description>
+		<configuration>
+			<parameter name="bnaFile" type="list:string" default="@DATADIR@/bna/custom.bna">
+				<description>
+					The BNA file defining regions (closed polygons) for each filter. BNA file 
+                    might be defined and extended interactively in the map of `scolv` or `scmv`.
+				</description>
+			</parameter>
+			<parameter name="profiles" type="list:string" default="none">
+				<description>
+					The list of origin filters.
+				</description>
+			</parameter>
+            <group name="profile">
+                <description>
+                    Parameters of each geographic origin filter.
+                </description>
+                <struct type="Geographic filter profiles" link = "profiles">
+                    <parameter name="author" type="string" default="none">
+                        <description>
+                        Origin creation author to allow origins for. Only the author name is 
+                        considered (not the hostname).
+                        </description>
+                    </parameter>
+                    <parameter name="region" type="string" default="none">
+                        <description>
+                        Region (closed polygon) where to allow origins. All regions should be 
+                        defined in "bnaFile".
+                        </description>
+                    </parameter>
+				</struct>
+			</group>
+        </configuration>
+    </module>
+</seiscomp>
