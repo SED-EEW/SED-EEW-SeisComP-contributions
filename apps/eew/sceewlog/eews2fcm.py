@@ -35,7 +35,7 @@ https://fcm.googleapis.com/fcm/send'''
         self.dic = self.hlalert.csvFile2dic(self.hlalert.dataFile)
         self.language = language
         self.agency = ''
-        self.ditance = 0
+        self.distance = 0
     
     def readFcmDataFile(self):
         if os.path.exists( self.fcmDataFile ):

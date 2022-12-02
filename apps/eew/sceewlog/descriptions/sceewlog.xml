@@ -163,7 +163,7 @@
 					Profile names for regionalized alert filter. Use comma for more than one profile.
 					</description>
 				</parameter>
-				<parameter name="bnaFile" type="string" default="@ROOTDIR@/share/sceewlog/closedpolygons.bna">
+				<parameter name="bnaFile" type="string" default="none">
 					<description>
 					Path of BNA file that contains closed polygons which is used for regionalized filters.
 					</description>
