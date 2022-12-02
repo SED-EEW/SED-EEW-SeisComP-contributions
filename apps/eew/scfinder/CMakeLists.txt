@@ -21,6 +21,7 @@ IF(FinDer_FOUND)
 
 	FILE(GLOB descs "${CMAKE_CURRENT_SOURCE_DIR}/descriptions/*.xml")
 	INSTALL(FILES ${descs} DESTINATION ${SC3_PACKAGE_APP_DESC_DIR})
+
 ELSE(FinDer_FOUND)
 	MESSAGE(STATUS "libFinder not found, disable compilation of scfinder")
 ENDIF(FinDer_FOUND)
