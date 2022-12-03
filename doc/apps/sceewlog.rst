@@ -96,21 +96,21 @@ provided by :ref:`scfinder`.
 Regionalized Filters
 ====================
 
-To filter alerts to be sent out through ActiveMQ, it is necessary to set 
-profiles on ActiveMQ section. Since this is using regions defined as closed 
+To filter alerts to be sent out through ActiveMQ or FCM, it is necessary to set 
+profiles on RegFilters section. Since this is using regions defined as closed 
 polygons, then the first step is to provide a BNA file that contains the 
 polygons. If the user does not provide a BNA file, then the other profile 
 parameters will be evaluated globally.
 
 .. code-block:: sh
 
-   activeMQ.bnaFile = /opt/seiscomp3/share/sceewlog/closedpolygons.bna
+   RegFilters.bnaFile = /opt/seiscomp3/share/sceewlog/closedpolygons.bna
    
 Then profile names have to be set. Two profile examples are provided below.
 
 .. code-block:: sh
 
-   activeMQ.profiles = global, America
+   RegFilters.profiles = global, America
    
 The **global** profile is not configured with polygon since this spans on the 
 entire world. The **America** profile uses the "America" closed polygon defined 
@@ -118,17 +118,17 @@ in :confval:`activeMQ.bnaFile`.
 
 .. code-block:: sh
 
-   activeMQ.profile.global.bnaPolygonName = none
-   activeMQ.profile.America.bnaPolygonName = America
+   RegFilters.profile.global.bnaPolygonName = none
+   RegFilters.profile.America.bnaPolygonName = America
 
 The magnitude and likelihood threshold values might be:
 
 .. code-block:: sh
 
-   activeMQ.profile.global.magThresh = 6.0
-   activeMQ.profile.global.likelihoodThresh = 0.5
-   activeMQ.profile.America.magThresh = 5.0
-   activeMQ.profile.America.likelihoodThresh = 0.3
+   RegFilters.profile.global.magThresh = 6.0
+   RegFilters.profile.global.likelihoodThresh = 0.5
+   RegFilters.profile.America.magThresh = 5.0
+   RegFilters.profile.America.likelihoodThresh = 0.3
 
 There might also be a depth filter for each profile. The following parameters 
 might be used to configure the **global** profile with shallow events, and 
@@ -136,10 +136,10 @@ the **America** profile with events from 0 to 100 km deep.
 
 .. code-block:: sh
 
-   activeMQ.profile.global.minDepth = 0
-   activeMQ.profile.global.maxDepth = 33
-   activeMQ.profile.America.minDepth = 0
-   activeMQ.profile.America.maxDepth = 100
+   RegFilters.profile.global.minDepth = 0
+   RegFilters.profile.global.maxDepth = 33
+   RegFilters.profile.America.minDepth = 0
+   RegFilters.profile.America.maxDepth = 100
 
 Finally, to avoid sending alerts for events outside of the network of interest 
 for EEW applications, a :confval:`maxTime` can be set. The :confval:`maxTime` 
@@ -152,8 +152,8 @@ their own default thresholds superseding :confval:`maxTime` defined in
 
 .. code-block:: sh
 
-   activeMQ.profile.global.maxTime = -1
-   activeMQ.profile.America.maxTime = 60
+   RegFilters.profile.global.maxTime = -1
+   RegFilters.profile.America.maxTime = 60
 
 
 Magnitude Association
@@ -217,8 +217,7 @@ In this example for the mag type *Mfd* is necessary to at least have 7 stations 
 Headline Change for CAP1.2 XML alerts
 =====================================
 
-The converted CAP1.2 xml alert messages contains a headline. The default 
-headline is: 
+The converted CAP1.2 xml alert messages contain a headline. The default headline is: 
 
 .. code-block:: sh
    
@@ -242,20 +241,20 @@ The alternative format can be enable as follows:
 
 .. code-block:: sh
    
-   ActiveMQ.changeHeadline = true
+   CAPheadlineChange = true
 
 The alternative format requires to specify the language and the corresponding 
-file listing the world cities :confval:`ActiveMQ.hlCitiesFileCSV`. The language
+file listing the world cities :confval:`CitiesFile`. The language
 can be selected as follows:
 
 .. code-block:: sh
   
    #Uncomment the next line to select English
-   ActiveMQ.hlLanguage = en-US
+   AlertTextLanguage = en-US
    #Uncomment the next line to select Spanish
-   #ActiveMQ.hlLanguage = es-US
+   #AlertTextLanguage = es-US
 
-The file listing the world cities :confval:`ActiveMQ.hlCitiesFileCSV` must have 
+The file listing the world cities :confval:`CitiesFile` must have 
 the following format:
 
 .. code-block:: sh
@@ -269,7 +268,7 @@ the following format:
    Shanghai,China,121.4667,31.1667
    Sao Paulo,Brazil,-46.6339,-23.5504
 
-Both an english and a spanish verion are provided in "@DATADIR@/sceewlog/world_cities_english.csv"
+Both an english and a spanish version are provided in "@DATADIR@/sceewlog/world_cities_english.csv"
 and "@DATADIR@/sceewlog/world_cities_spanish.csv".
 
 

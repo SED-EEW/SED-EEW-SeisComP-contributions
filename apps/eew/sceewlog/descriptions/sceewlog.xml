@@ -22,6 +22,11 @@
 				Save a comment for each EEW alert sent out through ActiveMQ or FCM. The comment is part of the Magnitude object and stored on the Comment table of the DB.
 				</description>
 			</parameter>
+			<parameter name="CitiesFile" type="string" default="@ROOTDIR@/share/sceewlog/world_cities_english.csv">
+				<description>
+				CSV file that contains the location of cities. It is mandatory when changeHeadline or FCM is true.
+				</description>
+			</parameter>
 			<group name="email">
 				<parameter name="activate" type="boolean" default="true">
 					<description>
@@ -151,21 +156,23 @@
 					ActiveMQ message format; can be either 'cap1.2', 'qml1.2-rt', 'shakealert', or 'sc3ml'.
 					</description>
 				</parameter>
-				<parameter name="bnaFile" type="string" default="@ROOTDIR@/share/sceewlog/closedpolygons.bna">
-					<description>
-					Path of BNA file that contains closed polygons.
-					</description>
-				</parameter>
+			</group>
+			<group name="RegFilters">
 				<parameter name="profiles" type="string" default="global">
 					<description>
 					Profile names for regionalized alert filter. Use comma for more than one profile.
+					</description>
+				</parameter>
+				<parameter name="bnaFile" type="string" default="none">
+					<description>
+					Path of BNA file that contains closed polygons which is used for regionalized filters.
 					</description>
 				</parameter>
 				<group name="profile">
 					<description>
 						Profiles containing the profile-specific alert filtering parameters.
 					</description>
-					<struct type="Alert profile" link = "ActiveMQ.profiles">
+					<struct type="Alert Profile" link = "RegFilters.profiles">
 						<parameter name="magThresh" type="double" default="0.0">
 							<description>
 							Magnitude threshold; can be any float value.
@@ -200,22 +207,17 @@
 						</parameter>
 					</struct>
 				</group>
-				<parameter name="changeHeadline" type="boolean" default="false">
-					<description>
-					Change the headline in the cap1.2 XML alert.
-					</description>
-				</parameter>
-				<parameter name="hlLanguage" type="string" default="en-US">
-					<description>
-					Language for the string text on headline (cap1.2 XML).
-					</description>
-				</parameter>
-				<parameter name="hlCitiesFile" type="string" default="@ROOTDIR@/share/sceewlog/world_cities_english.csv">
-					<description>
-					CSV file that contains the location of cities. It is mandatory when changeHeadline is true.
-					</description>
-				</parameter>
 			</group>
+			<parameter name="CAPheadlineChange" type="boolean" default="false">
+				<description>
+				Change the headline in the cap1.2 XML alert.
+				</description>
+			</parameter>
+			<parameter name="AlertTextLanguage" type="string" default="en-US">
+				<description>
+				Language for the string text on headline (cap1.2 XML) or FCM near location.
+				</description>
+			</parameter>
 			<group name="magAssociation">
 				<parameter name="activate" type="boolean" default="false">
 					<description>

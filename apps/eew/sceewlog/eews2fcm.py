@@ -19,7 +19,7 @@ class eews2fcm:
         #this is the long string template for 
         self.dataTemplate = '''curl -s -H "Content-type: application/json" \
  -H "Authorization:key=AUTHORIZATION_KEY"  \
--X POST -d '{ "to": "/topics/TOPIC","data":{"title":"ATTAC Alerta de Terremotos","body":"Mag: MAG, LOCATION","message":"EVTID;MAG;DEPTH;LAT;LON;LIKELIHOOD;ORTIME;TIMENOW;NULL;AGENCY;STATUS;TYPE;LOCATION;ORID;MAGID;STAMAGNUM"},"priority":"high","ttl":"5s"}' \
+-X POST -d '{ "to": "/topics/TOPIC","data":{"title":"ATTAC Alerta de Terremotos","body":"Mag: MAG, LOCATION","message":"EVTID;MAG;DEPTH;LAT;LON;LIKELIHOOD;ORTIME;TIMENOW;NULL;AGENCY;STATUS;TYPE;LOCATION;ORID;MAGID;STAMAGNUM;TIME_NOWMS;DISTANCE"},"priority":"high","time_to_live":60}' \
 https://fcm.googleapis.com/fcm/send'''
 
         self.notiTemplate = '''curl -s -H "Content-type: application/json" \
@@ -35,6 +35,7 @@ https://fcm.googleapis.com/fcm/send'''
         self.dic = self.hlalert.csvFile2dic(self.hlalert.dataFile)
         self.language = language
         self.agency = ''
+        self.distance = 0
     
     def readFcmDataFile(self):
         if os.path.exists( self.fcmDataFile ):
@@ -77,6 +78,7 @@ https://fcm.googleapis.com/fcm/send'''
             depth = origin.depth().value()
             orTime = int(origin.time().value().seconds())
             now = int(time.time()) #UTC
+            nowms = int(time.time_ns()/1000000)
             likelihood = "0.0"
             numarrivals = 0
             numStaMag = 0
@@ -150,6 +152,10 @@ https://fcm.googleapis.com/fcm/send'''
         
         tmpData = tmpData.replace("STAMAGNUM", str(numStaMag) )
         
+        tmpData = tmpData.replace("TIME_NOWMS",str(nowms))
+        
+        tmpData = tmpData.replace("DISTANCE", str(self.distance) )
+        
         try:
             output = subprocess.Popen(tmpData,stdout = subprocess.PIPE, stderr = subprocess.STDOUT, shell = True )
             #os.system(tmpData)
@@ -170,6 +176,7 @@ https://fcm.googleapis.com/fcm/send'''
         epi = {'lat': epiLat,'lon': epiLon}
         np = self.hlalert.findNearestPlace(self.dic, epi)
         dis = self.hlalert.distance([ float(np['lat']), epi['lat'], float(np['lon']), epi['lon'] ] )
+        self.distance = dis
         azVal = self.hlalert.azimuth([ float(np['lat']), epi['lat'], float(np['lon']), epi['lon'] ] )
         azTextSp = self.hlalert.direction(azVal, 'es-US')
         azTextEn = self.hlalert.direction(azVal, 'en-US')
