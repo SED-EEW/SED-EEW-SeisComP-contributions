@@ -2,7 +2,7 @@
 <seiscomp>
 	<module name="sceewlog" category="EEW" author="Swiss Seismological Service">
 		<description>
-			Logs EEW magnitude messages via file, email, and ActiveMQ.
+			Logs EEW magnitude messages via file, email, ActiveMQ and FCM.
 		</description>
 		<configuration>
 			<parameter name="magTypes" type="list:string" default="MVS, Mfd">
@@ -17,14 +17,15 @@
 					received for the same event.
 				</description>
 			</parameter>
-			<parameter name="eewStatus" type="boolean" default="true">
-				<description>
-				Save a comment for each EEW alert sent out through ActiveMQ or FCM. The comment is part of the Magnitude object and stored on the Comment table of the DB.
-				</description>
-			</parameter>
+			
 			<parameter name="CitiesFile" type="string" default="@ROOTDIR@/share/sceewlog/world_cities_english.csv">
 				<description>
 				CSV file that contains the location of cities. It is mandatory when changeHeadline or FCM is true.
+				</description>
+			</parameter>
+			<parameter name="EEW.comment" type="boolean" default="false">
+				<description>
+				Save a comment for each EEW alert sent out through ActiveMQ or FCM. The comment is part of the Magnitude object and stored on the Comment table of the SC-DB.
 				</description>
 			</parameter>
 			<group name="email">

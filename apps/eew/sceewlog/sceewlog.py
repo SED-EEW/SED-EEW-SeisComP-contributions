@@ -214,10 +214,10 @@ class Listener(seiscomp.client.Application):
             self.fcmInitConfig()
             
         try:
-            self.eewComment = self.configGetBool("eewStatus")
+            self.eewComment = self.configGetBool("EEW.comment")
         except Exception as e:
-            seiscomp.logging.warning('Not possible to read EEW.comment. Setting this to True')
-            self.eewComment = True
+            seiscomp.logging.warning('Not possible to read EEW.comment. Setting this to False')
+            self.eewComment = False
 
         try:
             self.storeReport = self.configGetBool("report.activate")
