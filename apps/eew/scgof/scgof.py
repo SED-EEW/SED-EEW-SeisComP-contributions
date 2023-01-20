@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import sys, traceback
-import seiscomp.client, seiscomp.core
+import seiscomp.client, seiscomp.core, seiscomp.system
 import seiscomp.config, seiscomp.datamodel, seiscomp.system, seiscomp.utils
 from seiscomp.geo import GeoFeatureSet, GeoCoordinate
 
@@ -55,6 +55,7 @@ class Listener(seiscomp.client.Application):
             self.bnaFile = self.configGetString("bnaFile")
         except Exception as e:
             pass
+        self.bnaFile = seiscomp.system.Environment.Instance().absolutePath(self.bnaFile)
 
         if self.bnaFile.lower() != 'none':
             self.fs = GeoFeatureSet()
@@ -98,14 +99,15 @@ class Listener(seiscomp.client.Application):
                 
                 # Check if the polygon exists and if it is closed
                 try:                   
-                    tmpList = list( filter ( lambda x : x.name() == tmpDic['polygon'] and x.closedPolygon() , self.fs.features() ) )        
+                    tmpList = [self.fs.features()[i] for i in range(len(self.fs.features()))]
+                    tmpList = list( filter ( lambda x : x.name() == tmpDic['polygon'] and x.closedPolygon() , tmpList ) )    
                 except Exception as e:
                     seiscomp.logging.error('There was an error while checking the BNA file')
                     seiscomp.logging.error( repr(e) )
                     sys.exit(-1)
                 
                 if len(tmpList) == 0:
-                    seiscomp.logging.error('Please fix this: Polygon',tmpDic['polygon'],' does not not exist or is not closed in ',self.bnaFile )
+                    seiscomp.logging.error('Please fix this: Polygon %s does not not exist or is not closed in %s'%(tmpDic['polygon'],self.bnaFile))
                     sys.exit(-1)
                 elif len(tmpList) > 1:
                     seiscomp.logging.warning('Please fix this: There are several polygons with the name "%s"' % tmpDic['polygon'])
