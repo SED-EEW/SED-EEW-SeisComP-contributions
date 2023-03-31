@@ -107,6 +107,22 @@
 					</description>
 				</parameter>
 			</group>
+			<group name="debug">
+				<parameter name="maxDelay" type="double" default="3" unit="s">
+					<description>
+						Sets the maximum absolute value of packet delay before issuing a warning. That 
+						parameter does not configure buffers as such but only a threshold (in seconds 
+						with fractional part) to warn the user that something is not real-time anymore. 
+						The default is 3s.
+					</description>
+				</parameter>
+				<parameter name="skipDataOlderThan" type="double" default="180" unit="s">
+					<description>
+						Sets the maximum absolute value of packet delay before skipping data packet. The 
+						default is 60s.
+					</description>
+				</parameter>
+			</group>
 		</configuration>
 		<command-line>
 			<group name="Generic">
