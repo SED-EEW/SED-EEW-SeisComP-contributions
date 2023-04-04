@@ -342,6 +342,16 @@ class App : public Client::StreamApplication {
 			eewCfg.dumpRecords = commandline().hasOption("dump");
 
 			eewCfg.vsfndr.enable = true;
+			eewCfg.maxDelay = 3.0;
+			eewCfg.skipDataOlderThan = 180.0;
+			try {
+				eewCfg.maxDelay = configGetDouble("debug.maxDelay");
+			}
+			catch ( ... ) {}
+			try {
+				eewCfg.skipDataOlderThan = configGetDouble("debug.skipDataOlderThan");
+			}
+			catch ( ... ) {}
 
 			// Convert to all signal units
 			eewCfg.wantSignal[Processing::WaveformProcessor::MeterPerSecondSquared] = true;
