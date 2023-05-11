@@ -4,7 +4,7 @@
 
 # Description
 
-The *sed-addons* package contains SeisComP-based software developed by the ETHZ-SED seismic network team that has not been integrated into the main SeisComP distribution. Software includes the modules
+The *SED-EEW-SeisComP-contributions* package contains SeisComP-based software developed by the ETHZ-SED seismic network team that has not been integrated into the main SeisComP distribution. Software includes the modules
 
   - **scfinder** which matches emerging patterns of strong motion from the seismic network with most likely seismic sources to predict
     location and size of finite faults, and from this, infers event magnitude and expected ground motion patterns.
@@ -12,37 +12,43 @@ The *sed-addons* package contains SeisComP-based software developed by the ETHZ-
 
 # Requirements
 
-To run the *sed-addons* you need
+To run the *SED-EEW-SeisComP-contributions* you need
 
   - [SeisComP](https://www.seiscomp.de/) (version 3 or higher).
-  - The [FinDer](https://gitlab.seismo.ethz.ch/SED-EEW/FinDer) library, if you also intend to run the **scfinder** module
+
+Additionally, if you also intend to run the **scfinder** module, you need:
+
+  - The [FinDer](https://github.com/SED-EEW/FinDer) library
+  - The [SED SeisComP contributions](https://github.com/swiss-seismological-service/sed-SeisComP-contributions) data model extension
 
 Please see the SeisComP [README](https://github.com/SeisComP/seiscomp/blob/master/README.md) and FinDer
 [README](https://gitlab.seismo.ethz.ch/SED-EEW/FinDer/-/blob/master/README.md) for additional dependencies.
 
-# Installing *sed-addons*
-For installation, the *sed-addons* sources have to be added as a SeisComP submodule and compiled together with SeisComP.
+# Installation
+For installation, the *SED-EEW-SeisComP-contributions* sources have to be added as a SeisComP submodule and compiled together with SeisComP.
 
 ## Using the latest SeisComP version
 
-To compile the *sed-addons* modules with the latest version of SeisComP (currently 4.2.0), run
+Following SeisComP's [README](https://github.com/SeisComP/seiscomp/blob/master/README.md) to compile the *SED-EEW-SeisComP-contributions* modules with the latest version of SeisComP, checkout all
+required repositories and add *SED-EEW-SeisComP-contributions*:
 
 ```bash
-git clone https://github.com/SeisComP/seiscomp.git .
-```
-
-Following SeisComP's [README](https://github.com/SeisComP/seiscomp/blob/master/README.md) checkout all
-default submodules (see the step "Checkout the repositories"). Then, add *sed-addons* as a submodule
-
-```bash
-cd seiscomp
-git submodule add -f https://github.com/SED-EEW/SED-EEW-SeisComP-contributions src/extras/sed-addons
+# This is experimental
+TAG=master
+# But that is more safe:
+TAG=5.4.0 
+git clone --branch $TAG https://github.com/SeisComP/seiscomp seiscomp
+git clone --branch $TAG https://github.com/SeisComP/common seiscomp/src/base/common
+git clone --branch $TAG https://github.com/SeisComP/main seiscomp/src/base/main
+# You might add more repo...
+git clone --branch $TAG https://github.com/swiss-seismological-service/sed-SeisComP-contributions seiscomp/src/base/sed-contrib
+git clone --branch latest https://github.com/SED-EEW/SED-EEW-SeisComP-contributions seiscomp/src/extras/sed-addons
 ```
 
 If you have already performed the previous steps and just want to update to latest version, run
 
 ```bash
-cd <Path to your copy of>/seiscomp
+cd seiscomp
 git pull
 cd src/extras/sed-addons
 git pull
@@ -52,21 +58,14 @@ git pull
 If you have not installed SeisComP3 before, checkout the SeisComP3 source code using
 
 ```bash
-git clone https://github.com/SeisComP3/seiscomp3.git .
-```
-
-Make sure your select the branch of the last release and add the *sed-addons* as a submodule
-
-```bash
-cd seiscomp3
-git checkout release/jakarta
-git submodule add -f https://github.com/SED-EEW/SED-EEW-SeisComP-contributions src/sed-addons
+git clone --branch release/jakarta https://github.com/SeisComP3/seiscomp3 seiscomp3
+git clone --branch v3 https://github.com/SED-EEW/SED-EEW-SeisComP-contributions seiscomp3/src/sed-addons
 ```
 
 If you have already performed the previous steps and just want to update to latest version, run
 
 ```bash
-cd <Path to your copy of>/seiscomp3
+cd seiscomp3
 git pull
 cd src/sed-addons
 git pull
@@ -87,6 +86,7 @@ If you are using bash you can add these to your `~/.bashrc` using
 ```bash
 echo 'export FinDer_INCLUDE_DIR=/usr/local/include/finder' >> ~/.bashrc
 echo 'export FinDer_LIBRARY=/usr/local/lib/libFinder.a' >> ~/.bashrc
+echo 'export GMT_INCLUDE_DIR=/usr/local/include/gmt' >> ~/.bashrc
 ```
 
 ## Compilation
@@ -94,14 +94,14 @@ echo 'export FinDer_LIBRARY=/usr/local/lib/libFinder.a' >> ~/.bashrc
 SeisComP uses cmake to to manage the build process. In the case of SeisComP (v4+) run
 
 ```bash
-cd <Path to your clone of>/seiscomp
+cd seiscomp
 make
 ```
 
 and in case of SeisComP3, use
 
 ```bash
-cd <Path to your clone of>/seiscomp3
+cd seiscomp3
 make -f Makefile.cvs
 ```
 
@@ -110,10 +110,10 @@ If you need to run the configuration in headless mode you can just run cmake
 directly
 
 ``` bash
-cd <Path to your clone of>/seiscomp
+cd seiscomp
 mkdir build
 cd build
-cmake .. -DFinDer_INCLUDE_DIR=$FinDer_INCLUDE_DIR -DFinDer_LIBRARY=$FinDer_LIBRARY
+cmake .. -DFinDer_INCLUDE_DIR=$FinDer_INCLUDE_DIR -DFinDer_LIBRARY=$FinDer_LIBRARY -DGMT_INCLUDE_DIR=$GMT_INCLUDE_DIR
 ```
 For other cmake option see the SeisComP [README] (https://github.com/SeisComP/seiscomp/blob/master/README.md).
 To start the compilation run
@@ -131,7 +131,7 @@ sudo make install
 ```
 Note that this will overwrite your previous installation of SeisComP
 
-# Running *sed-addons*
+# Usage
 
 To test the functionality of a particular module (e.g. scfinder) use the following command
 
