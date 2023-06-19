@@ -343,7 +343,7 @@ class App : public Client::StreamApplication {
 
 			eewCfg.vsfndr.enable = true;
 			eewCfg.maxDelay = 3.0;
-			eewCfg.skipDataOlderThan = 180.0;
+			eewCfg.skipDataOlderThan = 30.0;
 			try {
 				eewCfg.maxDelay = configGetDouble("debug.maxDelay");
 			}
