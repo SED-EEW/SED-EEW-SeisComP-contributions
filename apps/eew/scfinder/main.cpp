@@ -224,7 +224,7 @@ class App : public Client::StreamApplication {
 			// Default Finder call interval is 1s
 			_finderProcessCallInterval.set(1);
 			// Default scan call interval is 0.1s
-			_finderScanCallInterval.set(0).setUSecs(100000);
+			_finderScanCallInterval.set(1);
 			_finderAmplitudesDirty = false;
 			_finderScanDataDirty = false;
 		}

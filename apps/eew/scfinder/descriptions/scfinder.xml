@@ -92,7 +92,7 @@
 						to account for station spacing and the number of trigger stations used by FinDer.
 					</description>
 				</parameter>
-				<parameter name="scanInterval" type="double" default="0.1" unit="s">
+				<parameter name="scanInterval" type="double" default="1" unit="s">
 					<description>
 						Defines the interval to scan amplitudes by Finder. If set to 0
 						then the scan is called as soon as an amplitude change has been
