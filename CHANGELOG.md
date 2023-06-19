@@ -1,5 +1,27 @@
 # Change Log
 
+## Release 2023 June 19 tag 5.1.2
+
+* sceewlog:
+  
+  * Configuration of profile and EEW comment made cleaner
+  
+* scgof
+  
+  * New module: Geographic origin filter (#12)
+   
+* scfinder:
+
+  * Scan and process intervals setup to 1s by default (avoiding multithreading issues).
+
+  * Default envelope delay filter threshold to 30s by default (similar to shakealert) 
+  
+  * compilation: The path to dmsm in scfinder is fixed to `./../../../../../base/sed-contrib/libs`
+
+* sceewenv:
+  
+  * Default envelope delay filter threshold to 30s by default (similar to shakealert)  
+
 ## Release 2022 November 15 tag 5.1.1
 
 * scfinder:
