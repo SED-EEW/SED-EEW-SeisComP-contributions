@@ -1,5 +1,11 @@
 # Change Log
 
+## Main
+
+* scvsmag
+  
+  * Fix reading for VS30 grid
+
 ## Release 2023 June 19 tag 5.1.2
 
 * sceewlog:
