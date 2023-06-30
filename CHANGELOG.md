@@ -1,6 +1,6 @@
 # Change Log
 
-## Main
+## Master
 
 * scvsmag
   
