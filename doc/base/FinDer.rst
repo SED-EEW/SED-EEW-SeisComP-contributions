@@ -58,8 +58,7 @@ FinDer and SeisComP
 
 FinDer has been implemented with an API. To integrate FinDer within SeisComP, a
 wrapper module :ref:`scfinder` uses this API. The :ref:`scfinder` module
-requires FinDer to be installed and SeisComP to be compiled from source. The
-source code for FinDer is distributed separately by the SED.
+requires FinDer to be installed and SeisComP to be compiled from source. The FinDer software is distributed by the Swiss Seismological Service (SED) at ETH Zurich. Access to the source code is limited to users who have an established collaboration with the SED. In other cases, compiled binaries (in a docker image) may be provided instead. Please contact Dr. Maren Böse (SED) for requests and further information.
 
 The library version of the generic EEW pre-processing module `sceewenv` is used
 within :ref:`scfinder` to provide continuously updated envelope amplitudes to FinDer.
