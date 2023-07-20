@@ -137,10 +137,14 @@ bool Timeline::feed(const DataModel::VS::Envelope *env) {
 					cha->waveformID().locationCode(),
 					cha->waveformID().channelCode(), env->timestamp());
 			Processing::WaveformProcessor::SignalUnit signalUnit;
+			string gainUnit = stream->gainUnit();
+			std::transform(gainUnit.begin(), gainUnit.end(), gainUnit.begin(),
+					::toupper);
+			
 			if ( stream ) {
 				bool unitOK = false;
 				try {
-					unitOK = signalUnit.fromString(stream->gainUnit());
+					unitOK = signalUnit.fromString(gainUnit);
 				} catch ( ... ) {
 				}
 				if ( !unitOK ) {
