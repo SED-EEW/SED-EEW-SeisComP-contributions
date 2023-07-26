@@ -655,6 +655,16 @@ class App : public Client::StreamApplication {
 			#endif
 			for ( it = _locationLookup.begin(); it != _locationLookup.end(); ++it ) {
 				if ( !it->second->maxPGA.timestamp.valid() ) continue;
+				
+				/* The above code is checking if the timestamp of the last element in the `pgas` vector is within
+				the last 30 seconds. If the condition is true, the code will continue with the next iteration of
+				the loop. */
+				if ( ( it->second->pgas.back().timestamp.seconds() ) < ( _referenceTime.seconds() - 30 ) ) {
+					std::cout << "Station skipped \t PGA buffer starts (iso,s)\t PGA buffer end (iso,s)\t Reference time (iso,s)" << std::endl;
+					std::cout << it->first << "\t" << it->second->pgas.front().timestamp.iso() << "\t" << it->second->pgas.back().timestamp.iso() << "\t" << _referenceTime.iso() << std::endl;
+					std::cout << it->first << "\t" << it->second->pgas.front().timestamp.seconds() << "\t" << it->second->pgas.back().timestamp.seconds() <<  "\t" << _referenceTime.seconds() << std::endl;
+					continue;
+				}
 
 				_latestMaxPGAs.push_back(
 					PGA_Data(
@@ -663,7 +673,8 @@ class App : public Client::StreamApplication {
 						it->second->maxPGA.channel.c_str(),
 						it->second->meta->code().empty()?"--":it->second->meta->code().c_str(),
 						Coordinate(it->second->meta->latitude(), it->second->meta->longitude()),
-						it->second->maxPGA.value*100, it->second->maxPGA.timestamp
+						it->second->maxPGA.value*100, 
+						it->second->maxPGA.timestamp
 					)
 				);
 				#if defined(LOG_AMPS)
