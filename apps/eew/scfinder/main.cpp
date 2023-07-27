@@ -225,6 +225,9 @@ class App : public Client::StreamApplication {
 			_finderProcessCallInterval.set(1);
 			// Default scan call interval is 0.1s
 			_finderScanCallInterval.set(1);
+			// Default envelope buffer delay is 15s
+			_finderMaxEnvelopeBufferDelay.set(15);
+
 			_finderAmplitudesDirty = false;
 			_finderScanDataDirty = false;
 		}
@@ -291,6 +294,12 @@ class App : public Client::StreamApplication {
 		}
 
 
+		/**
+		 * The function initializes various configuration settings and objects for a program, including
+		 * setting up a waveform processor and subscribing to channels for processing.
+		 * 
+		 * @return A boolean value is being returned.
+		 */
 		bool init() {
 			if ( !StreamApplication::init() )
 				return false;
@@ -335,6 +344,11 @@ class App : public Client::StreamApplication {
 			}
 			catch ( ... ) {}
 
+			try {
+				_finderMaxEnvelopeBufferDelay = configGetDouble("finder.maxEnvelopeBufferDelay");
+			}
+			catch ( ... ) {}
+
 			_creationInfo.setAgencyID(agencyID());
 			_creationInfo.setAuthor(author());
 
@@ -343,13 +357,8 @@ class App : public Client::StreamApplication {
 
 			eewCfg.vsfndr.enable = true;
 			eewCfg.maxDelay = 3.0;
-			eewCfg.skipDataOlderThan = 30.0;
 			try {
 				eewCfg.maxDelay = configGetDouble("debug.maxDelay");
-			}
-			catch ( ... ) {}
-			try {
-				eewCfg.skipDataOlderThan = configGetDouble("debug.skipDataOlderThan");
 			}
 			catch ( ... ) {}
 
@@ -657,9 +666,9 @@ class App : public Client::StreamApplication {
 				if ( !it->second->maxPGA.timestamp.valid() ) continue;
 				
 				/* The above code is checking if the timestamp of the last element in the `pgas` vector is within
-				the last 30 seconds. If the condition is true, the code will continue with the next iteration of
-				the loop. */
-				if ( ( it->second->pgas.back().timestamp.seconds() ) < ( _referenceTime.seconds() - 30 ) ) {
+				the last <_finderMaxEnvelopeBufferDelay, default 15> seconds. If the condition is true, the code 
+				will continue with the next iteration of the loop. */
+				if ( ( it->second->pgas.back().timestamp.seconds() ) < ( _referenceTime.seconds() - _finderMaxEnvelopeBufferDelay ) ) {
 					std::cout << "Station skipped \t PGA buffer starts (iso,s)\t PGA buffer end (iso,s)\t Reference time (iso,s)" << std::endl;
 					std::cout << it->first << "\t" << it->second->pgas.front().timestamp.iso() << "\t" << it->second->pgas.back().timestamp.iso() << "\t" << _referenceTime.iso() << std::endl;
 					std::cout << it->first << "\t" << it->second->pgas.front().timestamp.seconds() << "\t" << it->second->pgas.back().timestamp.seconds() <<  "\t" << _referenceTime.seconds() << std::endl;
@@ -1082,6 +1091,7 @@ class App : public Client::StreamApplication {
 
 		Core::TimeSpan                 _finderProcessCallInterval;
 		Core::TimeSpan                 _finderScanCallInterval;
+		Core::TimeSpan                 _finderMaxEnvelopeBufferDelay;
 		bool                           _finderAmplitudesDirty;
 		bool                           _finderScanDataDirty;
 
