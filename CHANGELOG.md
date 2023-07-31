@@ -13,6 +13,13 @@
 * sceewenv:
 
   * Removing envelope delay filter as proven to be problematic in  scfinder.
+  
+* sceewlog
+
+  * New parameter `EEW.script`, path to script to execute after sending alert
+
+  * New external script `sceewlog2file`, example that can be used with `EEW.script`
+
 
 ## Release 2023 June 19 tag 5.1.2
 
