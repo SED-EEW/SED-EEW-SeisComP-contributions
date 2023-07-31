@@ -97,6 +97,8 @@ class Listener(seiscomp.client.Application):
         self.fcmDataFile = None #File that contains keys and topic information for FCM
         
         self.eewComment = True #
+
+        self.eewScript= None 
                                
         
         
@@ -226,6 +228,23 @@ class Listener(seiscomp.client.Application):
                 self.configGetString("report.directory"))
         except:
             pass
+
+
+        try:
+            self.eewScript = self.configGetString("EEW.script")
+            seiscomp.logging.info('EEW.script = %s' % self.eewScript )
+        except Exception as e:
+            seiscomp.logging.warning('Not possible to read EEW.script. Setting this to None')
+            self.eewScript = None
+
+        if self.eewScript is not None :
+            logprefix = '/tmp/sceewlog-script.'
+            print("%s test=1 > %slog 2> %serr &" % ( self.eewScript, 
+                                                           logprefix,
+                                                           logprefix ))
+            os.system( "%s test=1 > %slog 2> %serr &" % ( self.eewScript, 
+                                                           logprefix,
+                                                           logprefix ) )
 
         return True
         
@@ -531,6 +550,8 @@ class Listener(seiscomp.client.Application):
         except Exception as e:
             seiscomp.logging.warning(
                 'ActiveMQ interface cannot be loaded: %s' % e)
+
+
         return True
 
     def generateReport(self, evID):
@@ -744,7 +765,10 @@ class Listener(seiscomp.client.Application):
         """
         Send an alert to a UserDisplay, if one is configured
         """
-        if self.udevt is None and self.fcm == False:
+        if (self.udevt is None and 
+            not self.fcm and 
+            not self.eewComment and 
+            self.eewScript is None):
             return
         
 
@@ -816,6 +840,18 @@ class Listener(seiscomp.client.Application):
             except Exception as e:
                 seiscomp.logging.error("There was an error while notifying a comment with the Num of times that EEW alert were sent")
                 seiscomp.logging.error("Error message: %s" % repr(e))
+        
+
+        if self.eewScript is not None:
+
+            eew_parameters = self.event_dict[evID]['updates'][updateno]
+            script_args = ' '.join(["%s=%s" % ( i, v ) for i, (k, v) in enumerate(eew_parameters.items())])
+            
+            logprefix = '/tmp/sceewlog-script.'
+            os.system( "%s %s > %slog 2> %serr &" % ( self.eewScript, 
+                                                      script_args, 
+                                                      logprefix,
+                                                      logprefix ) )
 
     def handleMagnitude(self, magnitude, parentID):
         """
