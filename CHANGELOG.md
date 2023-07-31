@@ -6,6 +6,14 @@
   
   * Fix reading for VS30 grid
 
+* scfinder:
+
+  * New parameter `maxEnvelopeBufferDelay`, to skip any channel not updated recently enough for input to FinDer.
+
+* sceewenv:
+
+  * Removing envelope delay filter as proven to be problematic in  scfinder.
+
 ## Release 2023 June 19 tag 5.1.2
 
 * sceewlog:
