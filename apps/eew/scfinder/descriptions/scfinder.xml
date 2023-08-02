@@ -106,6 +106,12 @@
 						This can cause a high CPU usage.
 					</description>
 				</parameter>
+				<parameter name="maxEnvelopeBufferDelay" type="double" default="15" unit="s">
+					<description>
+						Sets the maximum delay for the latest update of each envelope buffer before 
+						skipping the related station stream in FinDer PGA input data. The default is 15s.
+					</description>
+				</parameter>
 			</group>
 			<group name="debug">
 				<parameter name="maxDelay" type="double" default="3" unit="s">
@@ -114,12 +120,6 @@
 						parameter does not configure buffers as such but only a threshold (in seconds 
 						with fractional part) to warn the user that something is not real-time anymore. 
 						The default is 3s.
-					</description>
-				</parameter>
-				<parameter name="skipDataOlderThan" type="double" default="30" unit="s">
-					<description>
-						Sets the maximum absolute value of packet delay before skipping data packet. The 
-						default is 30s.
 					</description>
 				</parameter>
 			</group>

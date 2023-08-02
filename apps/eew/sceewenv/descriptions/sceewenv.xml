@@ -134,12 +134,6 @@
 							The default is 3s.
 						</description>
 					</parameter>
-					<parameter name="skipDataOlderThan" type="double" default="30" unit="s">
-						<description>
-							Sets the maximum absolute value of packet delay before skipping data packet. The 
-							default is 30s.
-						</description>
-					</parameter>
 				</group>
 			</group>
 		</configuration>
