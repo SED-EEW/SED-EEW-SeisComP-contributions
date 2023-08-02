@@ -43,6 +43,7 @@ config/sc3ml_0.8__cap_1.2.xsl
 config/closedpolygons.bna
 config/world_cities_spanish.csv
 config/world_cities_english.csv
+config/EEW_reference.bna
 )
 SC_INSTALL_DATA(UD ${EEWLOG_TARGET})
 ENDIF(SC_GLOBAL_PYTHON_WRAPPER)
@@ -53,3 +54,6 @@ INSTALL(FILES ${descs} DESTINATION ${SC3_PACKAGE_APP_DESC_DIR})
 
 # sceewdump
 SC_ADD_PYTHON_PROG(sceewdump)
+
+# sceewlog2file
+SC_ADD_PYTHON_PROG(sceewlog2file)

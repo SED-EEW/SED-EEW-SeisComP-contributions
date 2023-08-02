@@ -20,12 +20,26 @@
 			
 			<parameter name="CitiesFile" type="string" default="@ROOTDIR@/share/sceewlog/world_cities_english.csv">
 				<description>
-				CSV file that contains the location of cities. It is mandatory when changeHeadline or FCM is true.
+				CSV file that contains the location of cities. It is mandatory when 
+				changeHeadline or FCM is true.
 				</description>
 			</parameter>
 			<parameter name="EEW.comment" type="boolean" default="false">
 				<description>
-				Save a comment for each EEW alert sent out through ActiveMQ or FCM. The comment is part of the Magnitude object and stored on the Comment table of the SC-DB.
+				Save a comment for each EEW alert sent out through ActiveMQ or FCM. 
+				The comment is part of the Magnitude object and stored on the Comment 
+				table of the SC-DB.
+				</description>
+			</parameter>
+			<parameter name="EEW.script" type="string">
+				<description>
+				Executes an external script for each EEW alert that are sent out. The script 
+				must be defined with full file path, and it must be executable. It receives 
+				all EEW parameters in arguments as follows: magID=.. type=M.. author=.. 
+				magnitude=.. lat=.. lon=.. depth=.. nstorg=.. nstmag=.. ot=.. When the module 
+				is started, the script is tested with argument test=1. An example of a script 
+				preparing a data file for posting on social media is provided with 
+				$SEISCOMP_ROOT/bin/sceewlog2file.
 				</description>
 			</parameter>
 			<group name="email">
@@ -62,8 +76,8 @@
 				</parameter>
 				<parameter name="credentials" type="file">
 					<description>
-					If the smtp server requires authentication you have to specify a file that contains
-					username and password in the format:
+					If the smtp server requires authentication you have to specify a file 
+					that contains username and password in the format:
 
 					username=your-username
 
@@ -222,12 +236,14 @@
 			<group name="magAssociation">
 				<parameter name="activate" type="boolean" default="false">
 					<description>
-					Magnitude association and scoring. The score for each EQ update is the product of magnitude, likelihood, author and num. of arrivals.
+					Magnitude association and scoring. The score for each EQ update is the product of magnitude, 
+					likelihood, author and num. of arrivals.
 					</description>
 				</parameter>
 				<parameter name="priority" type="string" default="magThresh,likelihood">
 					<description>
-					The priorities can be set as: magThresh, likelihood or authors. It can be all together or just one or two. Listed comma separated.
+					The priorities can be set as: magThresh, likelihood or authors. It can be all together or 
+					just one or two. Listed comma separated.
 					</description>
 				</parameter>
 				<parameter name="typeThresh" type="string" default="Mfd:6,MVS:3.5">
@@ -237,7 +253,8 @@
 				</parameter>
 				<parameter name="authors" type="string" default="scvsmag@@@hostname@,scfinder@@@hostname@">
 					<description>
-					Set the magnitude authors in a list comma separated. This should be generally the app name followed by the hostname.
+					Set the magnitude authors in a list comma separated. This should be generally the app name 
+					followed by the hostname.
 					</description>
 				</parameter>
 				<parameter name="stationMagNumber" type="string" default="Mfd:3,MVS:1">
@@ -255,7 +272,8 @@
 				</parameter>
 				<parameter name="dataFile" type="string" default="/home/sysop/seiscomp/share/sceewlog/.fcmdatafile">
 					<description>
-					The datafile must contain the authorization key and topic to send out a message preformated on the eews2fcm interface.
+					The datafile must contain the authorization key and topic to send out a message preformated on 
+					the eews2fcm interface.
 					</description>
 				</parameter>
 			</group>
