@@ -31,11 +31,15 @@
 				table of the SC-DB.
 				</description>
 			</parameter>
-			<parameter name="EEW.script" type="string" default=None>
+			<parameter name="EEW.script" type="string">
 				<description>
-				Execute an external script (must be executable with full file path) for 
-				each EEW alert sent out through ActiveMQ or FCM, e.g.: sceewlog2file 
-				(provided in $SEISCOMP_ROOT/bin).
+				Executes an external script for each EEW alert that are sent out. The script 
+				must be defined with full file path, and it must be executable. It receives 
+				all EEW parameters in arguments as follows: magID=.. type=M.. author=.. 
+				magnitude=.. lat=.. lon=.. depth=.. nstorg=.. nstmag=.. ot=.. When the module 
+				is started, the script is tested with argument test=1. An example of a script 
+				preparing a data file for posting on social media is provided with 
+				$SEISCOMP_ROOT/bin/sceewlog2file.
 				</description>
 			</parameter>
 			<group name="email">
