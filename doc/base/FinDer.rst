@@ -4,7 +4,13 @@
 Finite-Fault Rupture Detector
 =============================
 
-Part of the :ref:`EEW<EEW>` package.
+Part of the :ref:`EEW<EEW>` package. 
+
+The FinDer software is distributed by the Swiss Seismological Service (SED) at 
+ETH Zurich. Access to the source code is limited to users who have an established 
+collaboration with the SED. In other cases, compiled binaries (in a docker image) 
+may be provided instead. Please contact Dr. Maren Böse (SED) for requests and 
+further information.
 
 The ground motion observed during large earthquakes is controlled by the
 distance to the rupturing fault, not by the hypocentral distance. Traditional
@@ -58,7 +64,7 @@ FinDer and SeisComP
 
 FinDer has been implemented with an API. To integrate FinDer within SeisComP, a
 wrapper module :ref:`scfinder` uses this API. The :ref:`scfinder` module
-requires FinDer to be installed and SeisComP to be compiled from source. The FinDer software is distributed by the Swiss Seismological Service (SED) at ETH Zurich. Access to the source code is limited to users who have an established collaboration with the SED. In other cases, compiled binaries (in a docker image) may be provided instead. Please contact Dr. Maren Böse (SED) for requests and further information.
+requires FinDer to be installed and SeisComP to be compiled from source.
 
 The library version of the generic EEW pre-processing module `sceewenv` is used
 within :ref:`scfinder` to provide continuously updated envelope amplitudes to FinDer.
@@ -71,6 +77,56 @@ send alerts in real-time using ActiveMQ. The `Earthquake Early Warning Display`_
 (EEWD, Cauzzi et al., 2016), an open-source java application, can receive and
 display EEW messages broadcast via ActiveMQ.
 
+
+FinDer in a Docker
+------------------
+
+This requires `docker`_ and ``ssh`` to be installed and enabled.  
+
+#. First make sure that you complete ``docker login ghcr.io/sed-eew/finder`` (`authenticating to the container registry`_)
+#. Start the docker (only once or when updating docker image, old docker version: replace ``host-gateway`` by ``$(ip addr show docker0 | grep -Po 'inet \K[\d.]+')``):: 
+
+    docker stop finder && docker rm finder # That is in case you update an existing one 
+    docker run -d \
+        --add-host=host.docker.internal:host-gateway  \
+        -p 9878:22 \
+        --name finder \
+        ghcr.io/sed-eew/finder:master
+
+
+#. Define a shortcut function to manage :ref:`scfinder` (and SeisComP) inside the docker container (once per host session, or add to your :file:`.profile` to make it permanent):: 
+
+    seiscomp-finder () {ssh -X -p 9878 sysop:sysop@localhost -C "/opt/seiscomp/bin/seiscomp  $@";}
+
+
+#. Configure :ref:`scfinder` (and SeisComP) with the ``seiscomp-finder`` shortcut, e.g.:: 
+
+    # Configuration 
+    seiscomp-finder exec scconfig
+
+  ``host.docker.internal`` is defined as a shorcut to the IP of the docker host that can 
+  be used in ``database.config`` and ``database.inventory`` in order to avoid maintaining the docker 
+  inventory and bindings database. An example of :ref:`finder` config file can be found in 
+  :file:`/usr/local/src/FinDer/config/`. :ref:`scimport` can be configured to push origins and 
+  magnitude from :ref:`scfinder` from within the docker to another seiscomp system, e.g. 
+  to the docker host seiscomp system.
+
+
+#. Manage :ref:`scfinder` (and SeisComP) with the ``seiscomp-finder`` shortcut, e.g.::
+
+    # debug and test:
+    seiscomp-finder exec scfinder --debug
+
+    # enable modules
+    seiscomp-finder enable scfinder scimport
+
+    # restart modules
+    seiscomp-finder restart    
+
+
+
+You may also use FinDer without SeisComP with :file:`finder_file` and related utilities in 
+``/usr/local/src/FinDer/``.
 
 EEW License
 -----------
@@ -106,3 +162,5 @@ Cauzzi, C., Behr, Y. D., Clinton, J., Kastli, P., Elia, L., & Zollo, A., 2016:
 
 .. _`Finite-Fault Rupture Detector` : http://www.seismo.ethz.ch/en/research-and-teaching/products-software/EEW/finite-fault-rupture-detector-finder/
 .. _`Earthquake Early Warning Display` : https://github.com/SED-EEW/EEWD
+.. _`docker` : https://docs.docker.com/engine/install/
+.. _`authenticating to the container registry` : https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry
