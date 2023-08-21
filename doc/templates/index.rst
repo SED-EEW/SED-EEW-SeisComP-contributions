@@ -1,5 +1,10 @@
 .. _EEW:
 
+.. figure:: base/media/SED-ETHZ.png
+   :width: 50%
+   :align: center
+   :target: http://www.seismo.ethz.ch/en/research-and-teaching/fields_of_research/earthquake-early-warning
+
 =========================
 ESE modules documentation
 =========================
@@ -13,11 +18,6 @@ This is the documentation for the SED-ETHZ EEW SeisComP modules.
    :align: center
 
    The SED-ETHZ SeisComP EEW modules (Massin, Clinton & Boese, 2021).
-
-.. figure:: base/media/SED-ETHZ.png
-   :width: 50%
-   :align: center
-   :target: http://www.seismo.ethz.ch/en/research-and-teaching/fields_of_research/earthquake-early-warning
 
 About 
 -----
@@ -74,15 +74,11 @@ Table of Contents
 -----------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    /base/VS
    /base/FinDer
-   /apps/sceewenv
-   /apps/scvsmag
-   /apps/scfinder
-   /apps/sceewlog
-   /apps/scgof
+   /apps
    Support <http://github.com/SED-EEW/SED-EEW-SeisComP-contributions/discussions>
 
 References

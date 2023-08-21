@@ -171,8 +171,7 @@ replace the "AMPLITUDE" group with the "ENVELOPE" message group in
 
    connection.subscriptions = ENVELOPE, EVENT, LOCATION, PICK
 
-Consider also the remaining
-:ref:`configuration parameters <scvsmag_configuration>`.
+Consider also the remaining configuration parameters.
 
 scautoloc configuration
 =======================

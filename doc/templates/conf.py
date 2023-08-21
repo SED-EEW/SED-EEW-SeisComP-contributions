@@ -37,7 +37,8 @@ extensions = [
     'sphinx_rtd_theme',
     'sphinx.ext.ifconfig', 'sphinx.ext.todo',
     'sphinx.ext.autodoc', 'sphinx.ext.viewcode',
-    'sphinx.ext.graphviz']
+    'sphinx.ext.graphviz', 'sphinx_copybutton',
+]
 
 if LooseVersion(sphinx.__version__) < LooseVersion('1.4'):
     extensions.append('sphinx.ext.pngmath')
@@ -117,7 +118,7 @@ pygments_style = 'sphinx'
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #html_theme = 'agogo'
-html_theme = 'sphinx_rtd_theme'
+html_theme = 'furo' #'sphinx_rtd_theme'
 html_static_path = ['_static']
 
 # Theme options are theme-specific and customize the look and feel of a theme
@@ -133,7 +134,7 @@ html_static_path = ['_static']
 html_title = "ESE: The ETHZ-SED SeisComP EEW system"
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
-#html_short_title = "ESE"
+html_short_title = "ESE"
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
@@ -158,8 +159,8 @@ html_last_updated_fmt = '%b %d, %Y'
 html_use_smartypants = False
 
 # Custom sidebar templates, maps document names to template names.
-html_sidebars = {'**': ['searchbox.html', 'localtoc.html', 'relations.html',
-                        'sourcelink.html']}
+#html_sidebars = {'**': ['searchbox.html', 'localtoc.html', 'relations.html',
+#                        'sourcelink.html']}
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.

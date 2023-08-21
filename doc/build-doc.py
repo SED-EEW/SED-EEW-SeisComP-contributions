@@ -632,6 +632,11 @@ if os.path.exists(os.path.join(src_dir, "apps", "media")):
 resolveVariables(os.path.join(src_dir, "templates", "index.rst"),
                  os.path.join(out_dir, "index.rst"), resolveDict)
 
+
+# Create app.rst
+resolveVariables(os.path.join(src_dir, "templates", "apps.rst"),
+                 os.path.join(out_dir, "apps.rst"), resolveDict)
+
 # Create application .rst files
 print("Generating app .rst files")
 app_path = os.path.join(out_dir, "apps")
