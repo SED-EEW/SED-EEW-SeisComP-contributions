@@ -94,9 +94,10 @@ This requires `docker`_ and ``ssh`` to be installed and enabled.
         ghcr.io/sed-eew/finder:master
 
 
-#. Define a shortcut function to manage :ref:`scfinder` (and SeisComP) inside the docker container (once per host session, or add to your :file:`.profile` to make it permanent):: 
+#. Setup ``ssh`` authentification key (see ``ssh-keygen``) and define a shortcut function to manage :ref:`scfinder` (and SeisComP) inside the docker container (once per host session, or add to your :file:`.profile` to make it permanent):: 
 
-    seiscomp-finder () {ssh -X -p 9878 sysop:sysop@localhost -C "/opt/seiscomp/bin/seiscomp  $@";}
+    ssh-copy-id  -p 9878 sysop@localhost
+    seiscomp-finder () { ssh -X -p 9878 sysop@localhost -C "/opt/seiscomp/bin/seiscomp  $@"; }
 
 
 #. Configure :ref:`scfinder` (and SeisComP) with the ``seiscomp-finder`` shortcut, e.g.:: 
