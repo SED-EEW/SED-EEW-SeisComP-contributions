@@ -34,7 +34,7 @@ import sphinx
 extensions = [
     # 'rst2pdf.pdfbuilder',
     'sphinx.ext.intersphinx',
-    'sphinx_rtd_theme',
+    #'sphinx_rtd_theme',
     'sphinx.ext.ifconfig', 'sphinx.ext.todo',
     'sphinx.ext.autodoc', 'sphinx.ext.viewcode',
     'sphinx.ext.graphviz', 'sphinx_copybutton',
