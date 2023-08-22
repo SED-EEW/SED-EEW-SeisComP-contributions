@@ -39,21 +39,30 @@
 			</group>
 
 			<group name="Input">
-				<option long-flag="authors" short-flag="a" argument="coma separated list of mag types">
-					<description>Author preferrence order (last is preferred).</description>
+				<option long-flag="authors" flag="a" argument="authors">
+					<description>
+					Author preferrence order (e.g., &quot;scvs,scfinder&quot; ; 
+					last is preferred).
+					</description>
 				</option>
-				<option long-flag="xsl" short-flag="x" >
+				<option long-flag="xsl" flag="x" >
 					<description>Convert using xsl.</description>
 				</option>
-				<option long-flag="input" short-flag="i" argument="path">
-					<description>Read event from XML file instead of database. Use '-' to read from stdin.</description>
+				<option long-flag="input" flag="i" argument="path">
+					<description>
+					Read event from XML file instead of database. Use &quot;-&quot; 
+					to read from stdin.
+					</description>
 				</option>
-				<option long-flag="format" short-flag="f" argument="format">
-					<description>Input format to use (xml [default], zxml (zipped xml), binary). Only relevant with --input.</description>
+				<option long-flag="format" flag="f" argument="format">
+					<description>
+					Input format to use (xml [default], zxml (zipped xml), 
+					binary). Only relevant with &quot;--input&quot;.
+					</description>
 				</option>
 			</group>
 			<group name="Dump">
-				<option long-flag="playback" short-flag="playback" argument="event id">
+				<option long-flag="event" flag="E" argument="eventid">
 					<description>Event id.</description>
 				</option>
 			</group>
