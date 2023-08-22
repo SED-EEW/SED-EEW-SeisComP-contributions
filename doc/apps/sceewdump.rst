@@ -12,4 +12,7 @@ Example (setup databse parameter in :file:`sceewdump.cfg`):
 
 .. code-block:: sh
 
- sceewdump -E smi:ch.ethz.sed/sc20d/Event/2022njvrzz  -i ~/playback_fm4test/2022njvrzz.xml --xsl /usr/local/share/sceewlog/sc3ml_0.12__quakeml_1.2-RT_eewd.xsl -a scvs,scfdfo
+ sceewdump -E smi:ch.ethz.sed/sc20d/Event/2022njvrzz  \
+           -i ~/playback/2022njvrzz.xml \
+           --xsl $SEISCOMP_ROOT/share/sceewlog/sc3ml_0.12__quakeml_1.2-RT_eewd.xsl \
+           -a scvs,scfdfo
