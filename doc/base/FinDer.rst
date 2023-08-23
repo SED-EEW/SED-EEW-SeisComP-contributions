@@ -105,13 +105,6 @@ This requires `docker`_ and ``ssh`` to be installed and enabled.
     # Configuration 
     seiscomp-finder exec scconfig
 
-  ``host.docker.internal`` is defined as a shorcut to the IP of the docker host that can 
-  be used in ``database.config`` and ``database.inventory`` in order to avoid maintaining the docker 
-  inventory and bindings database. An example of :ref:`finder` config file can be found in 
-  :file:`/usr/local/src/FinDer/config/`. :ref:`scimport` can be configured to push origins and 
-  magnitude from :ref:`scfinder` from within the docker to another seiscomp system, e.g. 
-  to the docker host seiscomp system.
-
 
 #. Manage :ref:`scfinder` (and SeisComP) with the ``seiscomp-finder`` shortcut, e.g.::
 
@@ -119,15 +112,31 @@ This requires `docker`_ and ``ssh`` to be installed and enabled.
     seiscomp-finder exec scfinder --debug
 
     # enable modules
-    seiscomp-finder enable scfinder scimport
+    seiscomp-finder enable scfinder scimex
 
     # restart modules
     seiscomp-finder restart    
 
 
+.. note::
 
-You may also use FinDer without SeisComP with :file:`finder_file` and related utilities in 
-``/usr/local/src/FinDer/``.
+    An example of :ref:`finder` config file can be found in :file:`/usr/local/src/FinDer/config/`. 
+
+    ``host.docker.internal`` is defined as a alias to the docker host that can be used in :ref:`scfinder` 
+    configuration (:file:`scfinder.cfg`) in the docker container with parameter :confval:`connection.server` 
+    to connect to SeisComP host system. If the host :ref:`scmaster` does not forward database parameters, 
+    :confval:`database`, :confval:`database.config`, and :confval:`database.inventory` parameters using the 
+    ``host.docker.internal`` docker host alias might also be needed.
+
+    Alternatively :ref:`scimex` could be configured to push origins and magnitudes from :ref:`scfinder` 
+    from within the docker to another SeisComP system.
+
+
+.. note::
+    
+    You may also use FinDer without SeisComP with :file:`/usr/local/src/FinDer/finder_file` and related 
+    utilities in ``/usr/local/src/FinDer/``.
+    
 
 EEW License
 -----------
