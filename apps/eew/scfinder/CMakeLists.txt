@@ -22,6 +22,15 @@ IF(FinDer_FOUND)
 	FILE(GLOB descs "${CMAKE_CURRENT_SOURCE_DIR}/descriptions/*.xml")
 	INSTALL(FILES ${descs} DESTINATION ${SC3_PACKAGE_APP_DESC_DIR})
 
+	IF(SC_GLOBAL_PYTHON_WRAPPER)
+		SET(FD_DATA utils/makeFinDerFiles.py
+		utils/makeFinDerPlot_config.py
+		utils/makeFinDerPlot.py
+		utils/makeFinDerPlot.sh
+		)
+		SC_INSTALL_DATA(FD ${FinDer_FOUND})
+	ENDIF(SC_GLOBAL_PYTHON_WRAPPER)
+
 ELSE(FinDer_FOUND)
 	MESSAGE(STATUS "libFinder not found, disable compilation of scfinder")
 ENDIF(FinDer_FOUND)
