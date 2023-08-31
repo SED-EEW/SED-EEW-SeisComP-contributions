@@ -78,6 +78,7 @@ Config::Config() {
 	vsfndr.filterAcc = false;
 	vsfndr.filterVel = false;
 	vsfndr.filterDisp = true;
+	vsfndr.filterCornerFreq = 1.0/3.0;
 
 	// ----------------------------------------------------------------------
 	//  Gutenberg configuration

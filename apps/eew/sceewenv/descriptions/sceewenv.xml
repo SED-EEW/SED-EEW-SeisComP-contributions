@@ -73,17 +73,22 @@
 					</parameter>
 					<parameter name="filterAcc" type="boolean" default="false">
 						<description>
-							Enable acceleration 3s lo-pass filter, default is false.
+							Enable acceleration filter, default is false.
 						</description>
 					</parameter>
 					<parameter name="filterVel" type="boolean" default="false">
 						<description>
-							Enable velocity 3s lo-pass filter, default is false.
+							Enable velocity filter, default is false.
 						</description>
 					</parameter>
 					<parameter name="filterDisp" type="boolean" default="true">
 						<description>
-							Enable displacement 3s lo-pass filter, default is true.
+							Enable displacement filter, default is true.
+						</description>
+					</parameter>
+					<parameter name="filterCornerFreq" type="double" unit="Hz" default="1/3">
+						<description>
+							Sets the corner frequency of the Butterworth (4 poles) high-pass filter, default is 1/3 Hz.
 						</description>
 					</parameter>
 				</group>

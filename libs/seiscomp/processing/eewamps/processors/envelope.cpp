@@ -43,15 +43,15 @@ EnvelopeProcessor::EnvelopeProcessor(const Config *config, SignalUnit unit)
 	switch ( _unit ) {
 		case Meter:
 			if ( _config->vsfndr.filterDisp )
-				setFilter(new Math::Filtering::IIR::ButterworthHighpass<double>(4, 1.0/3.0));
+				setFilter(new Math::Filtering::IIR::ButterworthHighpass<double>(4, _config->vsfndr.filterCornerFreq));
 			break;
 		case MeterPerSecond:
 			if ( _config->vsfndr.filterVel )
-				setFilter(new Math::Filtering::IIR::ButterworthHighpass<double>(4, 1.0/3.0));
+				setFilter(new Math::Filtering::IIR::ButterworthHighpass<double>(4, _config->vsfndr.filterCornerFreq));
 			break;
 		case MeterPerSecondSquared:
 			if ( _config->vsfndr.filterAcc )
-				setFilter(new Math::Filtering::IIR::ButterworthHighpass<double>(4, 1.0/3.0));
+				setFilter(new Math::Filtering::IIR::ButterworthHighpass<double>(4, _config->vsfndr.filterCornerFreq));
 			break;
 		default:
 			setStatus(IncompatibleUnit, 1);

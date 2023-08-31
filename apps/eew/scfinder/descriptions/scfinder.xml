@@ -122,6 +122,11 @@
 						The default is 3s.
 					</description>
 				</parameter>
+				<parameter name="filterCornerFreq" type="double" unit="Hz" default="1/3">
+					<description>
+						Sets the corner frequency of the Butterworth (4 poles) high-pass filter, default is 1/3 Hz.
+					</description>
+				</parameter>
 			</group>
 		</configuration>
 		<command-line>
