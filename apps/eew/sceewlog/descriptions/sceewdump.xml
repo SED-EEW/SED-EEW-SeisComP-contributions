@@ -2,7 +2,7 @@
 <seiscomp>
 	<module name="sceewdump" category="EEW" author="Swiss Seismological Service">
 		<description>
-			Dumps EEW parameters from a given event ID or file..
+			Dumps EEW parameters from a given event ID or file.
 		</description>
 		<command-line>
 			<group name="Generic">

@@ -761,14 +761,33 @@ class Listener(seiscomp.client.Application):
             #evaluate to send or not the alert based on profiles
             self.alertEvaluation( evID, magID, updateno ) 
 
+    def execScript(self, magID, updateno):
+
+        if self.eewScript is None:
+            return        
+        
+        seiscomp.logging.debug("Sending an alert for magnitude %s " % magID)
+        orgID = self.origin_lookup[magID]
+        evID = self.event_lookup[orgID]
+
+        eew_parameters = self.event_dict[evID]['updates'][ updateno ]
+        script_args = ' '.join(["%s='%s'" % ( k, v ) for i, (k, v) in enumerate(eew_parameters.items())])
+        
+        logprefix = '/tmp/sceewlog-script.'
+        com = "%s %s > %slog 2> %serr &" % ( self.eewScript, 
+                                             script_args, 
+                                             logprefix,
+                                             logprefix ) 
+        seiscomp.logging.debug( com )
+        os.system( com )
+
     def sendAlert(self, magID):
         """
         Send an alert to a UserDisplay, if one is configured
         """
         if (self.udevt is None and 
             not self.fcm and 
-            not self.eewComment and 
-            self.eewScript is None):
+            not self.eewComment):
             return
         
 
@@ -842,16 +861,7 @@ class Listener(seiscomp.client.Application):
                 seiscomp.logging.error("Error message: %s" % repr(e))
         
 
-        if self.eewScript is not None:
 
-            eew_parameters = self.event_dict[evID]['updates'][updateno]
-            script_args = ' '.join(["%s=%s" % ( i, v ) for i, (k, v) in enumerate(eew_parameters.items())])
-            
-            logprefix = '/tmp/sceewlog-script.'
-            os.system( "%s %s > %slog 2> %serr &" % ( self.eewScript, 
-                                                      script_args, 
-                                                      logprefix,
-                                                      logprefix ) )
 
     def handleMagnitude(self, magnitude, parentID):
         """
@@ -885,7 +895,7 @@ class Listener(seiscomp.client.Application):
         Add picks to the cache.
         """
         try:
-            seiscomp.logging.debug("Received pick %s" % pk.publicID())
+            #seiscomp.logging.debug("Received pick %s" % pk.publicID())
             self.cache.feed(pk)
         except:
             info = traceback.format_exception(*sys.exc_info())
@@ -1300,12 +1310,15 @@ class Listener(seiscomp.client.Application):
                 self.event_dict[evID]['lastupdatesent'] = updateno 
                 
                 self.sendAlert( magID )
+                self.execScript( magID, updateno )
                 break
                             
         if len(self.profilesDic) == 0:
             #no profiles. Any origin and mag is reported
             seiscomp.logging.info('No profiles but activeMQ enabled. sending an alert...')
+            self.event_dict[evID]['lastupdatesent'] = updateno 
             self.sendAlert( magID )
+            self.execScript( magID, updateno )
                     
     def handleComment(self, comment, parentID):
         """
