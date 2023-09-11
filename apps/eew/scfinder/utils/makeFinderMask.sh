@@ -25,8 +25,9 @@ then
     dkm=$( awk '$1~/D_KM/{print $2}' "$( dirname $2 )/$tempcfg" )
 else
     set +x
-    echo "WRONG USAGE"
+    echo "WRONG USAGE. TRY:"
     echo "./create_finder_mask.sh <station_lon_lat_file> <finder_config_file>" 
+    echo "OR:"
     echo "./create_finder_mask.sh <station_lon_lat_file> <mask_station_distance>" 
     exit 1
 fi
@@ -36,10 +37,10 @@ M_PI=3.14159265359
 #mask_border=$( bc -l <<< " $mask_station_distance / 75. " )  		# this is what is currently used in finder_initialize
 mask_border=$( bc -l <<< "$mask_station_distance * 1.5 / 111.0 " ) 	# this adds a slightly larger border  
 
-minlon=$( awk '{print $1}' $inputFile|sort|head -1 )
-maxlon=$( awk '{print $1}' $inputFile|sort|tail -1 )
-minlat=$( awk '{print $2}' $inputFile|sort|head -1 )
-maxlat=$( awk '{print $2}' $inputFile|sort|tail -1 )
+minlon=$( awk '{print $1}' $inputFile|sort -n|head -1 )
+maxlon=$( awk '{print $1}' $inputFile|sort -n|tail -1 )
+minlat=$( awk '{print $2}' $inputFile|sort -n|head -1 )
+maxlat=$( awk '{print $2}' $inputFile|sort -n|tail -1 )
 
 minlat=$( bc -l <<< " $minlat - $mask_border " )
 maxlat=$( bc -l <<< " $maxlat + $mask_border " )
