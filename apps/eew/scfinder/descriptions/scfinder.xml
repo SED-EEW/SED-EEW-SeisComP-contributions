@@ -71,6 +71,12 @@
 						Messaging group to send strong motion objects to.
 					</description>
 				</parameter>
+				<parameter name="processOrigins" type="boolean" default="false">
+					<description>
+						Enables processing of input origins, by adding artificial epicentral 
+						PGA at the origin epicenter.
+					</description>
+				</parameter>
 				<parameter name="envelopeBufferSize" type="double" default="120" unit="s">
 					<description>
 						Size of envelope buffer in seconds. This value should be set 
@@ -114,7 +120,7 @@
 				</parameter>
 			</group>
 			<group name="debug">
-				<parameter name="maxDelay" type="double" default="3" unit="s">
+				<parameter name="maxDelay" type="double" default="5" unit="s">
 					<description>
 						Sets the maximum absolute value of packet delay before issuing a warning. That 
 						parameter does not configure buffers as such but only a threshold (in seconds 

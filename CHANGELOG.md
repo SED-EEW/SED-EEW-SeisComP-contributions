@@ -12,11 +12,17 @@
   
   * Adds configuration for env. filter corner freq.: debug.filterCornerFreq
 
+  * Adds origin input to scfinder.
+  
+  * Default delay warning threshold changed from 3s to 5s.
+
 * sceewenv:
 
   * Removing envelope delay filter as proven to be problematic in  scfinder.
   
-  * Adds configuration for env. filter corner freq.: eewenv.vsfndr.filterCornerFreq
+  * Adds configuration for env. filter corner freq.: eewenv.vsfndr.filterCornerFreq.
+  
+  * Default delay warning threshold changed from 3s to 5s  
   
 * sceewlog
 
