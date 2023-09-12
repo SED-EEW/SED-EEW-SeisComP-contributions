@@ -64,6 +64,7 @@
 using namespace Seiscomp;
 using namespace Seiscomp::DataModel;
 using namespace FiniteFault;
+using namespace Seiscomp::Core;
 
 
 namespace {
@@ -209,6 +210,7 @@ class App : public Client::StreamApplication {
 			setLoadConfigModuleEnabled(false);
 
 			setRecordDatatype(Array::FLOAT);
+			addMessagingSubscription("LOCATION");
 			setPrimaryMessagingGroup("LOCATION");
 			_magnitudeGroup = "MAGNITUDE";
 			_strongMotionGroup = "LOCATION";
@@ -216,6 +218,7 @@ class App : public Client::StreamApplication {
 			_sentMessagesTotal = 0;
 			_testMode = false;
 			_playbackMode = false;
+			_processOrigins = false;
 
 			_bufferLength = Core::TimeSpan(120,0);
 			_bufDefaultLen = Core::TimeSpan(60,0);
@@ -324,6 +327,12 @@ class App : public Client::StreamApplication {
 			catch ( ... ) {}
 
 			try {
+				_processOrigins = configGetBool("finder.processOrigins");
+				_inputOrgs = addInputObjectLog("origin");
+			}
+			catch ( ... ) {}
+
+			try {
 				_bufferLength = configGetDouble("finder.envelopeBufferSize");
 			}
 			catch ( ... ) {}
@@ -363,7 +372,7 @@ class App : public Client::StreamApplication {
 			}
 			catch ( ... ) {}
 
-			eewCfg.maxDelay = 3.0;
+			eewCfg.maxDelay = 5.0;
 			try {
 				eewCfg.maxDelay = configGetDouble("debug.maxDelay");
 			}
@@ -480,6 +489,61 @@ class App : public Client::StreamApplication {
 			return true;
 		}
 
+		void handleMessage(Core::Message* msg) {
+			Application::handleMessage(msg);
+
+			DataMessage *dm = DataMessage::Cast(msg);
+			if ( dm == NULL ) return;
+
+			for ( DataMessage::iterator it = dm->begin(); it != dm->end(); ++it ) {
+				Origin *org = Origin::Cast(it->get());
+				if ( org )
+					addObject("", org);
+			}
+		}
+
+		void addObject(const std::string &parentID, Object *obj) {
+			
+			Origin *org = Origin::Cast(obj);
+			if ( org ) {
+				logObject(_inputOrgs, Core::Time::GMT());
+
+				try {
+
+					// Scan data
+					scanFinderData();
+
+					SEISCOMP_DEBUG("Received origin (lat: %f km lon:%f km  dep: %f) wrapped in origin: %s", 
+							org->latitude().value(),
+							org->longitude().value(),
+							org->depth().value(),
+							org->publicID().c_str()); 
+
+					_latestMaxPGAs.push_back(
+						PGA_Data(
+								"EPIC",//it->second->meta->station()->code(),
+								"X",//it->second->meta->station()->network()->code(),
+								"XXX",//it->second->maxPGA.channel.c_str(),
+								"XX",//it->second->meta->code().empty()?"--":it->second->meta->code().c_str(),
+								org->latitude().value(),org->longitude().value(),//Coordinate(it->second->meta->latitude(), it->second->meta->longitude()),
+								9999.9,//it->second->maxPGA.value*100, 
+								org->time().value() //it->second->maxPGA.timestamp
+							)
+						);
+					
+					if ( _processOrigins ) {
+						// Call Finder
+						processFinder();
+					}
+				}
+				catch ( std::exception &e ) {
+					SEISCOMP_ERROR("processing of origin '%s' failed", org->publicID().c_str());
+					SEISCOMP_ERROR("%s: %s", org->publicID().c_str(), e.what());
+					return;
+				}
+			return;
+			}
+		}
 
 		bool run() {
 			if ( commandline().hasOption("dump-config") ) {
@@ -1074,6 +1138,7 @@ class App : public Client::StreamApplication {
 
 		bool                           _testMode;
 		bool                           _playbackMode;
+		bool                           _processOrigins;
 		std::string                    _strTs;
 		std::string                    _strTe;
 		std::string                    _magnitudeGroup;
@@ -1105,6 +1170,8 @@ class App : public Client::StreamApplication {
 		LocationLookup                 _locationLookup;
 		Finder_List                    _finderList;
 		PGA_Data_List                  _latestMaxPGAs;
+
+		ObjectLog                      *_inputOrgs;
 };
 
 

@@ -131,7 +131,7 @@
 							default is 30s.
 						</description>
 					</parameter>
-					<parameter name="maxDelay" type="double" default="3" unit="s">
+					<parameter name="maxDelay" type="double" default="5" unit="s">
 						<description>
 							Sets the maximum absolute value of packet delay before issuing a warning. That 
 							parameter does not configure buffers as such but only a threshold (in seconds 
