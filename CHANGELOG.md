@@ -9,10 +9,14 @@
 * scfinder:
 
   * New parameter `maxEnvelopeBufferDelay`, to skip any channel not updated recently enough for input to FinDer.
+  
+  * Adds configuration for env. filter corner freq.: debug.filterCornerFreq
 
 * sceewenv:
 
   * Removing envelope delay filter as proven to be problematic in  scfinder.
+  
+  * Adds configuration for env. filter corner freq.: eewenv.vsfndr.filterCornerFreq
   
 * sceewlog
 
