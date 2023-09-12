@@ -107,13 +107,14 @@ void Processor::showConfig() const {
 	SEISCOMP_DEBUG("enable-acc          : %s", _members->config.wantSignal[WaveformProcessor::MeterPerSecondSquared] ? "yes":"no");
 	SEISCOMP_DEBUG("enable-vel          : %s", _members->config.wantSignal[WaveformProcessor::MeterPerSecond] ? "yes":"no");
 	SEISCOMP_DEBUG("enable-disp         : %s", _members->config.wantSignal[WaveformProcessor::Meter] ? "yes":"no");
-	SEISCOMP_DEBUG("enable-vsfndre      : %s", _members->config.vsfndr.enable ? "yes":"no");
+	SEISCOMP_DEBUG("enable-vsfndr       : %s", _members->config.vsfndr.enable ? "yes":"no");
 	SEISCOMP_DEBUG("enable-gba          : %s", _members->config.gba.enable ? "yes":"no");
 	SEISCOMP_DEBUG("enable-omp          : %s", _members->config.omp.enable ? "yes":"no");
 	SEISCOMP_DEBUG("vs-envelope-interval: %fs", (double)_members->config.vsfndr.envelopeInterval);
 	SEISCOMP_DEBUG("vs-filter-acc       : %s", _members->config.vsfndr.filterAcc ? "yes":"no");
 	SEISCOMP_DEBUG("vs-filter-vel       : %s", _members->config.vsfndr.filterVel ? "yes":"no");
 	SEISCOMP_DEBUG("vs-filter-disp      : %s", _members->config.vsfndr.filterDisp ? "yes":"no");
+	SEISCOMP_DEBUG("vs-filter-corner-freq  : %fHz",(double)_members->config.vsfndr.filterCornerFreq);
 	SEISCOMP_DEBUG("gba-buffer-size     : %fs", (double)_members->config.gba.bufferSize);
 	SEISCOMP_DEBUG("gba-cutoff-time     : %fs", (double)_members->config.gba.cutOffTime);
 	SEISCOMP_DEBUG("gba-passbands       : %d", (int)_members->config.gba.passbands.size());
@@ -297,6 +298,11 @@ bool Processor::init(const Seiscomp::Config::Config &conf,
 
 	try {
 		_members->config.vsfndr.filterDisp = conf.getBool(configPrefix + "vsfndr.filterDisp");
+	}
+	catch ( ... ) {}
+	
+	try {
+		_members->config.vsfndr.filterCornerFreq = conf.getDouble(configPrefix + "vsfndr.filterCornerFreq");
 	}
 	catch ( ... ) {}
 

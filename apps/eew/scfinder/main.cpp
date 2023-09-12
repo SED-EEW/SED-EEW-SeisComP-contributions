@@ -356,6 +356,13 @@ class App : public Client::StreamApplication {
 			eewCfg.dumpRecords = commandline().hasOption("dump");
 
 			eewCfg.vsfndr.enable = true;
+
+			eewCfg.vsfndr.filterCornerFreq = 1.0/3.0;
+			try {
+				eewCfg.vsfndr.filterCornerFreq = configGetDouble("debug.filterCornerFreq");
+			}
+			catch ( ... ) {}
+
 			eewCfg.maxDelay = 3.0;
 			try {
 				eewCfg.maxDelay = configGetDouble("debug.maxDelay");
