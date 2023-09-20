@@ -511,27 +511,68 @@ class App : public Client::StreamApplication {
 				try {
 
 					// Scan data
+						
+					SEISCOMP_DEBUG("Scanning data");
 					scanFinderData();
 
-					SEISCOMP_DEBUG("Received origin (lat: %f km lon:%f km  dep: %f) wrapped in origin: %s", 
+					SEISCOMP_DEBUG("Received origin (lat: %f km lon:%f km  dep: %f) wrapped in origin: %s at %s", 
 							org->latitude().value(),
 							org->longitude().value(),
 							org->depth().value(),
-							org->publicID().c_str()); 
+							org->publicID().c_str(),
+							_referenceTime.iso().c_str()); 
 
-					_latestMaxPGAs.push_back(
-						PGA_Data(
-								"EPIC",//it->second->meta->station()->code(),
-								"X",//it->second->meta->station()->network()->code(),
-								"XXX",//it->second->maxPGA.channel.c_str(),
-								"XX",//it->second->meta->code().empty()?"--":it->second->meta->code().c_str(),
-								org->latitude().value(),org->longitude().value(),//Coordinate(it->second->meta->latitude(), it->second->meta->longitude()),
-								9999.9,//it->second->maxPGA.value*100, 
-								org->time().value() //it->second->maxPGA.timestamp
-							)
-						);
+					// percentile(PGAs, 95)*1.2 or fit line to PGA=ft(dist,cutoff dist) 
+					double      epicentralPGAvalue = 0.0;
+					for ( size_t i = 0; i < _latestMaxPGAs.size(); ++i ) {
+						PGA_Data &pga = _latestMaxPGAs[i];
+						if ( pga.get_value() > epicentralPGAvalue ){
+							epicentralPGAvalue = pga.get_value();
+						}
+					}
+					//epicentralPGAvalue *= 2.0 ;					
 					
+					for(int i=-1;i<2;i++){
+						for(int j=-1;j<2;j++){
+							_latestMaxPGAs.push_back(
+								PGA_Data(
+										"EP"+std::to_string(i)+std::to_string(j),
+										"X",
+										"XXX",
+										"XX",
+										Coordinate( org->latitude().value()+0.01*i,
+										            org->longitude().value()+0.01*j ),
+										(double)epicentralPGAvalue,
+										_referenceTime.seconds() 
+									)
+								);
+						}
+					}
+
+					for ( size_t i = 0; i < _latestMaxPGAs.size(); ++i ) {
+						PGA_Data &pga = _latestMaxPGAs[i];
+						SEISCOMP_DEBUG("%s.%s.%s.%s %f %f %s %f",
+										pga.get_network().c_str(),
+										pga.get_name().c_str(),
+										pga.get_location_code().c_str(),
+										pga.get_channel().c_str(),
+										pga.get_location().get_lat(),
+										pga.get_location().get_lon(),
+										Core::Time(pga.get_timestamp()).iso().c_str(),
+										pga.get_value());
+					}
+					SEISCOMP_DEBUG("epicentral PGA value: %f cm/s/s",epicentralPGAvalue);
+					SEISCOMP_DEBUG("Received origin (lat: %f km lon:%f km  dep: %f) wrapped in origin: %s at %s", 
+							org->latitude().value(),
+							org->longitude().value(),
+							org->depth().value(),
+							org->publicID().c_str(),
+							_referenceTime.iso().c_str()); 
+
 					if ( _processOrigins ) {
+						
+						SEISCOMP_DEBUG("Processing origin");
+
 						// Call Finder
 						processFinder();
 					}
@@ -740,9 +781,12 @@ class App : public Client::StreamApplication {
 				the last <_finderMaxEnvelopeBufferDelay, default 15> seconds. If the condition is true, the code 
 				will continue with the next iteration of the loop. */
 				if ( ( it->second->pgas.back().timestamp.seconds() ) < ( _referenceTime.seconds() - _finderMaxEnvelopeBufferDelay ) ) {
-					std::cout << "Station skipped \t PGA buffer starts (iso,s)\t PGA buffer end (iso,s)\t Reference time (iso,s)" << std::endl;
-					std::cout << it->first << "\t" << it->second->pgas.front().timestamp.iso() << "\t" << it->second->pgas.back().timestamp.iso() << "\t" << _referenceTime.iso() << std::endl;
-					std::cout << it->first << "\t" << it->second->pgas.front().timestamp.seconds() << "\t" << it->second->pgas.back().timestamp.seconds() <<  "\t" << _referenceTime.seconds() << std::endl;
+					SEISCOMP_DEBUG( "Station skipped \t PGA buffer starts (iso,s)\t PGA buffer end (iso,s)\t Reference time (iso,s)" );
+					SEISCOMP_DEBUG( "%s \t %s \t %s \t %s", 
+					                it->first.c_str(), 
+					                it->second->pgas.front().timestamp.iso().c_str(), 
+									it->second->pgas.back().timestamp.iso().c_str(), 
+									_referenceTime.iso().c_str() );
 					continue;
 				}
 
