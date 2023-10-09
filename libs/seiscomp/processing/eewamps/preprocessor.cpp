@@ -55,6 +55,8 @@ class HPreProcessor::L2Norm {
 
 		bool publish(int c) const { return c == 0; }
 
+		void reset() {}
+
 		int compIndex(const std::string &code) const {
 			if ( _parent->_streamConfig[_first].code() == code )
 				return 0;
