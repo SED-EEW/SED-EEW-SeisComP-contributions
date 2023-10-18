@@ -172,6 +172,8 @@ WORKDIR /home/sysop
 
 USER root
 
+RUN apt-get install -y python3-numpy
+
 RUN /etc/init.d/mysql start && \
     sleep 5 && \
     mysql -u root -e "CREATE DATABASE seiscomp" && \
