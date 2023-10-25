@@ -100,10 +100,38 @@ This requires `docker`_ and ``ssh`` to be installed and enabled.
     seiscomp-finder () { ssh -X -p 9878 sysop@localhost -C "/opt/seiscomp/bin/seiscomp  $@"; }
 
 
+#. Configure :ref:`finder` based on the example in :file:`/usr/local/src/FinDer/config/finder.config`.  e.g.:: 
+
+    # Basic docker configuration 
+    mkdir myconf
+    docker cp  finder:/usr/local/src/FinDer/config/finder.config  myconf/ 
+    
+    # Edit myconf/finder.config with paths related to container
+    
+    # Copy your FinDer config to container
+    docker cp myconf/finder.config finder:/home/sysop/.seiscomp/
+
 #. Configure :ref:`scfinder` (and SeisComP) with the ``seiscomp-finder`` shortcut, e.g.:: 
 
-    # Configuration 
+    # Basic scfinder container configuration 
+    mkdir myconf
+    echo 'connection.server = host.docker.internal/production
+    database = host.docker.internal/seiscomp
+    database.inventory = host.docker.internal/seiscomp
+    database.config = host.docker.internal/seiscomp
+    finder.config = /home/sysop/.seiscomp/finder.config ' > myconf/scfinder.cfg
+    
+    # Copy your scfinder config to container
+    docker cp myconf/scfinder.cfg finder:/home/sysop/.seiscomp/
+
+    # Review and adjust configuration
     seiscomp-finder exec scconfig
+
+
+#. Backup your configuration, e.g.,::
+    
+    docker cp  finder:/home/sysop/.seiscomp/finder.config  myconf/ 
+    docker cp  finder:/home/sysop/.seiscomp/scfinder.cfg myconf/
 
 
 #. Manage :ref:`scfinder` (and SeisComP) with the ``seiscomp-finder`` shortcut, e.g.::
@@ -126,8 +154,6 @@ This requires `docker`_ and ``ssh`` to be installed and enabled.
     seiscomp-finder restart
 
 .. note::
-
-    An example of :ref:`finder` config file can be found in :file:`/usr/local/src/FinDer/config/`. 
 
     ``host.docker.internal`` is defined as a alias to the docker host that can be used in :ref:`scfinder` 
     configuration (:file:`scfinder.cfg`) in the docker container with parameter :confval:`connection.server` 

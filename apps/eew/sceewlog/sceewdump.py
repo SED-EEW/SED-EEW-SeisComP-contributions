@@ -177,47 +177,64 @@ sceewdump -E smi:ch.ethz.sed/sc20d/Event/2022njvrzz  -i ~/playback_fm4test/2022n
             # Clean new obj
             ep = datamodel.EventParameters()
             evt = datamodel.Event.Create()
+            #evt = datamodel.Event.Cast(ev.clone()) 
 
             # Clean origin copy
+            for i in range(origin.magnitudeCount()):
+                origin.removeMagnitude(i+1)
             org_cloned = datamodel.Origin.Cast(origin.clone())
+            
             mag_cloned = datamodel.Magnitude.Cast(magnitude.clone())
-            org_cloned.add(mag_cloned)
-
+            if not org_cloned.add(mag_cloned):
+                print("Cannot add mag",mag_cloned.publicID())
+            
+            # Copy event parameters
+            ep.add(org_cloned)
+            
             # Copy event
-            evt.setPublicID(ev.publicID().split('/')[-1])
-            evt.add(datamodel.OriginReference(org_cloned.publicID())) #org_ref_cloned)
-            evt.setPreferredOriginID(origin.publicID())
-            evt.setPreferredMagnitudeID(magnitude.publicID())
+            evt.setPublicID("sceewdump/%s" % ev.publicID().split('/')[-1])
+            
+            if not evt.add(datamodel.OriginReference(org_cloned.publicID())):
+                print("Cannot add org ref", org_cloned.publicID())
+            
+            evt.setPreferredOriginID(org_cloned.publicID())
+            if  evt.preferredOriginID() != org_cloned.publicID():
+                print("Cannot set pref origin", org_cloned.publicID())
+                print(evt.preferredOriginID())
+
+            evt.setPreferredMagnitudeID(mag_cloned.publicID()) 
+            if mag_cloned.publicID() != evt.preferredMagnitudeID():
+                print("Cannot set pref mag", mag_cloned.publicID())
+                print(evt.preferredMagnitudeID())
 
             # Copy event parameters
             ep.add(evt)
-            ep.add(org_cloned)
 
             # time in millisecond since 1970 (java ref)
             otm = core.Time.FromYearDay(1970, 1)
-            #print(otm,file=sys.stdout)
             now = magnitude.creationInfo().creationTime()
             dt = (now - otm).seconds()*1000
+            file = "./%d.sc3xml" % dt
 
             # Debug info
-            print("./%d.sc3xml"%dt,magnitude.creationInfo().creationTime(),magnitude.type(),magnitude.magnitude().value(),magnitude.creationInfo().author(),file=sys.stdout)
+            print(file,magnitude.creationInfo().creationTime(),magnitude.type(),magnitude.magnitude().value(),magnitude.creationInfo().author(),file=sys.stdout)
 
             # Prints
             ar = io.XMLArchive()
-            ar.create("./%d.sc3xml"%dt)
+            ar.create(file ) 
             ar.setFormattedOutput(True)
             ar.writeObject(ep)
             ar.close()
 
             # Converts
             if self.xslFile is not None:
-                dom = ET.parse("./%d.sc3xml"%dt)
+                dom = ET.parse(file) 
                 xslt = ET.parse(self.xslFile) 
                 transform = ET.XSLT(xslt)
                 newdom = transform(dom)
-                with open("./%d.xml"%dt, "wb") as fd:
+                with open("./%d.xml" % dt, "wb") as fd:
                     fd.write(ET.tostring(newdom, pretty_print=True))
-                os.remove("./%d.sc3xml"%dt)
+                os.remove(file)
 
         return True
 
