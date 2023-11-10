@@ -69,6 +69,8 @@ in the following format:
    topic=YOUR_TOPIC_NAME_GOES_HERE
 
 
+.. _sceewlog-reports:
+
 Reports
 =======
 

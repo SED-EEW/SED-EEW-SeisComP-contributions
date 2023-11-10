@@ -1,3 +1,14 @@
+=====
+Setup
+=====
+
+.. toctree::
+   :maxdepth: 3
+   
+   /base/setup-ese
+   /base/setup-eewd
+   /base/setup-finder
+   
 =======
 Modules
 =======
@@ -19,3 +30,4 @@ Utilities
    
    /apps/scgof
    /apps/sceewdump
+

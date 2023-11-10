@@ -15,7 +15,7 @@ The processing procedure for envelope computation is as follows:
 #. gain correction
 #. baseline correction
 #. combination of the two horizontal components to a root-mean-squared horizontal component
-#. integration or differentiation to velocity, acceleration and displacement
+#. integration or differentiation to velocity, acceleration and displacement (both velocity and displacement are high pass pre-filtered over 0.075 Hz)
 #. high-pass filter with a corner frequency of 3 s period
 #. computation of the absolute value within 1 s intervals
 

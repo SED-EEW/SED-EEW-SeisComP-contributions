@@ -76,8 +76,8 @@ Table of Contents
 .. toctree::
    :maxdepth: 3
 
-   /base/VS
-   /base/FinDer
+   /base/intro-vs
+   /base/intro-finder
    /apps
    Support <http://github.com/SED-EEW/SED-EEW-SeisComP-contributions/discussions>
 

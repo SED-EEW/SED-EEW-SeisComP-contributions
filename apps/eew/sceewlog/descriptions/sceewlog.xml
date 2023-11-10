@@ -131,7 +131,7 @@
 				</parameter>
 			</group>
 			<group name="ActiveMQ">
-				<parameter name="activate" type="boolean" default="false">
+				<parameter name="activate" type="boolean" default="true">
 					<description>
 					Send Alerts through ActiveMQ msg broker.
 					</description>
@@ -141,7 +141,7 @@
 					Server name that runs the ActiveMQ broker.
 					</description>
 				</parameter>
-				<parameter name="port" type="int" default="61619">
+				<parameter name="port" type="int" default="61618">
 					<description>
 					Port on which ActiveMQ broker accepts stomp messages.
 					</description>
@@ -156,12 +156,12 @@
 					Password with which messages are sent.
 					</description>
 				</parameter>
-				<parameter name="topic" type="string" default="/topic/your-topic-for-alerts">
+				<parameter name="topic" type="string" default="/topic/your-ActiveMQ-topic">
 					<description>
 					ActiveMQ broker topic to send alerts to.
 					</description>
 				</parameter>
-				<parameter name="hbtopic" type="string" default="/topic/your-topic-for-heart-beats">
+				<parameter name="hbtopic" type="string" default="/topic/your-ActiveMQ-topic">
 					<description>
 					ActiveMQ broker topic to send heart beats to.
 					</description>
