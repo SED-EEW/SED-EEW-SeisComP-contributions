@@ -20,7 +20,7 @@
 #define __SEISCOMP_PROCESSING_EEWAMPS_ROUTER_H__
 
 
-#include <seiscomp3/datamodel/inventory.h>
+#include <seiscomp/datamodel/inventory.h>
 #include <map>
 #include <string>
 

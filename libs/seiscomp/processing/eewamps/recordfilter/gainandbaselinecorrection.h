@@ -21,11 +21,11 @@
 
 
 #include <seiscomp/processing/eewamps/api.h>
-#include <seiscomp3/datamodel/inventory.h>
-#include <seiscomp3/io/recordfilter.h>
-#include <seiscomp3/math/filter/average.h>
-#include <seiscomp3/math/filter/taper.h>
-#include <seiscomp3/math/filter/butterworth.h>
+#include <seiscomp/datamodel/inventory.h>
+#include <seiscomp/io/recordfilter.h>
+#include <seiscomp/math/filter/average.h>
+#include <seiscomp/math/filter/taper.h>
+#include <seiscomp/math/filter/butterworth.h>
 
 
 #define BASELINE_CORRECTION_WITH_TAPER

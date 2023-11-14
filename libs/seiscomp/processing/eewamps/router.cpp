@@ -19,9 +19,9 @@
 #define SEISCOMP_COMPONENT EEWAMPS
 
 
-#include <seiscomp3/logging/log.h>
-#include <seiscomp3/datamodel/pick.h>
-#include <seiscomp3/datamodel/utils.h>
+#include <seiscomp/logging/log.h>
+#include <seiscomp/datamodel/pick.h>
+#include <seiscomp/datamodel/utils.h>
 
 #include "preprocessor.h"
 #include "router.h"

@@ -19,8 +19,8 @@
 #define SEISCOMP_COMPONENT EEWAMPS
 
 
-#include <seiscomp3/logging/log.h>
-#include <seiscomp3/io/recordfilter/demux.h>
+#include <seiscomp/logging/log.h>
+#include <seiscomp/io/recordfilter/demux.h>
 
 #include "processor.h"
 #include "router.h"

@@ -21,7 +21,7 @@
 
 
 #include <seiscomp/processing/eewamps/api.h>
-#include <seiscomp3/processing/waveformprocessor.h>
+#include <seiscomp/processing/waveformprocessor.h>
 #include <boost/function.hpp>
 
 #include "baseprocessor.h"

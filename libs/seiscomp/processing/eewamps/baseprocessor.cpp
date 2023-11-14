@@ -19,8 +19,8 @@
 #define SEISCOMP_COMPONENT EEWAMPS
 
 
-#include <seiscomp3/logging/log.h>
-#include <seiscomp3/io/records/mseedrecord.h>
+#include <seiscomp/logging/log.h>
+#include <seiscomp/io/records/mseedrecord.h>
 
 #include "baseprocessor.h"
 #include "config.h"

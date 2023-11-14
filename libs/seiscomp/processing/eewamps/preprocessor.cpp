@@ -19,13 +19,13 @@
 #define SEISCOMP_COMPONENT EEWAMPS
 
 
-#include <seiscomp3/logging/log.h>
-#include <seiscomp3/processing/operator/ncomps.h>
-#include <seiscomp3/io/records/mseedrecord.h>
-#include <seiscomp3/io/recordfilter/demux.h>
-#include <seiscomp3/io/recordfilter/iirfilter.h>
-#include <seiscomp3/math/filter/iirintegrate.h>
-#include <seiscomp3/math/filter/chainfilter.h>
+#include <seiscomp/logging/log.h>
+#include <seiscomp/processing/operator/ncomps.h>
+#include <seiscomp/io/records/mseedrecord.h>
+#include <seiscomp/io/recordfilter/demux.h>
+#include <seiscomp/io/recordfilter/iirfilter.h>
+#include <seiscomp/math/filter/iirintegrate.h>
+#include <seiscomp/math/filter/chainfilter.h>
 
 #include "filter/diffcentral.h"
 #include "processors/envelope.h"
