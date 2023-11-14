@@ -109,7 +109,7 @@ parameters will be evaluated globally.
 
 .. code-block:: sh
 
-   RegFilters.bnaFile = /opt/seiscomp3/share/sceewlog/closedpolygons.bna
+   RegFilters.bnaFile = /opt/seiscomp/share/sceewlog/closedpolygons.bna
    
 Then profile names have to be set. Two profile examples are provided below.
 

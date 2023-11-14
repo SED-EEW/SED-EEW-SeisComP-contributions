@@ -20,7 +20,7 @@
 #define __SEISCOMP_PROCESSING_EEWAMPS_PROCESSORS_GBA_H__
 
 
-#include <seiscomp3/core/recordsequence.h>
+#include <seiscomp/core/recordsequence.h>
 #include "../baseprocessor.h"
 
 

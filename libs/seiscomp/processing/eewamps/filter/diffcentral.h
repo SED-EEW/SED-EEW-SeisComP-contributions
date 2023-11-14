@@ -21,7 +21,7 @@
 
 
 #include <seiscomp/processing/eewamps/api.h>
-#include <seiscomp3/math/filter.h>
+#include <seiscomp/math/filter.h>
 
 
 namespace Seiscomp {

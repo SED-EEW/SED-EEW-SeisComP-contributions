@@ -13,7 +13,7 @@
  *                                                                            *
  *   -----------------------------------------------------------------------  *
  *                                                                            *
- *   SeisComP3 wrapper for the FinDer algorithm using libFinder written by    *
+ *   SeisComP wrapper for the FinDer algorithm using libFinder written by    *
  *   Deborah E. Smith (deborahsmith@usgs.gov) and                             *
  *   Maren Böse, ETH, (maren.boese@erdw.ethz.ch).                             *
  *                                                                            *
@@ -31,15 +31,15 @@
 
 #define SEISCOMP_COMPONENT SCFINDER
 
-#include <seiscomp3/logging/log.h>
-#include <seiscomp3/logging/output.h>
-#include <seiscomp3/core/version.h>
-#include <seiscomp3/client/streamapplication.h>
-#include <seiscomp3/client/inventory.h>
-#include <seiscomp3/client/queue.h>
-#include <seiscomp3/datamodel/eventparameters.h>
-#include <seiscomp3/datamodel/origin.h>
-#include <seiscomp3/datamodel/magnitude.h>
+#include <seiscomp/logging/log.h>
+#include <seiscomp/logging/output.h>
+#include <seiscomp/core/version.h>
+#include <seiscomp/client/streamapplication.h>
+#include <seiscomp/client/inventory.h>
+#include <seiscomp/client/queue.h>
+#include <seiscomp/datamodel/eventparameters.h>
+#include <seiscomp/datamodel/origin.h>
+#include <seiscomp/datamodel/magnitude.h>
 
 #if SC_API_VERSION < SC_API_VERSION_CHECK(14,0,0)
     #include <seiscomp3/datamodel/strongmotion/strongmotionparameters_package.h>
@@ -48,9 +48,9 @@
 #endif
 
 
-#include <seiscomp3/io/archive/xmlarchive.h>
+#include <seiscomp/io/archive/xmlarchive.h>
 #include <seiscomp/processing/eewamps/processor.h>
-#include <seiscomp3/math/geo.h>
+#include <seiscomp/math/geo.h>
 #include <functional>
 
 #include "finder.h"

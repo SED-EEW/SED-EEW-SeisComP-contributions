@@ -19,9 +19,9 @@
 #define SEISCOMP_COMPONENT EEWAMPS
 
 
-#include <seiscomp3/logging/log.h>
-#include <seiscomp3/math/filter/butterworth.h>
-#include <seiscomp3/math/mean.h>
+#include <seiscomp/logging/log.h>
+#include <seiscomp/math/filter/butterworth.h>
+#include <seiscomp/math/mean.h>
 
 #include "envelope.h"
 #include "../config.h"

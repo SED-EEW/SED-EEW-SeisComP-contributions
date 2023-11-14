@@ -947,7 +947,7 @@ def runSeisComp(scevid = None):
                 UTCDateTime.now().strftime('%y%m%dT%H%M%S'), level=logging.INFO)
     logging.info('Running script for seiscomp eventID %s'%evid)
 
-    # FinDer solutions from seiscomp3 db
+    # FinDer solutions from seiscomp db
     len_xml = 0
     num_fdsols = 0
     bPreferredOnly = True
@@ -1041,7 +1041,7 @@ if __name__ == '__main__':
     if sys.argv[1] == '-h':
         print('\n\n\nScript for plotting FinDer solutions, it has two modes:\n \
 * run from the command line with arguments: -log <FinDer library log file> -ddir <FinDer directory containing data_ files>\n \
-* run from command line with a SeisComp3 event ID.\n\n \
+* run from command line with a SeisComP event ID.\n\n \
 Note that for the latter it requires scxmldump to be configured.\n\n\n')
         sys.exit()
     if len(sys.argv) == 2 and '-log' not in sys.argv:

@@ -20,9 +20,9 @@
 #define __SEISCOMP_PROCESSING_EEWAMPS_PROCESSOR_H__
 
 
-#include <seiscomp3/config/config.h>
-#include <seiscomp3/io/recordstream.h>
-#include <seiscomp3/utils/stringfirewall.h>
+#include <seiscomp/config/config.h>
+#include <seiscomp/io/recordstream.h>
+#include <seiscomp/utils/stringfirewall.h>
 
 #include "config.h"
 

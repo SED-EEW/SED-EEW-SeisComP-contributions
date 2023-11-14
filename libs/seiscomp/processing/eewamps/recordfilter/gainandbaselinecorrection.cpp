@@ -19,11 +19,11 @@
 #define SEISCOMP_COMPONENT EEWAMPS
 
 
-#include <seiscomp3/logging/log.h>
-#include <seiscomp3/core/typedarray.h>
-#include <seiscomp3/core/genericrecord.h>
-#include <seiscomp3/core/exceptions.h>
-#include <seiscomp3/datamodel/utils.h>
+#include <seiscomp/logging/log.h>
+#include <seiscomp/core/typedarray.h>
+#include <seiscomp/core/genericrecord.h>
+#include <seiscomp/core/exceptions.h>
+#include <seiscomp/datamodel/utils.h>
 
 #include "gainandbaselinecorrection.h"
 
