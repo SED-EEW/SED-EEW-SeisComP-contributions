@@ -2,11 +2,10 @@
 
 # bash script to generate station_mask_file "mask.nc" for FinDer
 # call:
-#./create_finder_mask.sh <station_lon_lat_file> <finder_config_file> 
-# or:
 #./create_finder_mask.sh <station_lon_lat_file> <mask_station_distance> 
 # e.g. 
-#./create_finder_mask.sh stations.xy finder.config
+#timeout -1 scfinder -I slink://hghgh:18000 --debug -u test --test 2>&1 |grep "debug] + .*  .*"|awk '{print $6, $5}' >stations
+#./create_finder_mask.sh stations.xy 100
 
 set -x
 
@@ -26,8 +25,7 @@ then
 else
     set +x
     echo "WRONG USAGE. TRY:"
-    echo "./create_finder_mask.sh <station_lon_lat_file> <finder_config_file>" 
-    echo "OR:"
+    echo "timeout -1 scfinder -I slink://42.42.42.42:18000 --debug -u test --test 2>&1 |grep "debug] + .*  .*"|awk '{print $6, $5}' > <station_lon_lat_file>"
     echo "./create_finder_mask.sh <station_lon_lat_file> <mask_station_distance>" 
     exit 1
 fi
@@ -61,7 +59,9 @@ gmt grdmath -I${dLonDegree}/${dLatDegree} -R${minlon}/${maxlon}/${minlat}/${maxl
 
 gmt grdclip tmp_out -Gmask.nc -Sa${mask_station_distance}/0 -Sb${mask_station_distance}/1 
 
-gmt grdimage mask.nc -JM5.5i -R > mask.ps
+gmt psbasemap -Bpxa5f5 -Bpya5f5 -JM5.5i -R${minlon}/${maxlon}/${minlat}/${maxlat} -X2 -Y6 -P -K -V > mask.ps
+gmt grdimage mask.nc -JM5.5i -R${minlon}/${maxlon}/${minlat}/${maxlat}  -n+c -V -K -P -O -Q >> mask.ps
+gmt pscoast -JM5.5i  -R${minlon}/${maxlon}/${minlat}/${maxlat} -W0.75p -Df -A10  -Na/0.75p -P -O -V >> mask.ps
 
 ps2pdf mask.ps mask.pdf
 
