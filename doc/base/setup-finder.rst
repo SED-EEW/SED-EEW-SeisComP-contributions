@@ -94,7 +94,7 @@ Operation
     
     # restart docker container 
     docker start finder
-    docker exec -u 0 -it  finder /etc/init.d/sshd start 
+    docker exec -u 0 -it  finder /etc/init.d/ssh start 
     seiscomp-finder restart
 
 
