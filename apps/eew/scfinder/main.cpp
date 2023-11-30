@@ -40,6 +40,7 @@
 #include <seiscomp/datamodel/eventparameters.h>
 #include <seiscomp/datamodel/origin.h>
 #include <seiscomp/datamodel/magnitude.h>
+#include <seiscomp/core/datamessage.h>
 
 #if SC_API_VERSION < SC_API_VERSION_CHECK(14,0,0)
     #include <seiscomp3/datamodel/strongmotion/strongmotionparameters_package.h>
