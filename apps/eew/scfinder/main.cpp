@@ -476,7 +476,7 @@ class App : public Client::StreamApplication {
 				return false;
 			}
       if (_bFinDerS) {
-        _slip_config = FinDerS::read_config_file(_slipConfig);
+        _slip_config.read_config_file(_slipConfig);
       }
 			#endif
 
