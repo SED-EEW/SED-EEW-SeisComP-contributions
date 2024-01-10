@@ -67,7 +67,7 @@ Config::Config() {
 	horizontalBufferSize = Core::TimeSpan(60,0);
 	horizontalMaxDelay = Core::TimeSpan(30,0);
 	maxDelay = Core::TimeSpan(3,0);
-	skipDataOlderThan = Core::TimeSpan(60,0);
+	skipDataOlderThan = Core::TimeSpan(30,0);
 
 	// ----------------------------------------------------------------------
 	//  VS and FinDer configuration
@@ -78,6 +78,7 @@ Config::Config() {
 	vsfndr.filterAcc = false;
 	vsfndr.filterVel = false;
 	vsfndr.filterDisp = true;
+	vsfndr.filterCornerFreq = 1.0/3.0;
 
 	// ----------------------------------------------------------------------
 	//  Gutenberg configuration

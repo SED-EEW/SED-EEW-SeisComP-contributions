@@ -13,7 +13,7 @@
  *                                                                            *
  *   -----------------------------------------------------------------------  *
  *                                                                            *
- *   SeisComP3 wrapper for the FinDer algorithm using libFinder written by    *
+ *   SeisComP wrapper for the FinDer algorithm using libFinder written by    *
  *   Deborah E. Smith (deborahsmith@usgs.gov) and                             *
  *   Maren Böse, ETH, (maren.boese@erdw.ethz.ch).                             *
  *                                                                            *
@@ -31,15 +31,15 @@
 
 #define SEISCOMP_COMPONENT SCFINDER
 
-#include <seiscomp3/logging/log.h>
-#include <seiscomp3/logging/output.h>
-#include <seiscomp3/core/version.h>
-#include <seiscomp3/client/streamapplication.h>
-#include <seiscomp3/client/inventory.h>
-#include <seiscomp3/client/queue.h>
-#include <seiscomp3/datamodel/eventparameters.h>
-#include <seiscomp3/datamodel/origin.h>
-#include <seiscomp3/datamodel/magnitude.h>
+#include <seiscomp/logging/log.h>
+#include <seiscomp/logging/output.h>
+#include <seiscomp/core/version.h>
+#include <seiscomp/client/streamapplication.h>
+#include <seiscomp/client/inventory.h>
+#include <seiscomp/client/queue.h>
+#include <seiscomp/datamodel/eventparameters.h>
+#include <seiscomp/datamodel/origin.h>
+#include <seiscomp/datamodel/magnitude.h>
 
 #if SC_API_VERSION < SC_API_VERSION_CHECK(14,0,0)
     #include <seiscomp3/datamodel/strongmotion/strongmotionparameters_package.h>
@@ -48,9 +48,9 @@
 #endif
 
 
-#include <seiscomp3/io/archive/xmlarchive.h>
+#include <seiscomp/io/archive/xmlarchive.h>
 #include <seiscomp/processing/eewamps/processor.h>
-#include <seiscomp3/math/geo.h>
+#include <seiscomp/math/geo.h>
 #include <functional>
 
 #include "finder.h"
@@ -225,7 +225,10 @@ class App : public Client::StreamApplication {
 			// Default Finder call interval is 1s
 			_finderProcessCallInterval.set(1);
 			// Default scan call interval is 0.1s
-			_finderScanCallInterval.set(0).setUSecs(100000);
+			_finderScanCallInterval.set(1);
+			// Default envelope buffer delay is 15s
+			_finderMaxEnvelopeBufferDelay.set(15);
+
 			_finderAmplitudesDirty = false;
 			_finderScanDataDirty = false;
       _bFinDerS = true;
@@ -293,6 +296,12 @@ class App : public Client::StreamApplication {
 		}
 
 
+		/**
+		 * The function initializes various configuration settings and objects for a program, including
+		 * setting up a waveform processor and subscribing to channels for processing.
+		 * 
+		 * @return A boolean value is being returned.
+		 */
 		bool init() {
 			if ( !StreamApplication::init() )
 				return false;
@@ -343,6 +352,11 @@ class App : public Client::StreamApplication {
         _bFinDerS = false;
       }
 
+			try {
+				_finderMaxEnvelopeBufferDelay = configGetDouble("finder.maxEnvelopeBufferDelay");
+			}
+			catch ( ... ) {}
+
 			_creationInfo.setAgencyID(agencyID());
 			_creationInfo.setAuthor(author());
 
@@ -350,14 +364,16 @@ class App : public Client::StreamApplication {
 			eewCfg.dumpRecords = commandline().hasOption("dump");
 
 			eewCfg.vsfndr.enable = true;
-			eewCfg.maxDelay = 3.0;
-			eewCfg.skipDataOlderThan = 180.0;
+
+			eewCfg.vsfndr.filterCornerFreq = 1.0/3.0;
 			try {
-				eewCfg.maxDelay = configGetDouble("debug.maxDelay");
+				eewCfg.vsfndr.filterCornerFreq = configGetDouble("debug.filterCornerFreq");
 			}
 			catch ( ... ) {}
+
+			eewCfg.maxDelay = 3.0;
 			try {
-				eewCfg.skipDataOlderThan = configGetDouble("debug.skipDataOlderThan");
+				eewCfg.maxDelay = configGetDouble("debug.maxDelay");
 			}
 			catch ( ... ) {}
 
@@ -704,6 +720,16 @@ class App : public Client::StreamApplication {
 			#endif
 			for ( it = _locationLookup.begin(); it != _locationLookup.end(); ++it ) {
 				if ( !it->second->maxPGA.timestamp.valid() ) continue;
+				
+				/* The above code is checking if the timestamp of the last element in the `pgas` vector is within
+				the last <_finderMaxEnvelopeBufferDelay, default 15> seconds. If the condition is true, the code 
+				will continue with the next iteration of the loop. */
+				if ( ( it->second->pgas.back().timestamp.seconds() ) < ( _referenceTime.seconds() - _finderMaxEnvelopeBufferDelay ) ) {
+					std::cout << "Station skipped \t PGA buffer starts (iso,s)\t PGA buffer end (iso,s)\t Reference time (iso,s)" << std::endl;
+					std::cout << it->first << "\t" << it->second->pgas.front().timestamp.iso() << "\t" << it->second->pgas.back().timestamp.iso() << "\t" << _referenceTime.iso() << std::endl;
+					std::cout << it->first << "\t" << it->second->pgas.front().timestamp.seconds() << "\t" << it->second->pgas.back().timestamp.seconds() <<  "\t" << _referenceTime.seconds() << std::endl;
+					continue;
+				}
 
         if (_bFinDerS) {
  				  _latestMaxPGDs.push_back(
@@ -724,7 +750,8 @@ class App : public Client::StreamApplication {
 						it->second->maxPGA.channel.c_str(),
 						it->second->meta->code().empty()?"--":it->second->meta->code().c_str(),
 						Coordinate(it->second->meta->latitude(), it->second->meta->longitude()),
-						it->second->maxPGA.value*100, it->second->maxPGA.timestamp
+						it->second->maxPGA.value*100, 
+						it->second->maxPGA.timestamp
 					)
 				);
 				#if defined(LOG_AMPS)
@@ -1146,6 +1173,7 @@ class App : public Client::StreamApplication {
 
 		Core::TimeSpan                 _finderProcessCallInterval;
 		Core::TimeSpan                 _finderScanCallInterval;
+		Core::TimeSpan                 _finderMaxEnvelopeBufferDelay;
 		bool                           _finderAmplitudesDirty;
 		bool                           _finderScanDataDirty;
 

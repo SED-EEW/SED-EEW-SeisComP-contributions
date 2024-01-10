@@ -1,5 +1,52 @@
 # Change Log
 
+## Master
+
+* scvsmag
+  
+  * Fix reading for VS30 grid
+
+* scfinder:
+
+  * New parameter `maxEnvelopeBufferDelay`, to skip any channel not updated recently enough for input to FinDer.
+  
+  * Adds configuration for env. filter corner freq.: debug.filterCornerFreq
+
+* sceewenv:
+
+  * Removing envelope delay filter as proven to be problematic in  scfinder.
+  
+  * Adds configuration for env. filter corner freq.: eewenv.vsfndr.filterCornerFreq
+  
+* sceewlog
+
+  * New parameter `EEW.script`, path to script to execute after sending alert
+
+  * New external script `sceewlog2file`, example that can be used with `EEW.script`
+
+
+## Release 2023 June 19 tag 5.1.2
+
+* sceewlog:
+  
+  * Configuration of profile and EEW comment made cleaner
+  
+* scgof
+  
+  * New module: Geographic origin filter (#12)
+   
+* scfinder:
+
+  * Scan and process intervals setup to 1s by default (avoiding multithreading issues).
+
+  * Default envelope delay filter threshold to 30s by default (similar to shakealert) 
+  
+  * compilation: The path to dmsm in scfinder is fixed to `./../../../../../base/sed-contrib/libs`
+
+* sceewenv:
+  
+  * Default envelope delay filter threshold to 30s by default (similar to shakealert)  
+
 ## Release 2022 November 15 tag 5.1.1
 
 * scfinder:

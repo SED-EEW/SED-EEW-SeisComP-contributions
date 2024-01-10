@@ -6,7 +6,7 @@ Software Foundation, version 3 or later). It uses the same library as
 the `Finite-Fault Rupture Detector`_ API.
 
 This module requires FinDer to be installed and SeisComP to be compiled from
-source. The source code for FinDer is distributed separately by the SED.
+source. The FinDer software is distributed by the Swiss Seismological Service (SED) at ETH Zurich. Access to the source code is limited to users who have an established collaboration with the SED. In other cases, compiled binaries (in a docker image) may be provided instead. Please contact Dr. Maren Böse (SED) for requests and further information.
 
 FinDer provides estimates of the rupture centroid, length and strike. These
 values are attached by *scfinder* within a derived object called *strong motion

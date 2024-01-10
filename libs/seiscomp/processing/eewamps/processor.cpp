@@ -19,8 +19,8 @@
 #define SEISCOMP_COMPONENT EEWAMPS
 
 
-#include <seiscomp3/logging/log.h>
-#include <seiscomp3/io/recordfilter/demux.h>
+#include <seiscomp/logging/log.h>
+#include <seiscomp/io/recordfilter/demux.h>
 
 #include "processor.h"
 #include "router.h"
@@ -41,10 +41,6 @@ struct Processor::Members {
 	Config                       config;  //!< Global configuration object
 	Router                       router;  //!< Record router
 	IO::RecordFilterInterfacePtr demuxer; //!< Record stream demultiplexer
-        Core::Time lastCall;
-        Core::TimeSpan totalCallTime;
-        unsigned numCalls;
-        Core::Time lastPrinted;
 };
 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -108,17 +104,17 @@ void Processor::showConfig() const {
 	SEISCOMP_DEBUG("hor-buffer-size     : %fs", (double)_members->config.horizontalBufferSize);
 	SEISCOMP_DEBUG("hor-max-delay       : %fs", (double)_members->config.horizontalMaxDelay);
 	SEISCOMP_DEBUG("max-delay           : %fs", (double)_members->config.maxDelay);
-	SEISCOMP_DEBUG("max-allowed-delay   : %fs", (double)_members->config.skipDataOlderThan);
 	SEISCOMP_DEBUG("enable-acc          : %s", _members->config.wantSignal[WaveformProcessor::MeterPerSecondSquared] ? "yes":"no");
 	SEISCOMP_DEBUG("enable-vel          : %s", _members->config.wantSignal[WaveformProcessor::MeterPerSecond] ? "yes":"no");
 	SEISCOMP_DEBUG("enable-disp         : %s", _members->config.wantSignal[WaveformProcessor::Meter] ? "yes":"no");
-	SEISCOMP_DEBUG("enable-vsfndre      : %s", _members->config.vsfndr.enable ? "yes":"no");
+	SEISCOMP_DEBUG("enable-vsfndr       : %s", _members->config.vsfndr.enable ? "yes":"no");
 	SEISCOMP_DEBUG("enable-gba          : %s", _members->config.gba.enable ? "yes":"no");
 	SEISCOMP_DEBUG("enable-omp          : %s", _members->config.omp.enable ? "yes":"no");
 	SEISCOMP_DEBUG("vs-envelope-interval: %fs", (double)_members->config.vsfndr.envelopeInterval);
 	SEISCOMP_DEBUG("vs-filter-acc       : %s", _members->config.vsfndr.filterAcc ? "yes":"no");
 	SEISCOMP_DEBUG("vs-filter-vel       : %s", _members->config.vsfndr.filterVel ? "yes":"no");
 	SEISCOMP_DEBUG("vs-filter-disp      : %s", _members->config.vsfndr.filterDisp ? "yes":"no");
+	SEISCOMP_DEBUG("vs-filter-corner-freq  : %fHz",(double)_members->config.vsfndr.filterCornerFreq);
 	SEISCOMP_DEBUG("gba-buffer-size     : %fs", (double)_members->config.gba.bufferSize);
 	SEISCOMP_DEBUG("gba-cutoff-time     : %fs", (double)_members->config.gba.cutOffTime);
 	SEISCOMP_DEBUG("gba-passbands       : %d", (int)_members->config.gba.passbands.size());
@@ -216,7 +212,8 @@ bool Processor::init(const Seiscomp::Config::Config &conf,
 		return false;
 
 	// ----------------------------------------------------------------------
-
+	// Read black- and whitelists
+	// ----------------------------------------------------------------------
 	try {
 		std::vector<std::string> tokens = conf.getStrings(configPrefix + "streams.whitelist");
 		for ( size_t i = 0; i < tokens.size(); ++i )
@@ -264,10 +261,6 @@ bool Processor::init(const Seiscomp::Config::Config &conf,
 		_members->config.maxDelay = conf.getDouble(configPrefix + "debug.maxDelay");
 	}
 	catch ( ... ) {}
-	try {
-		_members->config.skipDataOlderThan = conf.getDouble(configPrefix + "debug.skipDataOlderThan");
-	}
-	catch ( ... ) {}
 
 
 	// ----------------------------------------------------------------------
@@ -307,6 +300,11 @@ bool Processor::init(const Seiscomp::Config::Config &conf,
 		_members->config.vsfndr.filterDisp = conf.getBool(configPrefix + "vsfndr.filterDisp");
 	}
 	catch ( ... ) {}
+	
+	try {
+		_members->config.vsfndr.filterCornerFreq = conf.getDouble(configPrefix + "vsfndr.filterCornerFreq");
+	}
+	catch ( ... ) {}
 
 
 	// ----------------------------------------------------------------------
@@ -334,7 +332,6 @@ bool Processor::init(const Seiscomp::Config::Config &conf,
 	_members->demuxer = new IO::RecordDemuxFilter(tpl);
 	_members->router.setConfig(&_members->config);
 	_members->router.setInventory(_inventory);
-	_members->numCalls = 0;
 
 	return true;
 }
@@ -394,20 +391,6 @@ bool Processor::subscribeToChannels(IO::RecordStream *rs,
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 bool Processor::feed(const Seiscomp::Record *rec) {
-
-	Core::Time now =  Core::Time::GMT() ;
-	_members->totalCallTime += now - _members->lastCall;
-	_members->lastCall = now;
-	_members->numCalls++;
-	if ((double)(now - _members->lastPrinted) > 60) {
-		SEISCOMP_INFO("Average call time %.6f for %d iterations", 
-                              ((double)_members->totalCallTime)/_members->numCalls,
-                              _members->numCalls);
-		_members->numCalls = 0;
-		_members->totalCallTime = Core::TimeSpan(0.0);
-		_members->lastPrinted = now;
-	}
-
 	if ( _members->demuxer == NULL )
 		return false;
 
@@ -415,19 +398,10 @@ bool Processor::feed(const Seiscomp::Record *rec) {
 		return false;
 
 	try {
-		Core::TimeSpan delay = now - rec->endTime();
-		if (  _members->config.skipDataOlderThan > Core::TimeSpan( -1.0 ) ) {
-			if ( fabs(delay) > _members->config.skipDataOlderThan ) {
-				SEISCOMP_WARNING("%s: max allowed delay exceeded (data skipped): %fs",
-								rec->streamID().c_str(), (double)delay);
-				return false;
-			}
-		}
-		if ( _members->config.maxDelay > Core::TimeSpan( -1.0 ) ) {
-			if ( fabs(delay) > _members->config.maxDelay ) {
-				SEISCOMP_WARNING("%s: delay exceeded (data still used): %fs",
-								rec->streamID().c_str(), (double)delay);
-			}
+		Core::TimeSpan delay = Core::Time::GMT() - rec->endTime();
+		if ( delay > _members->config.maxDelay ) {
+			SEISCOMP_WARNING("%s: max delay exceeded: %fs",
+			                 rec->streamID().c_str(), (double)delay);
 		}
 	}
 	catch ( ... ) {

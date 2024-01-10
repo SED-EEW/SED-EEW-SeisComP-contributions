@@ -21,7 +21,7 @@
 
 
 #include <seiscomp/processing/eewamps/api.h>
-#include <seiscomp3/processing/waveformprocessor.h>
+#include <seiscomp/processing/waveformprocessor.h>
 #include <boost/function.hpp>
 
 #include "baseprocessor.h"
@@ -157,6 +157,9 @@ struct SC_LIBEEWAMPS_API Config {
 
 		//! Enable displacement 3s lo-pass filter, default is true.
 		bool filterDisp;
+
+		//! Sets high pass filter corner frequency, default is 1.0/3.0.
+		double filterCornerFreq;
 
 		typedef boost::function<void (const BaseProcessor*,
 		                              double value,

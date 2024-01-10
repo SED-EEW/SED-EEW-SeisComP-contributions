@@ -126,7 +126,7 @@ bool Vs30Mapping::TupleHandlerGrid::read() {
 					"Longitude must be equal or smaller than +180 (lon=%.2f)", lon);
 			return false;
 		}
-		if ( !(lon > oldlon) ) {
+		if ( !(lon >= oldlon) ) {
 			SEISCOMP_ERROR("Longitudes must increase continuously");
 			return false;
 		}
@@ -160,8 +160,8 @@ bool Vs30Mapping::TupleHandlerGrid::read() {
 		}
 		else {
 			_rowidx.push_back(_tuplelist.size() - 1); // remember begin of new row
-			oldlat = lat;
-			oldlon = -std::numeric_limits<float>::max();
+			oldlon = lon;
+			oldlat = -std::numeric_limits<float>::max();
 		}
 	}
 	return true; // successfully read

@@ -18,13 +18,13 @@ class eews2fcm:
 
         #this is the long string template for 
         self.dataTemplate = '''curl -s -H "Content-type: application/json" \
- -H "Authorization:key=AUTHORIZATION_KEY"  \
--X POST -d '{ "to": "/topics/TOPIC","data":{"title":"ATTAC Alerta de Terremotos","body":"Mag: MAG, LOCATION","message":"EVTID;MAG;DEPTH;LAT;LON;LIKELIHOOD;ORTIME;TIMENOW;NULL;AGENCY;STATUS;TYPE;LOCATION;ORID;MAGID;STAMAGNUM;TIME_NOWMS;DISTANCE"},"priority":"high","time_to_live":60}' \
+ -H "Authorization:key=%AUTHORIZATION_KEY%"  \
+-X POST -d '{ "to": "/topics/%TOPIC%","data":{"title":"ATTAC Alerta de Terremotos","body":"Mag: %MAG%, %LOCATION%","message":"%EVTID%;%MAG%;%DEPTH%;%LAT%;%LON%;%LIKELIHOOD%;%ORTIME%;%TIMENOW%;NULL;%AGENCY%;%STATUS%;%TYPE%;%LOCATION%;%ORID%;%MAGID%;%STAMAGNUM%;%TIME_NOWMS%;%DISTANCE%"},"priority":"high","time_to_live":60}' \
 https://fcm.googleapis.com/fcm/send'''
 
         self.notiTemplate = '''curl -s -H "Content-type: application/json" \
- -H "Authorization:key=AUTHORIZATION_KEY"  \
--X POST -d '{ "to": "/topics/TOPIC","notification":{"title":"Alerta de Terremoto","body":"Mag: MAG, LOCATION"},"android": {"priority":"high"}}' \
+ -H "Authorization:key=%AUTHORIZATION_KEY%"  \
+-X POST -d '{ "to": "/topics/%TOPIC%","notification":{"title":"Alerta de Terremoto","body":"Mag: %MAG%, %LOCATION%"},"android": {"priority":"high"}}' \
 https://fcm.googleapis.com/fcm/send'''
         
         self.fcmDataFile = fcmDataFile
@@ -105,56 +105,56 @@ https://fcm.googleapis.com/fcm/send'''
             seiscomp.logging.error("Error message: %s" % e )
             return -1
         
-        tmpNoti = tmpNoti.replace("AUTHORIZATION_KEY",self.authKey)
+        tmpNoti = tmpNoti.replace("%AUTHORIZATION_KEY%",self.authKey)
         
-        tmpNoti = tmpNoti.replace("TOPIC", self.topic)
+        tmpNoti = tmpNoti.replace("%TOPIC%", self.topic)
         
-        tmpNoti = tmpNoti.replace("MAG",str(round(mag,1)) )
+        tmpNoti = tmpNoti.replace("%MAG%",str(round(mag,1)) )
         
         location = self.findNearLocation(lat, lon, mag )
         
-        tmpNoti = tmpNoti.replace("LOCATION",location)
+        tmpNoti = tmpNoti.replace("%LOCATION%",location)
         
         #EVTID;MAG;DEPTH;LAT;LON;LIKELIHOOD;ORTIME;TIMENOW;NULL;AGENCY;STATUS;TYPE;LOCATION
-        tmpData = tmpData.replace("AUTHORIZATION_KEY",self.authKey)
+        tmpData = tmpData.replace("%AUTHORIZATION_KEY%",self.authKey)
         
-        tmpData = tmpData.replace("TOPIC", self.topic)
+        tmpData = tmpData.replace("%TOPIC%", self.topic)
         
-        tmpData = tmpData.replace("AGENCY",agency)
+        tmpData = tmpData.replace("%AGENCY%",agency)
         
-        tmpData = tmpData.replace("EVTID", evtid)
+        tmpData = tmpData.replace("%EVTID%", evtid)
         
-        tmpData = tmpData.replace("MAG",str(round(mag,1)))
+        tmpData = tmpData.replace("%MAG%",str(round(mag,1)))
         
-        tmpData = tmpData.replace("DEPTH",str(round(depth,1)))
+        tmpData = tmpData.replace("%DEPTH%",str(round(depth,1)))
         
-        tmpData = tmpData.replace("LAT",str(lat))
+        tmpData = tmpData.replace("%LAT%",str(lat))
         
-        tmpData = tmpData.replace("LON",str(lon))
+        tmpData = tmpData.replace("%LON%",str(lon))
         
-        tmpData = tmpData.replace("LIKELIHOOD", likelihood )
+        tmpData = tmpData.replace("%LIKELIHOOD%", likelihood )
         
-        tmpData = tmpData.replace("ORTIME", str(orTime))
+        tmpData = tmpData.replace("%ORTIME%", str(orTime))
         
-        tmpData = tmpData.replace("TIMENOW",str(now))
+        tmpData = tmpData.replace("%TIMENOW%",str(now))
         
-        tmpData = tmpData.replace("AGENCY",agency)
+        tmpData = tmpData.replace("%AGENCY%",agency)
         
-        tmpData = tmpData.replace("STATUS","automatic")
+        tmpData = tmpData.replace("%STATUS%","automatic")
         
-        tmpData = tmpData.replace("TYPE", "alert")
+        tmpData = tmpData.replace("%TYPE%", "alert")
         
-        tmpData = tmpData.replace("LOCATION", location)
+        tmpData = tmpData.replace("%LOCATION%", location)
         
-        tmpData = tmpData.replace("ORID", prefOrID)
+        tmpData = tmpData.replace("%ORID%", prefOrID)
         
-        tmpData = tmpData.replace("MAGID", prefMagID)
+        tmpData = tmpData.replace("%MAGID%", prefMagID)
         
-        tmpData = tmpData.replace("STAMAGNUM", str(numStaMag) )
+        tmpData = tmpData.replace("%STAMAGNUM%", str(numStaMag) )
         
-        tmpData = tmpData.replace("TIME_NOWMS",str(nowms))
+        tmpData = tmpData.replace("%TIME_NOWMS%",str(nowms))
         
-        tmpData = tmpData.replace("DISTANCE", str(self.distance) )
+        tmpData = tmpData.replace("%DISTANCE%", str(self.distance) )
         
         try:
             output = subprocess.Popen(tmpData,stdout = subprocess.PIPE, stderr = subprocess.STDOUT, shell = True )

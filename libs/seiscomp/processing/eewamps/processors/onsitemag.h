@@ -20,9 +20,9 @@
 #define __SEISCOMP_PROCESSING_EEWAMPS_PROCESSORS_ONSITEMAG_H__
 
 
-#include <seiscomp3/core/recordsequence.h>
-#include <seiscomp3/math/filter/butterworth.h>
-#include <seiscomp3/math/filter/iirintegrate.h>
+#include <seiscomp/core/recordsequence.h>
+#include <seiscomp/math/filter/butterworth.h>
+#include <seiscomp/math/filter/iirintegrate.h>
 #include "../baseprocessor.h"
 #include "../filter/taup.h"
 

@@ -20,10 +20,10 @@
 #define __SEISCOMP_PROCESSING_EEWAMPS_PREPROCESSOR_H__
 
 
-#include <seiscomp3/datamodel/waveformstreamid.h>
-#include <seiscomp3/processing/waveformprocessor.h>
+#include <seiscomp/datamodel/waveformstreamid.h>
+#include <seiscomp/processing/waveformprocessor.h>
 #include <seiscomp/processing/eewamps/api.h>
-#include <seiscomp3/io/recordfilter.h>
+#include <seiscomp/io/recordfilter.h>
 #include <vector>
 
 #include "baseprocessor.h"

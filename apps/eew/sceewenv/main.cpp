@@ -13,8 +13,8 @@
  *                                                                            *
  *   -----------------------------------------------------------------------  *
  *                                                                            *
- *   SeisComP3 EEW envelope modules that generates envelope amplitudes        *
- *   with libseiscomp3_eewamps and sends them as data messages to the         *
+ *   SeisComP EEW envelope modules that generates envelope amplitudes        *
+ *   with libseiscomp_eewamps and sends them as data messages to the         *
  *   messaging bus.                                                           *
  *                                                                            *
  *   -----------------------------------------------------------------------  *
@@ -26,12 +26,12 @@
 
 #define SEISCOMP_COMPONENT EEWENV
 
-#include <seiscomp3/logging/log.h>
-#include <seiscomp3/core/datamessage.h>
-#include <seiscomp3/client/streamapplication.h>
-#include <seiscomp3/client/inventory.h>
-#include <seiscomp3/io/records/mseedrecord.h>
-#include <seiscomp3/io/archive/xmlarchive.h>
+#include <seiscomp/logging/log.h>
+#include <seiscomp/core/datamessage.h>
+#include <seiscomp/client/streamapplication.h>
+#include <seiscomp/client/inventory.h>
+#include <seiscomp/io/records/mseedrecord.h>
+#include <seiscomp/io/archive/xmlarchive.h>
 #include <seiscomp/processing/eewamps/processor.h>
 
 // This is required as datamodel/vs now resides in contrib-sed

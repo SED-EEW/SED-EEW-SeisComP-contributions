@@ -8,7 +8,7 @@ ENV   REPO_PATH https://github.com/SeisComP
 #ENV         TAG master
 ENV         TAG 5.1.1
 ENV           D "-DSC_GLOBAL_GUI=ON \
-                    -DSC_IPGPADDONS_GUI_APPS=ON \
+                    #-DSC_IPGPADDONS_GUI_APPS=ON \
                     -DSC_TRUNK_DB_MYSQL=ON \
                     -DSC_TRUNK_DB_POSTGRESQL=ON \
                     -DSC_TRUNK_DB_SQLITE3=ON \
@@ -171,6 +171,8 @@ RUN $INSTALL_DIR/bin/seiscomp enable seedlink scautopick scautoloc scevent sceew
 WORKDIR /home/sysop
 
 USER root
+
+RUN apt-get install -y python3-numpy
 
 RUN /etc/init.d/mysql start && \
     sleep 5 && \

@@ -1,26 +1,29 @@
 Part of the :ref:`EEW<EEW>` package (used by :ref:`VS<VS>` and :ref:`FinDer<FINDER>`).
 
 *sceewlog*  logs the VS and FinDer magnitude messages received from :ref:`scvsmag` and 
-:ref:`scfinder` (configurable), and broadcasts these alerts and generates and disseminates reports.
+:ref:`scfinder` (configurable), broadcasts these alerts, and triggers scripts, generates 
+and disseminates reports.
 
 *sceewlog* is released under the GNU Affero General Public License (Free
 Software Foundation, version 3 or later). It requires the Python package
-`dateutil`_ to be installed. sceewlog replaces scvslog that was originally part of the SeisComP implementation of the
-`Virtual Seismologist`_ (VS) Earthquake Early Warning algorithm.
+`dateutil`_ to be installed. sceewlog replaces scvslog that was originally 
+part of the SeisComP implementation of the `Virtual Seismologist`_ (VS) 
+Earthquake Early Warning algorithm.
 
-Once an event has timed out, the modules generates
-report files. These report files are saved to disk and can also be sent via
-email.
+Once an event has timed out, the modules generates report files. These report 
+files are saved to disk and can also be sent via email.
 
 It also implements `ActiveMQ`_ and `Firebase Cloud Messaging`_ interfaces which can
-send alert messages in real-time. It supports regionalized filter profiles (based on polygons and EQ parameter threshold values).
-Currently, messages can be sent in four different formats (*sc3ml*, *qml1.2-rt*, *shakealertml* the UserDisplay format, *CAP1.2*). Optionally, a comment 
-with ID **EEW** storing the EEW update number, can be added to each magnitude that
-passes all configured filters and scoring.
+send alert messages in real-time. It supports regionalized filter profiles (based on 
+polygons and EQ parameter threshold values). Currently, messages can be sent in four 
+different formats (*sc3ml*, *qml1.2-rt*, *shakealertml* the UserDisplay format, *CAP1.2*). 
+Optionally, a comment with ID **EEW** storing the EEW update number, can be added to 
+each magnitude that passes all configured filters and scoring.
 
-The SED-ETHZ team provides a client that can display *qml1.2-rt* messages sent via ActiveMQ, the `Earthquake Early Warning Display (EEWD)`_
-an OpenSource user interface developed within the European REAKT project and
-based on early versions of the ShakeAlert `UserDisplay`_. 
+The SED-ETHZ team provides a client that can display *qml1.2-rt* messages sent via 
+ActiveMQ, the `Earthquake Early Warning Display (EEWD)`_ an OpenSource user interface 
+developed within the European REAKT project and based on early versions of the ShakeAlert 
+`UserDisplay`_. 
 
 To receive alerts with the EEWD set the format to *qml1.2-rt*. There are
 currently no clients which can digest *sc3ml* and the *shakealertml* is not 
@@ -66,6 +69,8 @@ in the following format:
    topic=YOUR_TOPIC_NAME_GOES_HERE
 
 
+.. _sceewlog-reports:
+
 Reports
 =======
 
@@ -104,7 +109,7 @@ parameters will be evaluated globally.
 
 .. code-block:: sh
 
-   RegFilters.bnaFile = /opt/seiscomp3/share/sceewlog/closedpolygons.bna
+   RegFilters.bnaFile = /opt/seiscomp/share/sceewlog/closedpolygons.bna
    
 Then profile names have to be set. Two profile examples are provided below.
 

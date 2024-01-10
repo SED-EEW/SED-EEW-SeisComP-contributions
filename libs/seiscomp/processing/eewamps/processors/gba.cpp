@@ -19,9 +19,9 @@
 #define SEISCOMP_COMPONENT EEWAMPS
 
 
-#include <seiscomp3/logging/log.h>
-#include <seiscomp3/math/filter/butterworth.h>
-#include <seiscomp3/datamodel/pick.h>
+#include <seiscomp/logging/log.h>
+#include <seiscomp/math/filter/butterworth.h>
+#include <seiscomp/datamodel/pick.h>
 
 #include "gba.h"
 #include "../config.h"

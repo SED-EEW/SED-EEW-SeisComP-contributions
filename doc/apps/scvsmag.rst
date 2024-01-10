@@ -158,6 +158,8 @@ exceeded, 'Azimuthal Gap Check' is set to 0.2, otherwise it is set to 1.0.
 A likelihood of 0.024, therefore, indicates, that all three quality checks
 failed. If all quality checks succeeded the likelihood is set to 0.99.
 
+.. _scvsmag-configuration:
+
 scvsmag configuration
 ---------------------
 
@@ -171,11 +173,10 @@ replace the "AMPLITUDE" group with the "ENVELOPE" message group in
 
    connection.subscriptions = ENVELOPE, EVENT, LOCATION, PICK
 
-Consider also the remaining
-:ref:`configuration parameters <scvsmag_configuration>`.
+Consider also the remaining configuration parameters.
 
 scautoloc configuration
-=======================
+^^^^^^^^^^^^^^^^^^^^^^^
 
 Because :ref:`scautoloc` was not designed with EEW in mind, there are a few
 settings necessary to ensure that location estimates are sent to scvsmag as
@@ -199,11 +200,14 @@ quickly as possible:
    autoloc.publicationIntervalTimeIntercept = 0
 
    # Minimum number of phases.
-   autoloc.minPhaseCount = 6
+   autoloc.minPhaseCount = 4
 
 For :ref:`scautoloc` to provide locations with 6 stations, its grid
 configuration file requires to be setup with equal or lower minimum pick count,
 and with a corresponding maximum station distance to avoid false alerts.
+
+scautopick configuration
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 For :ref:`scautopick` to provide snr amplitudes quickly requires the following 
 setting:
@@ -215,7 +219,7 @@ setting:
    thresholds.amplMaxTimeWindow = 1
 
 scevent configuration
-=====================
+^^^^^^^^^^^^^^^^^^^^^
 
 For :ref:`scevent` to create an event from an origin with 6 phases requires the
 following setting:
