@@ -624,7 +624,7 @@ class App : public Client::StreamApplication {
           if ( (it->second->maxPGA.timestamp < minAmplTime)
             || (timestamp < minAmplTime)
             || (value >= it->second->maxPGA.value) ) {
-            if ( it->second->updateMaximum(minAmplTime) ) {
+            if ( it->second->updateMaximum(minAmplTime, _bFinDerS) ) {
               #if defined(LOG_AMPS)
               std::cout << "M " << id << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.value << std::endl;
               #endif
@@ -636,7 +636,7 @@ class App : public Client::StreamApplication {
         if ( referenceTimeUpdated ) {
           for ( it = _locationLookup.begin(); it != _locationLookup.end(); ++it ) {
             if ( it->second->maxPGA.timestamp >= minAmplTime ) continue;
-            if ( it->second->updateMaximum(minAmplTime) ) {
+            if ( it->second->updateMaximum(minAmplTime, _bFinDerS) ) {
               #if defined(LOG_AMPS)
               std::cout << "M " << it->first << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.value << std::endl;
               #endif
@@ -657,7 +657,7 @@ class App : public Client::StreamApplication {
           if ( (it->second->maxPGD.timestamp < minAmplTime)
             || (timestamp < minAmplTime)
             || (value >= it->second->maxPGD.value) ) {
-            if ( it->second->updateMaximum(minAmplTime) ) {
+            if ( it->second->updateMaximum(minAmplTime, _bFinDerS) ) {
               #if defined(LOG_AMPS)
               std::cout << "M " << id << "   " << it->second->maxPGD.timestamp.iso() << "   " << it->second->maxPGD.value << std::endl;
               #endif
@@ -669,7 +669,7 @@ class App : public Client::StreamApplication {
         if ( referenceTimeUpdated ) {
           for ( it = _locationLookup.begin(); it != _locationLookup.end(); ++it ) {
             if ( it->second->maxPGD.timestamp >= minAmplTime ) continue;
-            if ( it->second->updateMaximum(minAmplTime) ) {
+            if ( it->second->updateMaximum(minAmplTime, _bFinDerS) ) {
               #if defined(LOG_AMPS)
               std::cout << "M " << it->first << "   " << it->second->maxPGD.timestamp.iso() << "   " << it->second->maxPGD.value << std::endl;
               #endif
@@ -1140,7 +1140,7 @@ class App : public Client::StreamApplication {
 			PGABuffer       pgds;
 			Amplitude       maxPGD;
 
-			bool updateMaximum(const Core::Time &minTime);
+			bool updateMaximum(const Core::Time &minTime, const bool _bFinDerS);
 		};
 
 		// Mapping of id=net.sta.loc to SensorLocation object
@@ -1187,7 +1187,7 @@ class App : public Client::StreamApplication {
 };
 
 
-bool App::Buddy::updateMaximum(const Core::Time &minTime) {
+bool App::Buddy::updateMaximum(const Core::Time &minTime, const bool _bFinDerS) {
 	Amplitude lastMaximum = maxPGA;
 	maxPGA = Amplitude();
 
