@@ -476,7 +476,7 @@ class App : public Client::StreamApplication {
 				return false;
 			}
       if (_bFinDerS) {
-        _slip_config.read_config_file(_slipConfig);
+        _slip_config.read_config_file(_slipConfig.c_str());
       }
 			#endif
 
@@ -822,7 +822,7 @@ class App : public Client::StreamApplication {
 				try {
 					(*fit)->process(tick, _latestMaxPGAs);
           if (_bFinDerS) {
-            Slip_Calc slip_calc(&_slip_config, 
+            FinDerS::Slip_Calc slip_calc(&_slip_config, 
                 (*fit)->get_finder_rupture_list(), 
                 _latestMaxPGDs, 
                 (*fit)->get_finder_centroid(), 
