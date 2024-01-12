@@ -383,7 +383,7 @@ class App : public Client::StreamApplication {
       if (_bFinDerS) {
 			  eewCfg.wantSignal[Processing::WaveformProcessor::Meter] = true;
       } else {
- 			  eewCfg.wantSignal[Processing::WaveformProcessor::Meter] = false;
+			  eewCfg.wantSignal[Processing::WaveformProcessor::Meter] = false;
      }
 
 			_eewProc.setConfiguration(eewCfg);
@@ -624,7 +624,7 @@ class App : public Client::StreamApplication {
           if ( (it->second->maxPGA.timestamp < minAmplTime)
             || (timestamp < minAmplTime)
             || (value >= it->second->maxPGA.value) ) {
-            if ( it->second->updateMaximum(minAmplTime, _bFinDerS) ) {
+            if ( it->second->updateMaximum(minAmplTime, false) ) {
               #if defined(LOG_AMPS)
               std::cout << "M " << id << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.value << std::endl;
               #endif
@@ -636,7 +636,7 @@ class App : public Client::StreamApplication {
         if ( referenceTimeUpdated ) {
           for ( it = _locationLookup.begin(); it != _locationLookup.end(); ++it ) {
             if ( it->second->maxPGA.timestamp >= minAmplTime ) continue;
-            if ( it->second->updateMaximum(minAmplTime, _bFinDerS) ) {
+            if ( it->second->updateMaximum(minAmplTime, false) ) {
               #if defined(LOG_AMPS)
               std::cout << "M " << it->first << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.value << std::endl;
               #endif
@@ -652,12 +652,13 @@ class App : public Client::StreamApplication {
 
 			// Buffer PGD envelope value
       if ( proc->signalUnit() == Processing::WaveformProcessor::Meter ) {
+        value = fabs(value);
         if ( it->second->pgds.feed(Amplitude(value, timestamp, proc->waveformID().channelCode())) ) {
           // Buffer changed -> update maximum
           if ( (it->second->maxPGD.timestamp < minAmplTime)
             || (timestamp < minAmplTime)
             || (value >= it->second->maxPGD.value) ) {
-            if ( it->second->updateMaximum(minAmplTime, _bFinDerS) ) {
+            if ( it->second->updateMaximum(minAmplTime, true) ) {
               #if defined(LOG_AMPS)
               std::cout << "M " << id << "   " << it->second->maxPGD.timestamp.iso() << "   " << it->second->maxPGD.value << std::endl;
               #endif
@@ -669,7 +670,7 @@ class App : public Client::StreamApplication {
         if ( referenceTimeUpdated ) {
           for ( it = _locationLookup.begin(); it != _locationLookup.end(); ++it ) {
             if ( it->second->maxPGD.timestamp >= minAmplTime ) continue;
-            if ( it->second->updateMaximum(minAmplTime, _bFinDerS) ) {
+            if ( it->second->updateMaximum(minAmplTime, true) ) {
               #if defined(LOG_AMPS)
               std::cout << "M " << it->first << "   " << it->second->maxPGD.timestamp.iso() << "   " << it->second->maxPGD.value << std::endl;
               #endif
@@ -750,8 +751,7 @@ class App : public Client::StreamApplication {
 						it->second->maxPGA.channel.c_str(),
 						it->second->meta->code().empty()?"--":it->second->meta->code().c_str(),
 						Coordinate(it->second->meta->latitude(), it->second->meta->longitude()),
-						it->second->maxPGA.value*100, 
-						it->second->maxPGA.timestamp
+						it->second->maxPGA.value*100, it->second->maxPGA.timestamp
 					)
 				);
 				#if defined(LOG_AMPS)
@@ -830,7 +830,11 @@ class App : public Client::StreamApplication {
                 (*fit)->get_rupture_width(), 
                 (*fit)->get_rupture_dip());
             slip_calc.project_rupture();
-            SEISCOMP_INFO("JADEBUG: slip_magnitude %.2f", slip_calc.slip_mag);
+            if (slip_calc.project_slip()) {
+              SEISCOMP_INFO("FinDerS slip magnitude %.2f", slip_calc.slip_mag);
+            } else {
+              SEISCOMP_INFO("FinDerS slip magnitude calculation failed");
+            }
           }
 				}
 				catch ( FiniteFault::Error &e ) {
@@ -1187,24 +1191,26 @@ class App : public Client::StreamApplication {
 };
 
 
-bool App::Buddy::updateMaximum(const Core::Time &minTime, const bool _bFinDerS) {
-	Amplitude lastMaximum = maxPGA;
-	maxPGA = Amplitude();
+bool App::Buddy::updateMaximum(const Core::Time &minTime, const bool _bDoPGD) {
 
-	if ( !pgas.empty() && pgas.back().timestamp >= minTime ) {
-		// Update maxmimum
-		PGABuffer::iterator it;
-		for ( it = pgas.begin(); it != pgas.end(); ++it ) {
-			if ( it->timestamp < minTime ) continue;
-			if ( !maxPGA.timestamp.valid() || it->value >= maxPGA.value ) {
-				maxPGA.timestamp = it->timestamp;
-				maxPGA.value = it->value;
-				maxPGA.channel = it->channel;
-			}
-		}
-	}
+  if (!_bDoPGD) {
+    Amplitude lastMaximum = maxPGA;
+    maxPGA = Amplitude();
+    if ( !pgas.empty() && pgas.back().timestamp >= minTime ) {
+      // Update maxmimum
+      PGABuffer::iterator it;
+      for ( it = pgas.begin(); it != pgas.end(); ++it ) {
+        if ( it->timestamp < minTime ) continue;
+        if ( !maxPGA.timestamp.valid() || it->value >= maxPGA.value ) {
+          maxPGA.timestamp = it->timestamp;
+          maxPGA.value = it->value;
+          maxPGA.channel = it->channel;
+        }
+      }
+    }
+	  return maxPGA != lastMaximum;
 
-  if (_bFinDerS) {
+  } else {
  	  Amplitude lastMaximum = maxPGD;
   	maxPGD = Amplitude();
   	if ( !pgds.empty() && pgds.back().timestamp >= minTime ) {
@@ -1219,9 +1225,9 @@ bool App::Buddy::updateMaximum(const Core::Time &minTime, const bool _bFinDerS) 
   			}
   		}
   	}
+	  return maxPGD != lastMaximum;
   }
 
-	return maxPGA != lastMaximum;
 }
 
 
