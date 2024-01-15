@@ -829,11 +829,14 @@ class App : public Client::StreamApplication {
                 (*fit)->get_rupture_length(), 
                 (*fit)->get_rupture_width(), 
                 (*fit)->get_rupture_dip());
-            slip_calc.project_rupture();
-            if (slip_calc.project_slip()) {
-              SEISCOMP_INFO("FinDerS slip magnitude %.2f", slip_calc.slip_mag);
+            if (slip_calc.project_rupture()) {
+              if (slip_calc.project_slip()) {
+                SEISCOMP_INFO("FinDerS slip magnitude %.2f", slip_calc.get_slip_mag());
+              } else {
+                SEISCOMP_INFO("FinDerS slip magnitude calculation failed");
+              }
             } else {
-              SEISCOMP_INFO("FinDerS slip magnitude calculation failed");
+              SEISCOMP_INFO("FinDerS rupture projection calculation failed");
             }
           }
 				}
