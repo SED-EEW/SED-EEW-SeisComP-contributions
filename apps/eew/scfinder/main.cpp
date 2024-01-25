@@ -511,10 +511,6 @@ class App : public Client::StreamApplication {
 
 				try {
 
-					// Scan data
-						
-					SEISCOMP_DEBUG("Scanning data");
-					scanFinderData();
 
 					SEISCOMP_DEBUG("Received origin (lat: %f km lon:%f km  dep: %f) wrapped in origin: %s at %s", 
 							org->latitude().value(),
@@ -574,8 +570,15 @@ class App : public Client::StreamApplication {
 						
 						SEISCOMP_DEBUG("Processing origin");
 
+						// Scan data
+						SEISCOMP_DEBUG("Scanning data");
+						scanFinderData();
+
+						// make constructor take a Coordinate designated by *cit...it will increment Nfinder
+						//_finderList.push_back(new Finder(*cit, _latestMaxPGAs, event_id, max(_bufferLength.seconds(),1L)*2));
+
 						// Call Finder
-						processFinder();
+						//processFinder();
 					}
 				}
 				catch ( std::exception &e ) {
