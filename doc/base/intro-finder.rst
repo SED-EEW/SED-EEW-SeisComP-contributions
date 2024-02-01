@@ -66,7 +66,7 @@ FinDer has been implemented with an API. To integrate FinDer within SeisComP, a
 wrapper module :ref:`scfinder` uses this API. The :ref:`scfinder` module
 requires FinDer to be installed and SeisComP to be compiled from source.
 
-The library version of the generic EEW pre-processing module `sceewenv` is used
+The library version of the generic EEW pre-processing module :ref:`sceewenv` is used
 within :ref:`scfinder` to provide continuously updated envelope amplitudes to FinDer.
 FinDer outputs magnitudes (Mfd). Mfd is updated when significant changes are
 observed with updates continuing until a stable solution is reached.
