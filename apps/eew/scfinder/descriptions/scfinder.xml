@@ -55,6 +55,30 @@
 					</description>
 				</parameter>
 			</group>
+			<group name="origins">
+				<description>
+					scfinder can process origins received from the messaging system (groups from 
+					connection.subscriptions) by adding artificial epicentral PGA at the origin epicenter.
+				</description>
+				<parameter name="process" type="boolean" default="false">
+					<description>
+						Enables processing of origins. This mode is exclusive, it prevents scfinder to 
+						detect event purely from envelope amplitudes.
+					</description>
+				</parameter>
+				<parameter name="numberEpicentralPGA" type="int"  default="3">
+					<description>
+						Number of epicentral PGAs added around the epicentral PGA. Should be equal or 
+						larger than MIN_TRIGGER_STATIONS in FinDer configuration.
+					</description>
+				</parameter>
+				<parameter name="defaultEpicentralPGA" type="double" unit="cm/s/s" default="50.0">
+					<description>
+						Default epicentral PGA. Should be over the minimum of THRESHOLDS in FinDer 
+						configuration. Inferred from the maximum network-wise amplitude if empty. 
+					</description>
+				</parameter>
+			</group>
 			<group name="finder">
 				<parameter name="config" type="path">
 					<description>
@@ -69,12 +93,6 @@
 				<parameter name="strongMotionGroup" type="string" default="LOCATION">
 					<description>
 						Messaging group to send strong motion objects to.
-					</description>
-				</parameter>
-				<parameter name="processOrigins" type="boolean" default="false">
-					<description>
-						Enables processing of input origins, by adding artificial epicentral 
-						PGA at the origin epicenter.
 					</description>
 				</parameter>
 				<parameter name="envelopeBufferSize" type="double" default="120" unit="s">
