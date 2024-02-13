@@ -565,7 +565,7 @@ class App : public Client::StreamApplication {
 											"XX",
 											Coordinate( org->latitude().value()+0.01*i,
 														org->longitude().value()+0.01*j ),
-											(double)epicentralPGAvalue/pow(pow(i,2)+pow(j,2),0.5),
+											(double)epicentralPGAvalue/(1+pow(pow(i,2)+pow(j,2),0.5)),
 											orgTime.seconds() 
 										)
 									);
