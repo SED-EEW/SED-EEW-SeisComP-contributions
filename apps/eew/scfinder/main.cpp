@@ -220,6 +220,9 @@ class App : public Client::StreamApplication {
 			_testMode = false;
 			_playbackMode = false;
 			_processOrigins = false;
+			_defaultEpPGA = 50;
+			_nPtsPGA = 4;
+			_finderScanProcOrg = false;
 
 			_bufferLength = Core::TimeSpan(120,0);
 			_bufDefaultLen = Core::TimeSpan(60,0);
@@ -328,8 +331,18 @@ class App : public Client::StreamApplication {
 			catch ( ... ) {}
 
 			try {
-				_processOrigins = configGetBool("finder.processOrigins");
+				_processOrigins = configGetBool("origins.process");
 				_inputOrgs = addInputObjectLog("origin");
+			}
+			catch ( ... ) {}
+
+			try {
+				_defaultEpPGA = configGetBool("origins.defaultEpicentralPGA");
+			}
+			catch ( ... ) {}
+
+			try {
+				_nPtsPGA = configGetBool("origins.numberEpicentralPGA");
 			}
 			catch ( ... ) {}
 
@@ -506,88 +519,129 @@ class App : public Client::StreamApplication {
 		void addObject(const std::string &parentID, Object *obj) {
 			
 			Origin *org = Origin::Cast(obj);
-			if ( org ) {
-				logObject(_inputOrgs, Core::Time::GMT());
+			if ( _processOrigins ) {
+				if ( org ) {
+					logObject(_inputOrgs, Core::Time::GMT());
+					try {
+						Core::Time orgTime = Core::Time::GMT();
+						SEISCOMP_DEBUG("Received %s origin from %s (lat: %f km lon:%f km  dep: %f) wrapped in origin: %s at %s", 
+								org->methodID().c_str(),
+								org->creationInfo().author().c_str(),
+								org->latitude().value(),
+								org->longitude().value(),
+								org->depth().value(),
+								org->publicID().c_str(),
+								orgTime.iso().c_str()); 
 
-				try {
-
-
-					SEISCOMP_DEBUG("Received origin (lat: %f km lon:%f km  dep: %f) wrapped in origin: %s at %s", 
-							org->latitude().value(),
-							org->longitude().value(),
-							org->depth().value(),
-							org->publicID().c_str(),
-							_referenceTime.iso().c_str()); 
-
-					// percentile(PGAs, 95)*1.2 or fit line to PGA=ft(dist,cutoff dist) 
-					double      epicentralPGAvalue = 0.0;
-					for ( size_t i = 0; i < _latestMaxPGAs.size(); ++i ) {
-						PGA_Data &pga = _latestMaxPGAs[i];
-						if ( pga.get_value() > epicentralPGAvalue ){
-							epicentralPGAvalue = pga.get_value();
+						if ( strcmp(org->methodID().c_str() , "FinDer") == 0 ) {
+							SEISCOMP_DEBUG("Discarding origin %s", 
+											org->publicID().c_str());
+							return;
 						}
-					}
-					//epicentralPGAvalue *= 2.0 ;					
-					
-					for(int i=-1;i<2;i++){
-						for(int j=-1;j<2;j++){
-							_latestMaxPGAs.push_back(
-								PGA_Data(
-										"EP"+std::to_string(i)+std::to_string(j),
-										"X",
-										"XXX",
-										"XX",
-										Coordinate( org->latitude().value()+0.01*i,
-										            org->longitude().value()+0.01*j ),
-										(double)epicentralPGAvalue,
-										_referenceTime.seconds() 
-									)
-								);
+						double   epicentralPGAvalue = _defaultEpPGA;
+
+						if ( _defaultEpPGA > 0 ) {
+							SEISCOMP_DEBUG("Using default epicentral PGA of %f cm/s/s", 
+											_defaultEpPGA);
+						} else {
+							// percentile(PGAs, 95)*1.2 or fit line to PGA=ft(dist,cutoff dist) 
+							for ( size_t i = 0; i < _latestMaxPGAs.size(); ++i ) {
+								PGA_Data &pga = _latestMaxPGAs[i];
+								if ( pga.get_value() > epicentralPGAvalue ){
+									epicentralPGAvalue = pga.get_value();
+								}
+							}
+							//epicentralPGAvalue *= 2.0 ;	
 						}
-					}
-
-					for ( size_t i = 0; i < _latestMaxPGAs.size(); ++i ) {
-						PGA_Data &pga = _latestMaxPGAs[i];
-						SEISCOMP_DEBUG("%s.%s.%s.%s %f %f %s %f",
-										pga.get_network().c_str(),
-										pga.get_name().c_str(),
-										pga.get_location_code().c_str(),
-										pga.get_channel().c_str(),
-										pga.get_location().get_lat(),
-										pga.get_location().get_lon(),
-										Core::Time(pga.get_timestamp()).iso().c_str(),
-										pga.get_value());
-					}
-					SEISCOMP_DEBUG("epicentral PGA value: %f cm/s/s",epicentralPGAvalue);
-					SEISCOMP_DEBUG("Received origin (lat: %f km lon:%f km  dep: %f) wrapped in origin: %s at %s", 
-							org->latitude().value(),
-							org->longitude().value(),
-							org->depth().value(),
-							org->publicID().c_str(),
-							_referenceTime.iso().c_str()); 
-
-					if ( _processOrigins ) {
 						
-						SEISCOMP_DEBUG("Processing origin");
+						int neppgas = 0;		
+						for ( int i=-1*_nPtsPGA;i<(_nPtsPGA+1);i++ ) {
+							for ( int j=-1*_nPtsPGA;j<(_nPtsPGA+1);j++ ) {
+								_latestMaxPGAs.push_back(
+									PGA_Data(
+											"EP"+std::to_string(neppgas),
+											"X",
+											"XXX",
+											"XX",
+											Coordinate( org->latitude().value()+0.01*i,
+														org->longitude().value()+0.01*j ),
+											(double)epicentralPGAvalue/pow(pow(i,2)+pow(j,2),0.5),
+											orgTime.seconds() 
+										)
+									);
+								neppgas++ ;
+							}
+						}
+
+						for ( size_t i = 0; i < _latestMaxPGAs.size(); ++i ) {
+							PGA_Data &pga = _latestMaxPGAs[i];
+							if ( strcmp( pga.get_network().c_str(), "X" ) != 0 ) {
+								continue;
+							}
+							SEISCOMP_DEBUG("%s.%s.%s.%s %f %f %s %f",
+											pga.get_network().c_str(),
+											pga.get_name().c_str(),
+											pga.get_location_code().c_str(),
+											pga.get_channel().c_str(),
+											pga.get_location().get_lat(),
+											pga.get_location().get_lon(),
+											Core::Time(pga.get_timestamp()).iso().c_str(),
+											pga.get_value());
+						}
+						SEISCOMP_DEBUG("epicentral PGA value: %f cm/s/s",epicentralPGAvalue);	
+
+						// Turn safe scan/proc on
+						_finderScanProcOrg = true;
 
 						// Scan data
-						SEISCOMP_DEBUG("Scanning data");
-						scanFinderData();
+						//SEISCOMP_DEBUG("Scanning data");
+						//scanFinderData();
 
+						// get the current time for this new finder object
+						long event_id = (long)time(NULL);
+						
 						// make constructor take a Coordinate designated by *cit...it will increment Nfinder
-						//_finderList.push_back(new Finder(*cit, _latestMaxPGAs, event_id, max(_bufferLength.seconds(),1L)*2));
+						_finderList.push_back(new Finder(Coordinate(org->latitude().value(), 
+						                                            org->longitude().value()), 
+						                                 _latestMaxPGAs, 
+														 event_id, 
+														 _bufferLength.seconds()));
 
 						// Call Finder
-						//processFinder();
+						processFinder();
+						
+						// Turn safe scan/proc off
+						_finderScanProcOrg = false;
+
+						// Deleting the epicentral PGAs (neppgas last PGAs)
+						for ( int i = 0; i < neppgas ; ++i ) {
+							_latestMaxPGAs.pop_back(); 
+							SEISCOMP_DEBUG("Popping back %d th last pga",i);
+						}
+						for ( size_t i = 0; i < _latestMaxPGAs.size(); ++i ) {
+							PGA_Data &pga = _latestMaxPGAs[i];
+							if ( strcmp( pga.get_network().c_str(), "X" ) != 0 ) {
+								continue;
+							}
+							SEISCOMP_DEBUG("WARNING: epicentral PGA still in buffer for %s.%s.%s.%s %f %f %s %f",
+											pga.get_network().c_str(),
+											pga.get_name().c_str(),
+											pga.get_location_code().c_str(),
+											pga.get_channel().c_str(),
+											pga.get_location().get_lat(),
+											pga.get_location().get_lon(),
+											Core::Time(pga.get_timestamp()).iso().c_str(),
+											pga.get_value());
+						}
+					}
+					catch ( std::exception &e ) {
+						SEISCOMP_ERROR("processing of origin '%s' failed", org->publicID().c_str());
+						SEISCOMP_ERROR("%s: %s", org->publicID().c_str(), e.what());
+						return;
 					}
 				}
-				catch ( std::exception &e ) {
-					SEISCOMP_ERROR("processing of origin '%s' failed", org->publicID().c_str());
-					SEISCOMP_ERROR("%s: %s", org->publicID().c_str(), e.what());
-					return;
-				}
-			return;
 			}
+			return;
 		}
 
 		bool run() {
@@ -752,6 +806,9 @@ class App : public Client::StreamApplication {
 
 
 		void scanFinderData() {
+			if ( ( _processOrigins ) && ( !_finderScanProcOrg ) ) {
+				return;
+			}
 			// Changed by Maren, Jan 3 2017
 			//if ( !_finderAmplitudesDirty )
 			//	return;
@@ -849,6 +906,9 @@ class App : public Client::StreamApplication {
 
 
 		void processFinder() {
+			if ( ( _processOrigins ) && ( !_finderScanProcOrg ) ) 
+				return;
+			
 			if ( !_finderScanDataDirty )
 				return;
 
@@ -1186,7 +1246,7 @@ class App : public Client::StreamApplication {
 
 		bool                           _testMode;
 		bool                           _playbackMode;
-		bool                           _processOrigins;
+
 		std::string                    _strTs;
 		std::string                    _strTe;
 		std::string                    _magnitudeGroup;
@@ -1219,6 +1279,10 @@ class App : public Client::StreamApplication {
 		Finder_List                    _finderList;
 		PGA_Data_List                  _latestMaxPGAs;
 
+		bool                           _processOrigins;
+		double                         _defaultEpPGA;
+		int                            _nPtsPGA;
+		bool                           _finderScanProcOrg;
 		ObjectLog                      *_inputOrgs;
 };
 
