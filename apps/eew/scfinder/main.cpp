@@ -590,13 +590,6 @@ class App : public Client::StreamApplication {
 						}
 						SEISCOMP_DEBUG("epicentral PGA value: %f cm/s/s",epicentralPGAvalue);	
 
-						// Turn safe scan/proc on
-						_finderScanProcOrg = true;
-
-						// Scan data
-						//SEISCOMP_DEBUG("Scanning data");
-						//scanFinderData();
-
 						// get the current time for this new finder object
 						long event_id = (long)time(NULL);
 						
@@ -608,16 +601,21 @@ class App : public Client::StreamApplication {
 														 _bufferLength.seconds()));
 
 						// Call Finder
-						processFinder();
+						Core::Time tick = Core::Time::GMT();						
+						_finderList.back()->process(tick, _latestMaxPGAs);
 						
-						// Turn safe scan/proc off
-						_finderScanProcOrg = false;
+						// Send Finder solution
+						sendFinder(_finderList.back());
+						
+						// Remove external origin
+						_finderList.pop_back();
 
-						// Deleting the epicentral PGAs (neppgas last PGAs)
+						// Remove epicentral PGAs (neppgas last PGAs)
 						for ( int i = 0; i < neppgas ; ++i ) {
 							_latestMaxPGAs.pop_back(); 
-							SEISCOMP_DEBUG("Popping back %d th last pga",i);
 						}
+
+						// Check epicentral PGAs removed
 						for ( size_t i = 0; i < _latestMaxPGAs.size(); ++i ) {
 							PGA_Data &pga = _latestMaxPGAs[i];
 							if ( strcmp( pga.get_network().c_str(), "X" ) != 0 ) {
@@ -806,9 +804,7 @@ class App : public Client::StreamApplication {
 
 
 		void scanFinderData() {
-			if ( ( _processOrigins ) && ( !_finderScanProcOrg ) ) {
-				return;
-			}
+			
 			// Changed by Maren, Jan 3 2017
 			//if ( !_finderAmplitudesDirty )
 			//	return;
@@ -906,12 +902,11 @@ class App : public Client::StreamApplication {
 
 
 		void processFinder() {
-			if ( ( _processOrigins ) && ( !_finderScanProcOrg ) ) 
-				return;
-			
+			SEISCOMP_DEBUG("_finderScanDataDirty ?");
 			if ( !_finderScanDataDirty )
 				return;
 
+			SEISCOMP_DEBUG("< _finderProcessCallInterval ?");
 			if ( _finderProcessCallInterval != Core::TimeSpan(0,0) ) {
 				// Throttle call frequency
 				Core::Time now = Core::Time::GMT();
@@ -930,6 +925,7 @@ class App : public Client::StreamApplication {
 			for ( fit = _finderList.begin(); fit != _finderList.end(); /* incrementing below */) {
 				// some method for getting the timestamp associated with the data
 				// event_continue == false when we want to stop processing
+				SEISCOMP_DEBUG("_finderList element");
 				try {
 					(*fit)->process(tick, _latestMaxPGAs);
 				}
