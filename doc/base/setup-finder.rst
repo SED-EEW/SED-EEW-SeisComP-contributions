@@ -16,6 +16,7 @@ This requires `docker <https://docs.docker.com/engine/install/>`_ and ``ssh`` to
     docker run -d \
         --add-host=host.docker.internal:host-gateway  \
         -p 9878:22 \
+        -v finder:/home/sysop \
         --name finder \
         ghcr.io/sed-eew/finder:master
 
