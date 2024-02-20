@@ -66,9 +66,10 @@
 						detect event purely from envelope amplitudes.
 					</description>
 				</parameter>
-				<parameter name="numberEpicentralPGA" type="int"  default="3">
+				<parameter name="numberEpicentralPGA" type="int"  default="2">
 					<description>
-						Number of epicentral PGAs added around the epicentral PGA. Should be equal or 
+						Number of epicentral PGAs added away from the epicentral PGA along longitude and latitude. 
+						The total number of additional PGA is (numberEpicentralPGA * 2 + 1)^2 and should be equal or 
 						larger than MIN_TRIGGER_STATIONS in FinDer configuration.
 					</description>
 				</parameter>
