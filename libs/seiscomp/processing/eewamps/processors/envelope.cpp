@@ -162,7 +162,7 @@ void EnvelopeProcessor::setupTimeWindow(const Core::Time &ref) {
 		}
 		catch ( const std::exception &e ) {
 			SEISCOMP_WARNING("%s", e.what());
-			std::cout << "Unknown issue:" << e.what().c_str() << std::endl;
+			std::cout << "Unknown issue:" << e.what() << std::endl;
 
 		}
 
