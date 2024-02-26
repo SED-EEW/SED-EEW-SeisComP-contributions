@@ -864,7 +864,7 @@ class App : public Client::StreamApplication {
 			}
 			if (_finderList.size() == 0) {
 				if (_bufVarLen != _bufDefaultLen) {
-					SEISCOMP_DEBUG("Resetting data window to %ld", _bufDefaultLen.seconds());
+					SEISCOMP_INFO("Resetting data window to %ld", _bufDefaultLen.seconds());
 				}
 				_bufVarLen = _bufDefaultLen;
 			} else {
@@ -872,7 +872,7 @@ class App : public Client::StreamApplication {
 				if (maxRupLen > _bufVarLen * rup2time) {
 					double tmp = maxRupLen / rup2time;
 					_bufVarLen = min((long)tmp, _bufferLength.seconds());
-					SEISCOMP_DEBUG("Increasing data window to %ld because of active FinDer event rupture length %.1f", 
+					SEISCOMP_INFO("Increasing data window to %ld because of active FinDer event rupture length %.1f", 
 					  _bufVarLen.seconds(), maxRupLen);
 				}
 			}
