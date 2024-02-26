@@ -846,7 +846,7 @@ class App : public Client::StreamApplication {
 				if ((*fit)->get_rupture_length() > maxRupLen) {
 					//maxRupLen = (*fit)->get_rupture_length();
           // JADEBUG: use maxL_overtime to prevent shrink
-					maxRupLen = (*fit)->get_maxL_overtime();
+					maxRupLen = (*fit)->get_maxrupture_length();
 				}
 
 				if ( (*fit)->get_finder_flags().get_message() &&
