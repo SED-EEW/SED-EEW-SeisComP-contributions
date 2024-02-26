@@ -546,7 +546,7 @@ class App : public Client::StreamApplication {
 				return;
       }
 
-			string id = proc->waveformID().networkCode() + "." +
+      std::string id = proc->waveformID().networkCode() + "." +
 			            proc->waveformID().stationCode() + "." +
 			            proc->waveformID().locationCode();
 
@@ -734,7 +734,7 @@ class App : public Client::StreamApplication {
 
         if (_bFinDerS) {
  				  _latestMaxPGDs.push_back(
-					  PGA_Data(
+					  FinDerS::PGD_Data(
 						  it->second->meta->station()->code(),
 						  it->second->meta->station()->network()->code(),
 						  it->second->maxPGD.channel.c_str(),
@@ -1187,7 +1187,7 @@ class App : public Client::StreamApplication {
 		LocationLookup                 _locationLookup;
 		Finder_List                    _finderList;
 		PGA_Data_List                  _latestMaxPGAs;
-		PGA_Data_List                  _latestMaxPGDs;
+    FinDerS::PGD_Data_List         _latestMaxPGDs;
     bool                           _bFinDerS;
 
     FinDerS::Slip_Config           _slip_config;
