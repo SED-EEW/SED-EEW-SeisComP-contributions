@@ -844,7 +844,9 @@ class App : public Client::StreamApplication {
 					SEISCOMP_ERROR("Exception from FinDer::process: %s", e.what());
 				}
 				if ((*fit)->get_rupture_length() > maxRupLen) {
-					maxRupLen = (*fit)->get_rupture_length();
+					//maxRupLen = (*fit)->get_rupture_length();
+          // JADEBUG: use maxL_overtime to prevent shrink
+					maxRupLen = (*fit)->get_maxL_overtime();
 				}
 
 				if ( (*fit)->get_finder_flags().get_message() &&
