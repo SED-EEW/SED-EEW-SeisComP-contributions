@@ -18,7 +18,7 @@ from google.oauth2 import service_account
 from firebase_admin import credentials
 
 
-class eews2fcmtest:
+class eews2fcm:
     #constructor needs FCM data file containing The projectid, service file, and topic.
     #language can be es-US or en-US. By default is es-US
     def __init__(self, fcmDataFile, worldCitiesFile, language = "es-US"):
