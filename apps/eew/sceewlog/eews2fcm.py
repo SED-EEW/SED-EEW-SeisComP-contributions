@@ -198,11 +198,6 @@ class eews2fcm:
         evtPayload["message"]=oldMsg
         evtPayload["body"]= "eqNotification"
         evtPayload["title"]= "oldNotif"
-        try:
-            seiscomp.logging.debug(evtPayload["message"])
-            seiscomp.logging.debug(evtPayload)
-        except Exception as e:
-           seiscomp.logging.error("not possible to log the evtPayload: "+ str(e))
 
         # Construct JSON request payload
         payload = {
