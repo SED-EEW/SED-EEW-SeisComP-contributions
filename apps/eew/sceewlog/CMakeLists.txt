@@ -57,3 +57,6 @@ SC_ADD_PYTHON_PROG(sceewdump)
 
 # sceewlog2file
 SC_ADD_PYTHON_PROG(sceewlog2file)
+
+# eewlogconfplot
+SC_ADD_PYTHON_PROG(eewlogconfplot)
