@@ -47,9 +47,11 @@ Configuration
     mkdir myconf
     echo 'connection.server = host.docker.internal/production
     database = host.docker.internal/seiscomp
-    database.inventory = host.docker.internal/seiscomp
-    database.config = host.docker.internal/seiscomp
     finder.config = /home/sysop/.seiscomp/finder.config ' > myconf/scfinder.cfg
+
+    ## In case the db setup is more complex you might need to adjust the following and add it to the above:
+    #database.inventory = mysql://host.docker.internal/seiscomp
+    #database.config = mysql://host.docker.internal/seiscomp
     
     # Copy your scfinder config to container
     docker cp myconf/scfinder.cfg finder:/home/sysop/.seiscomp/
