@@ -127,11 +127,7 @@ struct SC_LIBEEWAMPS_API Config {
 	 */
 	Core::TimeSpan maxDelay;
 
-	/**
-	 * Sets the maximum tolerated package delay before skipping data.
-	 * The default is 60s.
-	 */
-	Core::TimeSpan skipDataOlderThan;
+	
 
 
 	// ----------------------------------------------------------------------
