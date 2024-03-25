@@ -10,7 +10,6 @@ import configparser
 import time
 from headlinealert import HeadlineAlert as hl
 import subprocess
-#new import libs
 import google
 import requests
 import json
@@ -37,6 +36,9 @@ class eews2fcm:
         self.distance = 0
         self.projectId = "" 
         self.serviceAccountFile = ""
+        self.oldFormatSupport = False
+        self.android = True
+        self.ios = True
 
     def readFcmDataFile(self):
         if os.path.exists( self.fcmDataFile ):
@@ -53,10 +55,12 @@ class eews2fcm:
             return -1
 
         try:
-            self.authKey = config.get('AUTHKEY', 'key')
             self.topic = config.get('TOPICS', 'topic')
             self.serviceAccountFile = config.get('SERVICEFILE', 'servicefile')
             self.projectId = config.get('PROJECTID', 'projectid')
+            self.oldFormatSupport = config.getboolean("SUPPORT_OLD_FORMAT","oldformat") 
+            self.android = config.getboolean("ENABLED_OS","android")
+            self.ios = config.getboolean("ENABLED_OS","ios")
         except:
             seiscomp.logging.error('Not possible to parse the configuration file.')
             return -1
@@ -75,7 +79,7 @@ class eews2fcm:
     def send( self, ep ):
         evtPayload = {
         "notificationType": "eqNotification",
-        "eventId": "IOS128",
+        "eventId": "%EVENTID%",
         "magnitude": "%MAG%", #forced to use strings for numbers
         "depth": "%DEPTH%",
         "latitude": "%LAT%",
@@ -98,7 +102,7 @@ class eews2fcm:
         androidTimeToLiveInSeconds = "86400s"
 
 
-        oldMsg = self.oldFormat
+        
 
         try:
             evt = ep.event(0)
@@ -147,68 +151,75 @@ class eews2fcm:
 
         location = self.findNearLocation(lat, lon, mag )
 
-        oldMsg = oldMsg.replace("%AGENCY%",agency)
         evtPayload["agency"] = agency
 
-        oldMsg = oldMsg.replace("%EVTID%", evtid)
         evtPayload["eventId"] = evtid
 
-        oldMsg = oldMsg.replace("%MAG%",str(round(mag,1)))
         evtPayload["magnitude"] = str(round(mag,1))
 
-        oldMsg = oldMsg.replace("%DEPTH%",str(round(depth,1)))
         evtPayload["depth"] = str(round(depth,1))
 
-        oldMsg = oldMsg.replace("%LAT%",str(lat))
         evtPayload["latitude"] = str(lat)
 
-        oldMsg = oldMsg.replace("%LON%",str(lon))
         evtPayload["longitude"] = str(lon)
 
-        oldMsg = oldMsg.replace("%LIKELIHOOD%", likelihood )
         evtPayload["likelihood"] = likelihood
 
-        oldMsg = oldMsg.replace("%ORTIME%", str(orTime))
         evtPayload["originTime"] = str(orTime)
 
-        oldMsg = oldMsg.replace("%TIMENOW%",str(now_seconds)) #exception: this is in seconds for old format
         evtPayload["sentTime"] = str(now)
 
-        oldMsg = oldMsg.replace("%STATUS%","automatic")
         evtPayload["status"] = "automatic"
 
-        oldMsg = oldMsg.replace("%TYPE%", "alert")
         evtPayload["type"] = "alert"
 
-        oldMsg = oldMsg.replace("%LOCATION%", location)
         evtPayload["location"] = location
 
-        oldMsg = oldMsg.replace("%ORID%", prefOrID)
-
-        oldMsg = oldMsg.replace("%MAGID%", prefMagID)
-
-        oldMsg = oldMsg.replace("%STAMAGNUM%", str(numStaMag) )
         evtPayload["numArrivals"] = str(numStaMag)
 
-        oldMsg = oldMsg.replace("%TIME_NOWMS%",str(nowms))
-
-        oldMsg = oldMsg.replace("%DISTANCE%", str(self.distance) )
         evtPayload["nearPlaceDist"] = str(self.distance)
-        seiscomp.logging.debug("old format message:\n "+ oldMsg)
-        evtPayload["message"]=oldMsg
-        evtPayload["body"]= "eqNotification"
-        evtPayload["title"]= "oldNotif"
-
+        
+        if self.oldFormatSupport:
+            oldMsg = self.oldFormat
+            oldMsg = oldMsg.replace("%EVTID%", evtid)
+            oldMsg = oldMsg.replace("%AGENCY%",agency)
+            oldMsg = oldMsg.replace("%MAG%",str(round(mag,1)))
+            oldMsg = oldMsg.replace("%DEPTH%",str(round(depth,1)))
+            oldMsg = oldMsg.replace("%LAT%",str(lat))
+            oldMsg = oldMsg.replace("%LON%",str(lon))
+            oldMsg = oldMsg.replace("%LIKELIHOOD%", likelihood )
+            oldMsg = oldMsg.replace("%ORTIME%", str(orTime))
+            oldMsg = oldMsg.replace("%TIMENOW%",str(now_seconds)) #exception: this is in seconds for old format
+            oldMsg = oldMsg.replace("%STATUS%","automatic")
+            oldMsg = oldMsg.replace("%TYPE%", "alert")
+            oldMsg = oldMsg.replace("%LOCATION%", location)
+            oldMsg = oldMsg.replace("%ORID%", prefOrID)
+            oldMsg = oldMsg.replace("%MAGID%", prefMagID)
+            oldMsg = oldMsg.replace("%STAMAGNUM%", str(numStaMag) )
+            oldMsg = oldMsg.replace("%TIME_NOWMS%",str(nowms))
+            oldMsg = oldMsg.replace("%DISTANCE%", str(self.distance) )
+            
+            evtPayload["message"]=oldMsg
+            evtPayload["body"]= "eqNotification"
+            evtPayload["title"]= "oldNotif"
+            seiscomp.logging.debug("old format message:\n "+ oldMsg)
+        
         # Construct JSON request payload
+        
         payload = {
             "message": {
-                    "topic": self.topic,
-                    "data": evtPayload,
-                    "android": {
-                        "priority": "high",
-                        "ttl": androidTimeToLiveInSeconds
-                    },
-                    "apns": {
+                    "topic": self.topic,        
+            }
+        }
+        
+        if self.android : 
+            payload["message"]["data"] = evtPayload
+            payload["message"]["android"] = {
+                "priority": "high",
+                "ttl": androidTimeToLiveInSeconds
+            }
+        if self.ios:
+            payload["message"]["apns"] = {
                         "headers": {
                            "apns-priority": "10",
                            "apns-push-type": "alert",
@@ -220,19 +231,11 @@ class eews2fcm:
                                     "title": "¡SISMO!",
                                     "subtitle": "Mag: "+evtPayload["magnitude"]+", "+evtPayload["location"]
                                 },
-                        #"sound": {
-                        #    "name": "defaultsound.mp3",
-                        #    "critical": critical,
-                        #    "volume": volume
-                        #}, # Use your preferred sound file
                                "content-available" : 1
                         },
                         "data": evtPayload
                     }
-                }
             }
-        }
-
         # Send HTTP request with authorization
         accessToken = self.get_access_token()
         headers = {'Authorization': f'Bearer {accessToken}'}
