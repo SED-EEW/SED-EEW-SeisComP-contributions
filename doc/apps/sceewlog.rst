@@ -49,24 +49,28 @@ Please refer to `ActiveMQ`_ for setting up an ActiveMQ broker.
 Firebase Cloud Messaging
 ========================
 It is beyond the scope of this documentation to explain the complete setup 
-Firebase Cloud Messaging. This implementation uses an auxilar python library or also named interface *eews2fcm.py* to send out EEW messages based on what it is configured at the sections of *Magnitude Association* and *Regionalized Profiles*. In order to understand 
-the Firebase Cloud Messaging interface see `Firebase Cloud Messaging`_ and 
-`HTTP protocol`_. This interface is activated with:
+Firebase Cloud Messaging. This implementation uses an auxilar python library or also named interface *eews2fcm.py* to send out EEW messages based on what it is configured at the sections of *Magnitude Association* and *Regionalized Profiles*. The previous eews2fcm.py supported sending notifications using the HTTP protocol which is going to be deprecated from June, 2024. This was replaced using the new protocol `HTTP v1`_ which is more suitable to send notifications to both Android and iOS. In order to understand the Firebase Cloud Messaging interface see `Firebase Cloud Messaging`_. This interface is activated in the module configuration file with the option:
 
 .. code-block:: sh
 
    FCM.activate = true
 
-In order to send notifications, an `authorization key`_ and a `notification topic`_ 
-must be provided in a separate file (that can be configured with *FCM.dataFile*) 
-in the following format:
+Using a separate file (whose path must be set in the configuration value *FCM.dataFile*), a service JSON file, obtained from the Firebase Console for the specific project `Service JSON File`_, must be provided. Additionally, the EQ information is broadcasted using a topic where app users are subscribed automatically in the moment they run the app for the first time. See more about this in `notification topic`_. The project name is also used along the service JSON to obtain a short-lived access token. You can get this string value from the project configuration (follow the next `Project ID`_ and get the right project ID string name). Within this configuration file for FCM it is possible to enable or disable to send notification to Android and/or iOS. Finally, there is an option to enable old notification format that was used in the previous eews2fcm.py interface.
+Below is an example how this file, referenced in the *FCM.dataFile*, looks like:
 
 .. code-block:: python 
    
-   [AUTHKEY]
-   key=YOUR-AUTHORIZATION-KEY_GOES_HERE
    [TOPICS]
-   topic=YOUR_TOPIC_NAME_GOES_HERE
+   topic=eqAlerts
+   [SERVICEFILE]
+   servicefile= /opt/fcm/credentials/projectServiceFile.json
+   [PROJECTID]
+   projectid = myappid
+   [ENABLED_OS]
+   android = true
+   ios = true
+   [SUPPORT_OLD_FORMAT]
+   oldformat = true
 
 
 .. _sceewlog-reports:
@@ -237,7 +241,7 @@ format can be selected:
 
 The aternative format supports both spanish and english languages. The 
 spanish version is:
-
+ 
 .. code-block:: sh
    
    @AGENCY@/Sismo Magnitud X.X, XX km al SSO de SOMECITY, SOMECOUNTRY
@@ -290,6 +294,10 @@ References
 .. _`stompy` : https://pypi.python.org/pypi/stompy/
 .. _`lxml` : http://lxml.de/
 .. _`Firebase Cloud Messaging` : https://firebase.google.com/docs/cloud-messaging
-.. _`HTTP protocol` : https://firebase.google.com/docs/cloud-messaging/http-server-ref
 .. _`authorization key` : https://stackoverflow.com/questions/37673205/what-is-the-authorization-part-of-the-http-post-request-of-googles-firebase-d
 .. _`notification topic` : https://firebase.google.com/docs/cloud-messaging/android/topic-messaging
+.. _`HTTP v1` : https://firebase.google.com/docs/cloud-messaging/migrate-v1?hl=es-419
+.. _`Service JSON File` : https://console.firebase.google.com/u/0/project/_/settings/serviceaccounts/adminsdk
+.. _`Project ID` : https://console.firebase.google.com/u/0/project/_/settings/general/
+
+
