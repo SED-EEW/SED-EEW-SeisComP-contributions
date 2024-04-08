@@ -1,1 +1,6 @@
 doc/build-doc
+build
+.DS_Store
+.devcontainer/devcontainer.json
+.github/dependabot.yml
+.vscode/settings.json
