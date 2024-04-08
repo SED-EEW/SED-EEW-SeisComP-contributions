@@ -48,14 +48,22 @@ Please refer to `ActiveMQ`_ for setting up an ActiveMQ broker.
 
 Firebase Cloud Messaging
 ========================
-It is beyond the scope of this documentation to explain the complete setup 
-Firebase Cloud Messaging. This implementation uses an auxilar python library or also named interface *eews2fcm.py* to send out EEW messages based on what it is configured at the sections of *Magnitude Association* and *Regionalized Profiles*. The previous eews2fcm.py supported sending notifications using the HTTP protocol which is going to be deprecated from June, 2024. This was replaced using the new protocol `HTTP v1`_ which is more suitable to send notifications to both Android and iOS. In order to understand the Firebase Cloud Messaging interface see `Firebase Cloud Messaging`_. This interface is activated in the module configuration file with the option:
+EEW messages are controlled by the parameters Magnitude Association and Regionalized Profiles. Notifications are sent using the `HTTP v1`_ and it requires the following python libraries:
+
+.. code-block:: sh
+   
+   google
+   requests
+   google-auth-oauthlib
+   firebase-admin
+
+Further information on the Firebase Cloud Messaging interface can be found in `Firebase Cloud Messaging`_. This interface is activated in the module configuration file with the option:
 
 .. code-block:: sh
 
    FCM.activate = true
 
-Using a separate file (whose path must be set in the configuration value *FCM.dataFile*), a service JSON file, obtained from the Firebase Console for the specific project `Service JSON File`_, must be provided. Additionally, the EQ information is broadcasted using a topic where app users are subscribed automatically in the moment they run the app for the first time. See more about this in `notification topic`_. The project name is also used along the service JSON to obtain a short-lived access token. You can get this string value from the project configuration (follow the next `Project ID`_ and get the right project ID string name). Within this configuration file for FCM it is possible to enable or disable to send notification to Android and/or iOS. Finally, there is an option to enable old notification format that was used in the previous eews2fcm.py interface.
+In addition, the configuration file defined in FCM.dataFile provides the firebase configuration. It includes the path to a service JSON (see the Firebase project console `Service JSON File`_), the broadcasted topic (notification topic), the project ID string (see `Project ID`_), and it controls (enable or disable) notification to Android, iOS and a legacy notification format.
 Below is an example how this file, referenced in the *FCM.dataFile*, looks like:
 
 .. code-block:: python 
