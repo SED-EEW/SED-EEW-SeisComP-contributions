@@ -48,15 +48,14 @@ following setting:
    # associated with an Event to be allowed to form a new Event.
    eventAssociation.minimumDefiningPhases = 4
 
-.. note::
 
-   Users interested in EEW may decide to run both FinDer and VS together. 
-   :ref:`scvsmag` uses the preferred origin for VS magnitude computation, and it
-   should not run on a FinDer origin. In order to run *scfinder* and 
-   :ref:`scvsmag` on the same system, *scfinder* should be excluded from the 
-   list of potential preferred origins. This can be achieved by excluding the 
-   FinDer # *methodID* from preferred origins in the configuration of 
-   :ref:`scevent`:
+Users interested in EEW may decide to run both FinDer and VS together. 
+:ref:`scvsmag` uses the preferred origin for VS magnitude computation, and it
+should not run on a FinDer origin. In order to run *scfinder* and 
+:ref:`scvsmag` on the same system, *scfinder* should be excluded from the 
+list of potential preferred origins. This can be achieved by excluding the 
+FinDer # *methodID* from preferred origins in the configuration of 
+:ref:`scevent`:
 
 .. code-block:: sh
 
@@ -67,9 +66,15 @@ following setting:
    # defined method string must match exactly the string in Origin.methodID.
    eventAssociation.methods = "NonLinLoc(L2)",\
                               "NonLinLoc(EDT)",\
-                              "Hypo71",\
                               "iLoc",\
+                              "Hypo71",\
                               "LOCSAT"
+
+.. note::
+   
+   Do not include the "MVS" nor "Mfd" magnitude types within :ref:`scevent` list of preferred 
+   magnitude types (:confval:`eventAssociation.magTypes`), otherwise, the first origin
+   with an "MVS" or "Mfd" will remain preferred for automatic processing despite any newer origins. 
 
 .. target-notes::
 

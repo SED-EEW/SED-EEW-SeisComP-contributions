@@ -161,7 +161,7 @@ failed. If all quality checks succeeded the likelihood is set to 0.99.
 .. _scvsmag-configuration:
 
 scvsmag configuration
----------------------
+=====================
 
 scvsmag receives the amplitudes from :ref:`sceewenv` via the messaging system.
 When *sceewenv* is configured to send the amplitudes to the "ENVELOPE" group
@@ -175,8 +175,27 @@ replace the "AMPLITUDE" group with the "ENVELOPE" message group in
 
 Consider also the remaining configuration parameters.
 
+scevent configuration
+---------------------
+
+For :ref:`scevent` to create an event from an origin with 6 phases requires the
+following setting:
+
+.. code-block:: sh
+
+   # Minimum number of Picks for an Origin that is automatic and cannot be
+   # associated with an Event to be allowed to form a new Event.
+   eventAssociation.minimumDefiningPhases = 6
+
+
+.. note::
+   
+   Do not include the "MVS" nor "Mfd" magnitude types within :ref:`scevent` list of preferred 
+   magnitude types (:confval:`eventAssociation.magTypes`), otherwise, the first origin
+   with an "MVS" or "Mfd" will remain preferred for automatic processing despite any newer origins. 
+
 scautoloc configuration
-^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------
 
 Because :ref:`scautoloc` was not designed with EEW in mind, there are a few
 settings necessary to ensure that location estimates are sent to scvsmag as
@@ -206,8 +225,15 @@ For :ref:`scautoloc` to provide locations with 6 stations, its grid
 configuration file requires to be setup with equal or lower minimum pick count,
 and with a corresponding maximum station distance to avoid false alerts.
 
+:ref:`scautoloc` also has a so-called XXL feature that allows you to create a
+location estimate with 4 P-wave detections (otherwise 6 is the minimum).
+Although this feature is reserved for large magnitude events you can, in
+principle, adapt the XXL thresholds to also locate moderate seismicity with the
+first four picks. This may, however, lead to a larger number of false alerts
+and it is, therefore, recommended to use this feature only as intended.
+
 scautopick configuration
-^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------
 
 For :ref:`scautopick` to provide snr amplitudes quickly requires the following 
 setting:
@@ -218,25 +244,6 @@ setting:
    # waveforms.
    thresholds.amplMaxTimeWindow = 1
 
-scevent configuration
-^^^^^^^^^^^^^^^^^^^^^
-
-For :ref:`scevent` to create an event from an origin with 6 phases requires the
-following setting:
-
-.. code-block:: sh
-
-   # Minimum number of Picks for an Origin that is automatic and cannot be
-   # associated with an Event to be allowed to form a new Event.
-   eventAssociation.minimumDefiningPhases = 6
-
-:ref:`scautoloc` also has a so-called XXL feature that allows you to create a
-location estimate with 4 P-wave detections (otherwise 6 is the minimum).
-Although this feature is reserved for large magnitude events you can, in
-principle, adapt the XXL thresholds to also locate moderate seismicity with the
-first four picks. This may, however, lead to a larger number of false alerts
-and it is, therefore, recommended to use this feature only as intended.
-
 .. note::
    If scvsmag receives identical picks from different pipelines, the internal
    buffering fails. The missing picks are automatically retrieved from the
@@ -244,6 +251,7 @@ and it is, therefore, recommended to use this feature only as intended.
    established. Alternatively, if picking is done on the same streams in several
    pipelines, they can be distinguished by modifying their respective public
    IDs.
+
 
 .. target-notes::
 
