@@ -231,7 +231,8 @@ class eews2fcm:
                                     "title": "¡SISMO!",
                                     "subtitle": "Mag: "+evtPayload["magnitude"]+", "+evtPayload["location"]
                                 },
-                               "content-available" : 1
+                               "content-available" : 1,
+                                "mutable-content" : 1
                         },
                         "data": evtPayload
                     }
