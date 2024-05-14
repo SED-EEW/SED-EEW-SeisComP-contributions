@@ -127,6 +127,11 @@
 						Sets the corner frequency of the Butterworth (4 poles) high-pass filter, default is 1/3 Hz.
 					</description>
 				</parameter>
+				<parameter name="slipconfig" type="path">
+					<description>
+						Path to FinDerS config. If the argument is not present, FinDerS computations will not be done.
+					</description>
+				</parameter>
 			</group>
 		</configuration>
 		<command-line>
