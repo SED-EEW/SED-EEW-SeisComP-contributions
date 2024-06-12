@@ -108,6 +108,13 @@ void EnvelopeProcessor::process(const Record *rec, const DoubleArray &data) {
 	Core::Time ts = rec->startTime();
 	const BitSet *clipMask = rec->clipMask();
 
+	if ( clipMask != NULL && ((unsigned int)data.size()) != clipMask->size() ) {
+		SEISCOMP_WARNING("%s: data.size() != clipMask->size() (%d != %zu)",
+		                  rec->streamID().c_str(), 
+						  data.size(), 
+						  clipMask->size());
+	}
+
 	// Process all samples
 	if ( clipMask == NULL ) {
 		for ( int i = 0; i < data.size(); ++i ) {
@@ -135,9 +142,14 @@ void EnvelopeProcessor::process(const Record *rec, const DoubleArray &data) {
 			}
 
 			_samplePool.push(data[i]);
-			if ( clipMask->test(i) )
+			if ( ((unsigned int)i) < clipMask->size() && clipMask->test(i) )
 				_samplePool.clipped = true;
 
+			if ( ((unsigned int)i) >= clipMask->size() ){
+				SEISCOMP_WARNING("%s: cannot check if data[%d] is clipped (clip mask too short) unreliable data.",
+								rec->streamID().c_str(), 
+								i);
+			}
 			ts += _dt;
 		}
 	}
