@@ -1020,6 +1020,10 @@ class App : public Client::StreamApplication {
 						rec->setStartTime(TimeQuantity(Core::Time(pga.get_timestamp())));
 						smp.add(rec.get());
 
+						StrongMotion::EventRecordReferencePtr ref = new StrongMotion::EventRecordReference;
+						ref->setRecordID(rec->publicID());
+						smDesc->add(ref.get());
+
 						StrongMotion::PeakMotionPtr peakMotion;
 
 						peakMotion = new StrongMotion::PeakMotion;
