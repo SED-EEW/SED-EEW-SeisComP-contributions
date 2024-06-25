@@ -948,6 +948,28 @@ class App : public Client::StreamApplication {
 				mag->add(comment.get());
 			}
 
+      {
+        RealQuantity ruptureWidth;
+        ruptureWidth.setValue(finder->get_rupture_width());
+        smRupture->setWidth(ruptureWidth);
+      }
+
+      {
+        string faultgeom = "POLYGON Z ((";
+        for (size_t i = 0; i < finder->get_finder_rupture_list().size(); i++) {
+          faultgeom += Core::toString(finder->get_finder_rupture_list()[i].get_lon());
+          faultgeom += " ";
+          faultgeom += Core::toString(finder->get_finder_rupture_list()[i].get_lat());
+          faultgeom += " ";
+          faultgeom += Core::toString(finder->get_finder_rupture_list()[i].get_depth());
+          if (i < finder->get_finder_rupture_list().size()-1) {
+            faultgeom += ", ";
+          }
+        }
+        faultgeom += "))";
+        smRupture->setRuptureGeometryWKT(faultgeom);
+      }
+
 #endif
 #if SC_API_VERSION >= SC_API_VERSION_CHECK(11,1,0)
 			{
