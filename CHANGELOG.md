@@ -6,6 +6,8 @@
    
   * #59 : Adding the fault rupture parameters into the strong motion database extension, both width and vertices.
 
+  * #60 : Add the missing strong motion event description between strong motion record and strong motion parameter
+
 ## tag 5.1.1.ssa2024
 
 * scvsmag
