@@ -191,7 +191,15 @@ Record *GainAndBaselineCorrectionRecordFilter<T>::feed(const Record *rec) {
 	}
 
 	if ( clipMask ) {
-		std::cerr << rec->streamID() << ": set clip mask: clipped = " << clipMask->numberOfBitsSet() << std::endl;
+		//std::cerr << rec->streamID() << ": set clip mask: clipped = " << clipMask->numberOfBitsSet() << std::endl;
+		SEISCOMP_INFO("%s: set clip mask: clipped = %zu",
+		              rec->streamID().c_str(), 
+					  clipMask->numberOfBitsSet());
+		SEISCOMP_DEBUG("%s: rec.size()=%d clipMask->size()=%zu correctedData->size()=%d",
+		               rec->streamID().c_str(), 
+					   rec->data()->size(), 
+					   clipMask->size(), 
+					   correctedData->size());
 	}
 
 	*correctedData *= _gainCorrectionFactor;

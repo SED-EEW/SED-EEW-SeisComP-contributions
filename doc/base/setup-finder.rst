@@ -16,6 +16,7 @@ This requires `docker <https://docs.docker.com/engine/install/>`_ and ``ssh`` to
     docker run -d \
         --add-host=host.docker.internal:host-gateway  \
         -p 9878:22 \
+        -v finder:/home/sysop \
         --name finder \
         ghcr.io/sed-eew/finder:master
 
@@ -46,9 +47,11 @@ Configuration
     mkdir myconf
     echo 'connection.server = host.docker.internal/production
     database = host.docker.internal/seiscomp
-    database.inventory = host.docker.internal/seiscomp
-    database.config = host.docker.internal/seiscomp
     finder.config = /home/sysop/.seiscomp/finder.config ' > myconf/scfinder.cfg
+
+    ## In case the db setup is more complex you might need to adjust the following and add it to the above:
+    #database.inventory = mysql://host.docker.internal/seiscomp
+    #database.config = mysql://host.docker.internal/seiscomp
     
     # Copy your scfinder config to container
     docker cp myconf/scfinder.cfg finder:/home/sysop/.seiscomp/

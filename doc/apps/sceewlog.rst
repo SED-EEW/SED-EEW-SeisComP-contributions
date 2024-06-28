@@ -48,25 +48,37 @@ Please refer to `ActiveMQ`_ for setting up an ActiveMQ broker.
 
 Firebase Cloud Messaging
 ========================
-It is beyond the scope of this documentation to explain the complete setup 
-Firebase Cloud Messaging. This implementation uses an auxilar python library or also named interface *eews2fcm.py* to send out EEW messages based on what it is configured at the sections of *Magnitude Association* and *Regionalized Profiles*. In order to understand 
-the Firebase Cloud Messaging interface see `Firebase Cloud Messaging`_ and 
-`HTTP protocol`_. This interface is activated with:
+EEW messages are controlled by the parameters Magnitude Association and Regionalized Profiles. Notifications are sent using the `HTTP v1`_ and it requires the following python libraries:
+
+.. code-block:: sh
+   
+   google
+   requests
+   google-auth-oauthlib
+   firebase-admin
+
+Further information on the Firebase Cloud Messaging interface can be found in `Firebase Cloud Messaging`_. This interface is activated in the module configuration file with the option:
 
 .. code-block:: sh
 
    FCM.activate = true
 
-In order to send notifications, an `authorization key`_ and a `notification topic`_ 
-must be provided in a separate file (that can be configured with *FCM.dataFile*) 
-in the following format:
+In addition, the configuration file defined in FCM.dataFile provides the firebase configuration. It includes the path to a service JSON (see the Firebase project console `Service JSON File`_), the broadcasted topic (notification topic), the project ID string (see `Project ID`_), and it controls (enable or disable) notification to Android, iOS and a legacy notification format.
+Below is an example how this file, referenced in the *FCM.dataFile*, looks like:
 
 .. code-block:: python 
    
-   [AUTHKEY]
-   key=YOUR-AUTHORIZATION-KEY_GOES_HERE
    [TOPICS]
-   topic=YOUR_TOPIC_NAME_GOES_HERE
+   topic=eqAlerts
+   [SERVICEFILE]
+   servicefile= /opt/fcm/credentials/projectServiceFile.json
+   [PROJECTID]
+   projectid = myappid
+   [ENABLED_OS]
+   android = true
+   ios = true
+   [SUPPORT_OLD_FORMAT]
+   oldformat = true
 
 
 .. _sceewlog-reports:
@@ -237,7 +249,7 @@ format can be selected:
 
 The aternative format supports both spanish and english languages. The 
 spanish version is:
-
+ 
 .. code-block:: sh
    
    @AGENCY@/Sismo Magnitud X.X, XX km al SSO de SOMECITY, SOMECOUNTRY
@@ -290,6 +302,10 @@ References
 .. _`stompy` : https://pypi.python.org/pypi/stompy/
 .. _`lxml` : http://lxml.de/
 .. _`Firebase Cloud Messaging` : https://firebase.google.com/docs/cloud-messaging
-.. _`HTTP protocol` : https://firebase.google.com/docs/cloud-messaging/http-server-ref
 .. _`authorization key` : https://stackoverflow.com/questions/37673205/what-is-the-authorization-part-of-the-http-post-request-of-googles-firebase-d
 .. _`notification topic` : https://firebase.google.com/docs/cloud-messaging/android/topic-messaging
+.. _`HTTP v1` : https://firebase.google.com/docs/cloud-messaging/migrate-v1?hl=es-419
+.. _`Service JSON File` : https://console.firebase.google.com/u/0/project/_/settings/serviceaccounts/adminsdk
+.. _`Project ID` : https://console.firebase.google.com/u/0/project/_/settings/general/
+
+

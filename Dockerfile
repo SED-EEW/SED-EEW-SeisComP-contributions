@@ -102,7 +102,7 @@ RUN echo "Cloning base repository into $WORK_DIR/seiscomp" \
     && echo "Cloning external base components" \
     #&& git clone --branch $TAG $REPO_PATH/contrib-gns.git \
     #&& git clone --branch $TAG $REPO_PATH/contrib-ipgp.git \
-    && git clone https://github.com/swiss-seismological-service/sed-SeisComP-contributions.git contrib-sed \
+    && git clone --branch $TAG  https://github.com/swiss-seismological-service/sed-SeisComP-contributions.git contrib-sed \
     && echo "Done" 
 
 RUN mkdir -p $WORK_DIR/seiscomp/build \
