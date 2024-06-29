@@ -270,6 +270,16 @@
 					Enable or disable FCM for using the eews2fcm interface.
 					</description>
 				</parameter>
+				<parameter name="topicnofication" type="boolean" default="false">
+					<description>
+					Enable or disable FCM for topic notifications. It this case it is mandatory to provide the dataFile.
+					</description>
+				</parameter>
+				<parameter name="eewmessagecomment" type="boolean" default="false">
+					<description>
+					Enable or disable this option to create a message dictionary that will be notify to the messaging system and persist it in the DB.
+					</description>
+				</parameter>
 				<parameter name="dataFile" type="string" default="/home/sysop/seiscomp/share/sceewlog/.fcmdatafile">
 					<description>
 					The datafile must contain the authorization key and topic to send out a message preformated on 
