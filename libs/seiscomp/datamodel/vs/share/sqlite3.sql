@@ -1,6 +1,6 @@
-DROP TABLE EnvelopeValue;
-DROP TABLE EnvelopeChannel;
-DROP TABLE Envelope;
+DROP TABLE IF EXISTS EnvelopeValue;
+DROP TABLE IF EXISTS EnvelopeChannel;
+DROP TABLE IF EXISTS Envelope;
 
 INSERT INTO Object(_oid) VALUES (NULL);
 INSERT INTO PublicObject(_oid,publicID) VALUES ((SELECT MAX(_oid) FROM Object),'VS');
