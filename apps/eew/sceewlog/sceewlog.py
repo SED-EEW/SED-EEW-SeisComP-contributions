@@ -26,7 +26,7 @@ import seiscomp.client, seiscomp.core
 import seiscomp.config, seiscomp.datamodel, seiscomp.system, seiscomp.utils
 import seiscomp.geo
 import socket
-
+import json
 
 class Listener(seiscomp.client.Application):
 
@@ -95,6 +95,8 @@ class Listener(seiscomp.client.Application):
         self.fcm = False  #enabling FCM 
         self.moFcm = None # eews2fcm object
         self.fcmDataFile = None #File that contains keys and topic information for FCM
+        self.fcmTopicNotification = False
+        self.fcmEewMessageComment = False
         
         self.eewComment = True #
 
@@ -210,6 +212,30 @@ class Listener(seiscomp.client.Application):
             pass
         
         if self.fcm:
+            try:
+                self.fcmTopicNotification = self.configGetBool("FCM.topicnotification")
+            except:
+                self.fcm = False
+                seiscomp.logging.warning('FCM.topicnotification value is missing or not a set a proper boolean value')
+                seiscomp.logging.warning('setting it to False')
+                self.fcmTopicNotification = False
+                pass
+            
+        if self.fcm:
+            try:
+                self.fcmEewMessageComment = self.configGetBool("FCM.eewmessagecomment")
+            except:
+                self.fcm = False
+                seiscomp.logging.warning('FCM.fcmEewMessageComment value is missing or not a set a proper boolean value')
+                seiscomp.logging.warning('setting it to False')
+                self.fcmEewMessageComment = False
+                pass
+        
+        if self.fcm and not self.fcmTopicNotification and not self.fcmEewMessageComment:
+            seiscomp.logging.error("When FCM is enable, it is necessary to have either fcm.topicnotification and/or fcm.eewmessagecomment equal to true. This is an error. Leaving...")
+            return False
+        
+        if self.fcm and ( self.fcmTopicNotification or self.fcmEewMessageComment ) :
             self.profilesInitConfig()
             if self.assocMagActivate:
                 self.prioritiesInitConfig()
@@ -313,21 +339,25 @@ class Listener(seiscomp.client.Application):
         #loading cities and language
         self.locationAndLanguage()
         
-        try:
-            self.fcmDataFile = self.configGetString("FCM.dataFile")
-            seiscomp.logging.info('Data file that contains Authorization Key and topic is:\n %s\n' % self.fcmDataFile )
-        except:
-            seiscomp.logging.warning('Not possible to read FCM.dataFile')
-            seiscomp.logging.warning('Disabling FCM')
-            self.fcm = False
-            pass
+        if self.fcmTopicNotification:
+            try:
+                self.fcmDataFile = self.configGetString("FCM.dataFile")
+                seiscomp.logging.info('Data file that contains Authorization Key and topic is:\n %s\n' % self.fcmDataFile )
+            except:
+                seiscomp.logging.warning('Not possible to read FCM.dataFile')
+                seiscomp.logging.warning('Disabling FCM')
+                self.fcm = False
+                pass
         
         
         if self.fcm:   
             from eews2fcm import eews2fcm
             try:
-                self.moFcm = eews2fcm(self.fcmDataFile, self.hlCitiesFile)
-                self.moFcm.readFcmDataFile()
+                if self.fcmTopicNotification:
+                    self.moFcm = eews2fcm( self.hlCitiesFile, self.hlLanguage, self.fcmDataFile )
+                    self.moFcm.readFcmDataFile()
+                if self.fcmEewMessageComment and not self.fcmTopicNotification:
+                    self.moFcm = eews2fcm( self.hlCitiesFile, self.hlLanguage)
             except Exception as e:
                 seiscomp.logging.error("Not possible to instancing eews2fcm object")
                 seiscomp.logging.error("error: %s" % e)
@@ -824,12 +854,52 @@ class Listener(seiscomp.client.Application):
         if self.udevt is not None:
             self.udevt.send( self.udevt.message_encoder( ep ) )
         
-        if self.fcm:
+        if self.fcm and self.fcmTopicNotification:
             self.moFcm.send( ep )
         
+        if self.fcm and self.fcmEewMessageComment:
+            # eew message will be sent to the messaging system and persist it in the db as a comment for the magnitude object.
+            try:
+                seiscomp.logging.debug(f"Creating and sending a comment type: eewmessage for the magnitude: {magID}")
+                
+                mag = self.cache.get(seiscomp.datamodel.Magnitude, magID)
+                
+                # Creating the message JSON
+                _message = self.moFcm.message_creator( ep )
+                _message_str = json.dumps( _message )
+                
+                # Comment
+                comment = seiscomp.datamodel.Comment();
+                
+                # ID
+                comment.setId("eewmessage")
+                
+                # attaching the string in text attribute of the comment object
+                comment.setText(str( _message_str ))
+                
+                #creation info
+                ci = seiscomp.datamodel.CreationInfo()
+                ci.setCreationTime(seiscomp.core.Time().GMT())
+                comment.setCreationInfo(ci)
+                
+                #adding the comment object to mag object
+                mag.add(comment)
+                
+                #Notifies
+                n = seiscomp.datamodel.Notifier(mag.publicID(), seiscomp.datamodel.OP_ADD, comment)
+                seiscomp.logging.debug("Notifier is enabled to send the alert message?: %s" % seiscomp.datamodel.Notifier.IsEnabled() )
+                msg = seiscomp.datamodel.NotifierMessage()
+                msg.attach(n)
+                a=self.connection().send( 'MAGNITUDE', msg )
+                seiscomp.logging.debug("Message comment sent? %s" % "Yes" if a else "No, failed" )
+            except Exception as e:
+                seiscomp.logging.error("There was an error while notifying a comment with the message dictionary for the app.")
+                seiscomp.logging.error("Error message: %s" % repr(e))
+            
+            
         # Adding a comment on magnitude object with
         # the number of times of EEW alert was sent (if enabled)
-        if self.eewComment:
+        if self.fcm and self.eewComment:
             try:
                 #counting how many EEW alerts were sent out
                 listUpdates = list( self.event_dict[evID]['updates'].values() )
@@ -1389,4 +1459,3 @@ if __name__ == '__main__':
     import sys
     app = Listener(len(sys.argv), sys.argv)
     sys.exit(app())
-
