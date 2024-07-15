@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env seiscomp-python
 
 import sys, traceback
 import seiscomp.client, seiscomp.core, seiscomp.system
