@@ -114,7 +114,8 @@ class eews2fcm:
         "nearPlaceDist": "%DISTANCE%",
         "message": "%OLDFORMAT%",
         "title": "someOldformatTitle",
-        "body": "someOldformatBody"
+        "body": "someOldformatBody",
+        "magId": "%MAGID%"
         }
         
         #The time to live for both ios and android is one day. TODO: add a new configuration file to get this value
@@ -195,6 +196,8 @@ class eews2fcm:
         evtPayload["numArrivals"] = str(numStaMag)
 
         evtPayload["nearPlaceDist"] = str(self.distance)
+        
+        evtPayload["magId"] = prefMagID
         
         if self.oldFormatSupport:
             oldMsg = self.oldFormat
