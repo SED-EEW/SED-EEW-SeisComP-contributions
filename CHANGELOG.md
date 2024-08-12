@@ -1,6 +1,18 @@
 # Change Log
 
 ## Master
+  
+* sceewlog
+
+  * [#61](https://github.com/SED-EEW/SED-EEW-SeisComP-contributions/pull/61): New options `FCM.topicnotification` and `FCM.eewmessagecomment` to send notification by topic and/or create an EEW message as a comment of the relevant magnitude.
+
+* scfinder:
+   
+  * [#59](https://github.com/SED-EEW/SED-EEW-SeisComP-contributions/pull/59): Adding the fault rupture parameters into the strong motion database extension, both width and vertices.
+
+  * [#60](https://github.com/SED-EEW/SED-EEW-SeisComP-contributions/pull/60): Add the missing strong motion event description between strong motion record and strong motion parameter
+
+## tag 5.1.1.ssa2024
 
 * scvsmag
   

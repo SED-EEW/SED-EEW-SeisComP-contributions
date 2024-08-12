@@ -1,6 +1,21 @@
+"""
+Copyright (C) by ETHZ/SED
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+Author: Billy Burgoa Rosso (billyburgoa@gmail.com)
+"""
+
 from io import BytesIO
 from twisted.internet import reactor
-import datetime
 import time
 import os
 import lxml.etree as ET
@@ -9,18 +24,18 @@ from seiscomp.io import Exporter, ExportSink
 import configparser
 import time
 from headlinealert import HeadlineAlert as hl
-import subprocess
 import google
 import requests
 import json
 from google.oauth2 import service_account
 from firebase_admin import credentials
+import concurrent.futures
 
 
 class eews2fcm:
     #constructor needs FCM data file containing The projectid, service file, and topic.
     #language can be es-US or en-US. By default is es-US
-    def __init__(self, fcmDataFile, worldCitiesFile, language = "es-US"):
+    def __init__(self, worldCitiesFile, language = "es-US", fcmDataFile=None):
 
         #this is the long string template for sending notification to apps with version less than 2.0.0
         self.oldFormat = '''%EVTID%;%MAG%;%DEPTH%;%LAT%;%LON%;%LIKELIHOOD%;%ORTIME%;%TIMENOW%;NULL;%AGENCY%;%STATUS%;%TYPE%;%LOCATION%;%ORID%;%MAGID%;%STAMAGNUM%;%TIME_NOWMS%;%DISTANCE%'''
@@ -76,7 +91,11 @@ class eews2fcm:
         credentials.refresh(request)
         return credentials.token
 
-    def send( self, ep ):
+    # Method to create the message dictionary for Firebase
+    # It is necessary to provide as input the event parameter object (ep)
+    # It will return the message dictonary,
+    def message_creator(self, ep ):
+         
         evtPayload = {
         "notificationType": "eqNotification",
         "eventId": "%EVENTID%",
@@ -95,14 +114,13 @@ class eews2fcm:
         "nearPlaceDist": "%DISTANCE%",
         "message": "%OLDFORMAT%",
         "title": "someOldformatTitle",
-        "body": "someOldformatBody"
+        "body": "someOldformatBody",
+        "magId": "%MAGID%"
         }
+        
         #The time to live for both ios and android is one day. TODO: add a new configuration file to get this value
         apnsTimeToLiveInSeconds = int(time.time()) + 86400
         androidTimeToLiveInSeconds = "86400s"
-
-
-        
 
         try:
             evt = ep.event(0)
@@ -179,6 +197,8 @@ class eews2fcm:
 
         evtPayload["nearPlaceDist"] = str(self.distance)
         
+        evtPayload["magId"] = prefMagID
+        
         if self.oldFormatSupport:
             oldMsg = self.oldFormat
             oldMsg = oldMsg.replace("%EVTID%", evtid)
@@ -202,7 +222,6 @@ class eews2fcm:
             evtPayload["message"]=oldMsg
             evtPayload["body"]= "eqNotification"
             evtPayload["title"]= "oldNotif"
-            seiscomp.logging.debug("old format message:\n "+ oldMsg)
         
         # Construct JSON request payload
         
@@ -232,11 +251,23 @@ class eews2fcm:
                                     "subtitle": "Mag: "+evtPayload["magnitude"]+", "+evtPayload["location"]
                                 },
                                "content-available" : 1,
-                                "mutable-content" : 1
+                               "mutable-content" : 1
                         },
                         "data": evtPayload
                     }
             }
+            
+        return payload
+        
+    def send( self, ep ):
+        # A thread pool executor to send the message asynchronously
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future = executor.submit(self._send_message, ep)
+    
+    def _send_message(self, ep):
+        # getting the message dictionary
+        payload = self.message_creator(ep)
+
         # Send HTTP request with authorization
         accessToken = self.get_access_token()
         headers = {'Authorization': f'Bearer {accessToken}'}
