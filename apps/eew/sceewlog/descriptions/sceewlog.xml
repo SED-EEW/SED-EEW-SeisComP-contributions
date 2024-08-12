@@ -112,6 +112,11 @@
 					Only send a notification email if the magnitude threshold is exceeded.
 					</description>
 				</parameter>
+				<parameter name="sendForAlertOnly" type="boolean" default="false">
+					<description>
+					Only send a notification email if an alert was sent (activeMQ, FCM, or script).
+					</description>
+				</parameter>
 			</group>
 			<group name="report">
 				<parameter name="activate" type="boolean" default="true">

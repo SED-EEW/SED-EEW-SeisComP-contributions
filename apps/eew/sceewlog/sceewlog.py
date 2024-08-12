@@ -66,6 +66,7 @@ class Listener(seiscomp.client.Application):
         self.email_sender = None
         self.email_recipients = None
         self.email_subject = None
+        self.email_sendForAlertOnly = True
         self.username = None
         self.password = None
         self.auth = False
@@ -171,6 +172,7 @@ class Listener(seiscomp.client.Application):
             self.email_recipients = self.configGetStrings("email.recipients")
             self.email_subject = self.configGetString("email.subject")
             self.hostname = self.configGetString("email.host")
+            self.email_sendForAlertOnly = self.configGetBool("email.sendForAlertOnly")
             self.magThresh = self.configGetDouble("email.magThresh")
         except Exception as e:
             seiscomp.logging.info(
@@ -598,7 +600,9 @@ class Listener(seiscomp.client.Application):
         for _i in sorted(self.event_dict[evID]['updates'].keys()):
             ed = self.event_dict[evID]['updates'][_i]
             mag = ed['magnitude']
-            if mag > self.magThresh:
+            if ( mag > self.magThresh and 
+                ( self.email_sendForAlertOnly is False or 
+                  self.event_dict[evID]['alert'] )):
                 threshold_exceeded = True
 
             difftime = ed['tsobject'] - \
@@ -1022,6 +1026,7 @@ class Listener(seiscomp.client.Application):
             if evID not in self.event_dict.keys():
                 self.event_dict[evID] = {}
                 self.event_dict[evID]['published'] = False
+                self.event_dict[evID]['alert'] = False
                 self.event_dict[evID]['lastupdatesent'] = None
                 self.event_dict[evID]['updates'] = {}
                 try:
@@ -1378,6 +1383,7 @@ class Listener(seiscomp.client.Application):
                 self.event_dict[evID]['updates'][updateno]['eew'] = True
                 #saving the last update sent or reported
                 self.event_dict[evID]['lastupdatesent'] = updateno 
+                self.event_dict[evID]['alert'] = True
                 
                 self.sendAlert( magID )
                 self.execScript( magID, updateno )
@@ -1387,6 +1393,8 @@ class Listener(seiscomp.client.Application):
             #no profiles. Any origin and mag is reported
             seiscomp.logging.info('No profiles but activeMQ enabled. sending an alert...')
             self.event_dict[evID]['lastupdatesent'] = updateno 
+            self.event_dict[evID]['alert'] = True
+
             self.sendAlert( magID )
             self.execScript( magID, updateno )
                     
