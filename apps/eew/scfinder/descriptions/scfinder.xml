@@ -73,6 +73,12 @@
 						larger than MIN_TRIGGER_STATIONS in FinDer configuration.
 					</description>
 				</parameter>
+				<parameter name="shiftEpicentralPGA" type="double"  unit="degrees" default="0.02">
+					<description>
+						Distance to shift epicentral PGAs away from the epicentre along longitude and latitude 
+						incrementaly up to numberEpicentralPGA. 
+					</description>
+				</parameter>
 				<parameter name="defaultEpicentralPGA" type="double" unit="cm/s/s" default="50.0">
 					<description>
 						Default epicentral PGA. Should be over the minimum of THRESHOLDS in FinDer 
