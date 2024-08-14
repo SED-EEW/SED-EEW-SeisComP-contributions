@@ -66,7 +66,7 @@ class Listener(seiscomp.client.Application):
         self.email_sender = None
         self.email_recipients = None
         self.email_subject = None
-        self.email_sendForAlertOnly = True
+        self.email_sendForAlertOnly = False
         self.username = None
         self.password = None
         self.auth = False
