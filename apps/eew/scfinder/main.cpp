@@ -955,7 +955,7 @@ class App : public Client::StreamApplication {
       }
 
       {
-        string faultgeom = "POLYGON Z ((";
+        string faultgeom = "MULTIPOLYGON Z (((";
         for (size_t i = 0; i < finder->get_finder_rupture_list().size(); i++) {
           faultgeom += Core::toString(finder->get_finder_rupture_list()[i].get_lon());
           faultgeom += " ";
@@ -966,7 +966,7 @@ class App : public Client::StreamApplication {
             faultgeom += ", ";
           }
         }
-        faultgeom += "))";
+        faultgeom += ")))";
         smRupture->setRuptureGeometryWKT(faultgeom);
       }
 
