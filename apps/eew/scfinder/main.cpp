@@ -849,6 +849,7 @@ class App : public Client::StreamApplication {
 			mag->setMethodID("FinDer");
 			mag->setMagnitude(RealQuantity(finder->get_mag(), finder->get_mag_uncer(), Core::None, Core::None, Core::None));
 			mag->setType("Mfd");
+			mag->setStationCount(finder->get_Nstat_used());
 			SEISCOMP_DEBUG("FinDer magnitude (Mfd: %f, likelihood: %f) wrapped in magnitude %s", 
 					finder->get_mag(),
 					finder->get_likelihood_estimate(),
@@ -955,7 +956,7 @@ class App : public Client::StreamApplication {
       }
 
       {
-        string faultgeom = "MULTIPOLYGON Z (((";
+        string faultgeom = "POLYGON Z ((";
         for (size_t i = 0; i < finder->get_finder_rupture_list().size(); i++) {
           faultgeom += Core::toString(finder->get_finder_rupture_list()[i].get_lon());
           faultgeom += " ";
@@ -966,7 +967,7 @@ class App : public Client::StreamApplication {
             faultgeom += ", ";
           }
         }
-        faultgeom += ")))";
+        faultgeom += "))";
         smRupture->setRuptureGeometryWKT(faultgeom);
       }
 
