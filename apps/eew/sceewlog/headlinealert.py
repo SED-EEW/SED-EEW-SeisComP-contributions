@@ -66,7 +66,7 @@ class HeadlineAlert:
                 if info.find(self.capNamespace + 'language' ).text == language:
                     mainInfo = info
             if mainInfo is not None:
-                mainInfo.find( self.capNamespace + 'headline' ).text = unicode(hl, 'utf8')
+                mainInfo.find( self.capNamespace + 'headline' ).text = hl
             
         except Exception as e:
             seiscomp.logging.warning('something went wrong with changing the headline: %s' % e)
