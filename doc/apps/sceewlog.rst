@@ -5,7 +5,7 @@ Part of the :ref:`EEW<EEW>` package (used by :ref:`VS<VS>` and :ref:`FinDer<FIND
 and disseminates reports.
 
 *sceewlog* is released under the GNU Affero General Public License (Free
-Software Foundation, version 3 or later). It requires the Python package
+Software Foundation, version 3 or later). It requires the Python 3 and the package
 `dateutil`_ to be installed. sceewlog replaces scvslog that was originally 
 part of the SeisComP implementation of the `Virtual Seismologist`_ (VS) 
 Earthquake Early Warning algorithm.
