@@ -523,6 +523,14 @@ class App : public Client::StreamApplication {
 		void handleEnvelope(const Processing::EEWAmps::BaseProcessor *proc,
 		                    double value, const Core::Time &timestamp,
 		                    bool clipped) {
+			
+			if ( clipped ) {
+				SEISCOMP_DEBUG("Record %s.%s.%s has been clipped!", 
+				               proc->waveformID().networkCode().c_str(), 
+							   proc->waveformID().stationCode().c_str(), 
+							   sproc->waveformID().locationCode().c_str());
+			}
+
 			if ( proc->signalUnit() != Processing::WaveformProcessor::MeterPerSecondSquared ) {
 				SEISCOMP_WARNING("Unexpected envelope unit: %s",
 				                 proc->signalUnit().toString());
@@ -605,7 +613,7 @@ class App : public Client::StreamApplication {
 				if ( (it->second->maxPGA.timestamp < minAmplTime)
 				  || (timestamp < minAmplTime)
 				  || (value >= it->second->maxPGA.value) ) {
-					if ( it->second->updateMaximum(minAmplTime) ) {
+					if ( it->second->updateMaximum(minAmplTime, clipped) ) {
 						#if defined(LOG_AMPS)
 						std::cout << "M " << id << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.value << std::endl;
 						#endif
@@ -618,7 +626,7 @@ class App : public Client::StreamApplication {
 			if ( referenceTimeUpdated ) {
 				for ( it = _locationLookup.begin(); it != _locationLookup.end(); ++it ) {
 					if ( it->second->maxPGA.timestamp >= minAmplTime ) continue;
-					if ( it->second->updateMaximum(minAmplTime) ) {
+					if ( it->second->updateMaximum(minAmplTime, clipped) ) {
 						#if defined(LOG_AMPS)
 						std::cout << "M " << it->first << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.value << std::endl;
 						#endif
@@ -646,10 +654,11 @@ class App : public Client::StreamApplication {
 			// Changed by Maren, Jan 3 2017
 			//if ( !_finderAmplitudesDirty )
 			//	return;
+			
+			// Throttle call frequency
+			Core::Time now = Core::Time::GMT();
 
 			if ( _finderScanCallInterval != Core::TimeSpan(0,0) ) {
-				// Throttle call frequency
-				Core::Time now = Core::Time::GMT();
 				if ( now - _lastFinderScanCall < _finderScanCallInterval )
 					return;
 
@@ -680,6 +689,24 @@ class App : public Client::StreamApplication {
 					std::cout << it->first << "\t" << it->second->pgas.front().timestamp.iso() << "\t" << it->second->pgas.back().timestamp.iso() << "\t" << _referenceTime.iso() << std::endl;
 					std::cout << it->first << "\t" << it->second->pgas.front().timestamp.seconds() << "\t" << it->second->pgas.back().timestamp.seconds() <<  "\t" << _referenceTime.seconds() << std::endl;
 					continue;
+				}
+
+				if ( now - it->second->maxPGA.timestamp > _bufVarLen ) {
+					SEISCOMP_DEBUG("PGA %s.%s.%s.%s older than %s s has been ignored", 
+								   it->second->meta->station()->code(),
+								   it->second->meta->station()->network()->code(),
+								   it->second->maxPGA.channel.c_str(),
+								   it->second->meta->code().empty()?"--":it->second->meta->code().c_str(),
+								   _bufVarLen.c_str());
+					continue
+				}
+				if ( it->second->maxPGA.clipped ) {}
+					SEISCOMP_DEBUG("Clipped PGA %s.%s.%s.%s has been ignored",
+						           it->second->meta->station()->code(),
+								   it->second->meta->station()->network()->code(),
+								   it->second->maxPGA.channel.c_str(),
+								   it->second->meta->code().empty()?"--":it->second->meta->code().c_str());
+					continue
 				}
 
 				_latestMaxPGAs.push_back(
@@ -1070,7 +1097,7 @@ class App : public Client::StreamApplication {
 	private:
 		struct Amplitude {
 			Amplitude() {}
-			Amplitude(double v, const Core::Time &ts, const std::string &cha) : value(v), timestamp(ts), channel(cha) {}
+			Amplitude(double v, const Core::Time &ts, const std::string &cha, bool c) : value(v), timestamp(ts), channel(cha), clipped(c) {}
 
 			bool operator==(const Amplitude &other) const {
 				return value == other.value && timestamp == other.timestamp;
@@ -1083,6 +1110,7 @@ class App : public Client::StreamApplication {
 			double      value;
 			Core::Time  timestamp;
 			std::string channel;
+			bool        clipped;
 		};
 
 		typedef Ring<Amplitude> PGABuffer;
@@ -1135,12 +1163,12 @@ class App : public Client::StreamApplication {
 };
 
 
-bool App::Buddy::updateMaximum(const Core::Time &minTime) {
+bool App::Buddy::updateMaximum(const Core::Time &minTime, bool clipped) {
 	Amplitude lastMaximum = maxPGA;
 	maxPGA = Amplitude();
 
 	if ( !pgas.empty() && pgas.back().timestamp >= minTime ) {
-		// Update maxmimum
+		// Update maximum
 		PGABuffer::iterator it;
 		for ( it = pgas.begin(); it != pgas.end(); ++it ) {
 			if ( it->timestamp < minTime ) continue;
@@ -1148,6 +1176,7 @@ bool App::Buddy::updateMaximum(const Core::Time &minTime) {
 				maxPGA.timestamp = it->timestamp;
 				maxPGA.value = it->value;
 				maxPGA.channel = it->channel;
+				maxPGA.clipped = clipped;
 			}
 		}
 	}
