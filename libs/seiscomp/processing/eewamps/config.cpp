@@ -66,8 +66,7 @@ Config::Config() {
 
 	horizontalBufferSize = Core::TimeSpan(60,0);
 	horizontalMaxDelay = Core::TimeSpan(30,0);
-	maxDelay = Core::TimeSpan(3,0);
-	skipDataOlderThan = Core::TimeSpan(30,0);
+	maxDelay = Core::TimeSpan(5,0);
 
 	// ----------------------------------------------------------------------
 	//  VS and FinDer configuration

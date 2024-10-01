@@ -55,6 +55,37 @@
 					</description>
 				</parameter>
 			</group>
+			<group name="origins">
+				<description>
+					scfinder can process origins received from the messaging system (groups from 
+					connection.subscriptions) by adding artificial epicentral PGA at the origin epicenter.
+				</description>
+				<parameter name="process" type="boolean" default="false">
+					<description>
+						Enables processing of origins. This mode is exclusive, it prevents scfinder to 
+						detect event purely from envelope amplitudes.
+					</description>
+				</parameter>
+				<parameter name="numberEpicentralPGA" type="int"  default="2">
+					<description>
+						Number of epicentral PGAs added away from the epicentral PGA along longitude and latitude. 
+						The total number of additional PGA is (numberEpicentralPGA * 2 + 1)^2 and should be equal or 
+						larger than MIN_TRIGGER_STATIONS in FinDer configuration.
+					</description>
+				</parameter>
+				<parameter name="shiftEpicentralPGA" type="double"  unit="degrees" default="0.02">
+					<description>
+						Distance to shift epicentral PGAs away from the epicentre along longitude and latitude 
+						incrementaly up to numberEpicentralPGA. 
+					</description>
+				</parameter>
+				<parameter name="defaultEpicentralPGA" type="double" unit="cm/s/s" default="50.0">
+					<description>
+						Default epicentral PGA. Should be over the minimum of THRESHOLDS in FinDer 
+						configuration. Inferred from the maximum network-wise amplitude if empty. 
+					</description>
+				</parameter>
+			</group>
 			<group name="finder">
 				<parameter name="config" type="path">
 					<description>
@@ -114,7 +145,7 @@
 				</parameter>
 			</group>
 			<group name="debug">
-				<parameter name="maxDelay" type="double" default="3" unit="s">
+				<parameter name="maxDelay" type="double" default="5" unit="s">
 					<description>
 						Sets the maximum absolute value of packet delay before issuing a warning. That 
 						parameter does not configure buffers as such but only a threshold (in seconds 
