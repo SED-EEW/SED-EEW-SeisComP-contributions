@@ -556,7 +556,7 @@ class App : public Client::StreamApplication {
 				);
 
 				if ( loc == NULL ) {
-					SEISCOMP_WARNING("%s.%s: no sensor location found for '%s' at time %s: ignore envelope value",
+					SEISCOMP_WARNING("[%s.%s.%s] no sensor location found at time %s: ignore envelope value",
 					                 proc->waveformID().networkCode().c_str(),
 					                 proc->waveformID().stationCode().c_str(),
 					                 proc->waveformID().locationCode().c_str(),
@@ -569,7 +569,7 @@ class App : public Client::StreamApplication {
 					loc->longitude();
 				}
 				catch ( std::exception &e ) {
-					SEISCOMP_WARNING("%s.%s: location '%s': failed to add coordinate: %s",
+					SEISCOMP_WARNING("[%s.%s.%s] failed to add coordinate: %s",
 					                 proc->waveformID().networkCode().c_str(),
 					                 proc->waveformID().stationCode().c_str(),
 					                 proc->waveformID().locationCode().c_str(),
@@ -577,10 +577,36 @@ class App : public Client::StreamApplication {
 					return;
 				}
 
+				string gainUnit = "none" ; 
+				DataModel::Stream *stream = Client::Inventory::Instance()->getStream(proc->waveformID().networkCode(), 
+						proc->waveformID().stationCode(),
+						proc->waveformID().locationCode(),
+						proc->waveformID().channelCode().substr(0,2)+"Z", 
+						timestamp);
+				Processing::WaveformProcessor::SignalUnit signalUnit;
+				if ( stream ) {
+					gainUnit = stream->gainUnit().c_str() ; 
+					SEISCOMP_DEBUG("[%s.%s.%s.%s] signal unit found : %s", 
+								proc->waveformID().networkCode().c_str(),
+								proc->waveformID().stationCode().c_str(),
+								proc->waveformID().locationCode().c_str(),
+								proc->waveformID().channelCode().c_str(),
+								stream->gainUnit().c_str()) ; //.%s] signal unit: %s, proc->waveformID().channelCode().c_str(), stream->gainUnit().c_str());
+
+				} else {
+					SEISCOMP_ERROR(
+							"[%s.%s.%s.%s] unable to retrieve gain unit from inventory", 
+					                 proc->waveformID().networkCode().c_str(),
+					                 proc->waveformID().stationCode().c_str(),
+					                 proc->waveformID().locationCode().c_str(), 
+									 proc->waveformID().channelCode().c_str());
+				}
+				
 				if ( it == _locationLookup.end() ) {
 					BuddyPtr buddy = new Buddy;
 					buddy->pgas.setCapacity(_bufferLength),
 					buddy->meta = loc;
+					buddy->gainUnit = gainUnit;
 					_locationLookup[id] = buddy;
 					it = _locationLookup.find(id); 
 				}
@@ -683,26 +709,30 @@ class App : public Client::StreamApplication {
 			for ( it = _locationLookup.begin(); it != _locationLookup.end(); ++it ) {
 				if ( !it->second->maxPGA.timestamp.valid() ) continue;
 				
-				/* The above code is checking if the timestamp of the last element in the `pgas` vector is within
-				the last <_finderMaxEnvelopeBufferDelay, default 15> seconds. If the condition is true, the code 
-				will continue with the next iteration of the loop. */
+				string mseedid = it->second->meta->station()->network()->code() + "." +
+					it->second->meta->station()->code() + "." +
+			        it->second->meta->code() + "." + 
+					it->second->maxPGA.channel;
+
+				/* checks whether the timestamp of the last element in the pgas vector 
+				falls within the previous 15 seconds, continuing the loop if true */
 				if ( ( it->second->pgas.back().timestamp.seconds() ) < ( _referenceTime.seconds() - _finderMaxEnvelopeBufferDelay ) ) {
 					std::cout << "Instrument skipped \t PGA buffer starts (iso,s)\t PGA buffer end (iso,s)\t Reference time (iso,s)" << std::endl;
 					std::cout << it->first << "\t" << it->second->pgas.front().timestamp.iso() << "\t" << it->second->pgas.back().timestamp.iso() << "\t" << _referenceTime.iso() << std::endl;
 					std::cout << it->first << "\t" << it->second->pgas.front().timestamp.seconds() << "\t" << it->second->pgas.back().timestamp.seconds() <<  "\t" << _referenceTime.seconds() << std::endl;
 					continue;
 				}
+
+				/* Checking conditions related to clipping of an instrument's data */
 				if ( it->second->pgas.back().clipped ) {
-					SEISCOMP_DEBUG("[%s] Instrument clipped and skipped",
-						it->second->meta->station()->code().c_str());
+					SEISCOMP_DEBUG("[%s] Instrument clipped and skipped", mseedid.c_str());
 					continue;
 				}
 				if ( ( it->second->maxPGA.lastclipped.seconds() ) >= ( _referenceTime.seconds() - _finderClipTimeout ) ) {
-					SEISCOMP_DEBUG("[%s] Instrument clipped recently and skipped",
-						it->second->meta->station()->code().c_str());
+					SEISCOMP_DEBUG("[%s] Instrument clipped recently and skipped", mseedid.c_str());
 					continue;
 				}
-
+				
 				_latestMaxPGAs.push_back(
 					PGA_Data(
 						it->second->meta->station()->code(),
@@ -714,6 +744,62 @@ class App : public Client::StreamApplication {
 						it->second->maxPGA.timestamp
 					)
 				);
+
+				if ( ( strcmp( it->second->gainUnit.c_str(), "M/S**2" ) != 0 ) 
+					&& ( strcmp( it->second->gainUnit.c_str(), "m/s**2" ) != 0 )
+					&& ( strcmp( it->second->gainUnit.c_str(), "M/S/S" ) != 0 )
+					&& ( strcmp( it->second->gainUnit.c_str(), "m/s/s" ) != 0 ) ) {
+						continue;
+				}
+				// else: the new PGA is based on an accelerograph
+				
+				/* Checking conflicting PGA for the same network/station/location code */
+				for ( size_t i = 0; i < _latestMaxPGAs.size(); ++i ) {
+					PGA_Data &pga = _latestMaxPGAs[i];
+					if ( strcmp( pga.get_network().c_str(), it->second->meta->station()->network()->code().c_str() ) != 0 ) {
+						continue;
+					}
+					if ( strcmp( pga.get_name().c_str(), it->second->meta->station()->code().c_str() ) != 0 ) {
+						continue;
+					}
+					if ( strcmp( pga.get_location_code().c_str(), it->second->meta->code().c_str() ) != 0 ) {
+						continue;
+					}
+					if ( strcmp( pga.get_location_code().c_str(), it->second->meta->code().c_str() ) != 0 ) {
+						continue;
+					}
+					if ( strcmp( pga.get_channel().substr(0,2).c_str(), it->second->maxPGA.channel.substr(0,2).c_str() ) == 0 ) {
+						continue;
+					}
+					// else: conflicting PGA from another instrument code of the same net.sta.loc code
+
+					SEISCOMP_DEBUG("WARNING: conflicting PGA in buffer for %s [%s] (%f cm/s/s) with %s.%s.%s.%s %f %f (%f cm/s/s at %s)",
+									mseedid.c_str(),
+									it->second->gainUnit.c_str(),
+									it->second->maxPGA.value*100,
+									pga.get_network().c_str(),
+									pga.get_name().c_str(),
+									pga.get_location_code().c_str(),
+									pga.get_channel().c_str(),
+									pga.get_location().get_lat(),
+									pga.get_location().get_lon(),
+									pga.get_value(),
+									Core::Time(pga.get_timestamp()).iso().c_str());					
+
+					_latestMaxPGAs.erase( _latestMaxPGAs.begin() + i );
+					i--;
+
+					SEISCOMP_DEBUG("WARNING: removed %s.%s.%s.%s %f %f (%f cm/s/s at %s)",
+									pga.get_network().c_str(),
+									pga.get_name().c_str(),
+									pga.get_location_code().c_str(),
+									pga.get_channel().c_str(),
+									pga.get_location().get_lat(),
+									pga.get_location().get_lon(),
+									pga.get_value(),
+									Core::Time(pga.get_timestamp()).iso().c_str());					
+				}				
+
 				#if defined(LOG_AMPS)
 				std::cout << it->first << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.timestamp.seconds() << "   " << (it->second->maxPGA.value*100) << std::endl;
 				#endif
@@ -1115,6 +1201,7 @@ class App : public Client::StreamApplication {
 			SensorLocation *meta;
 			PGABuffer       pgas;
 			Amplitude       maxPGA;
+			string          gainUnit;
 
 			bool updateMaximum(const Core::Time &minTime);
 		};

@@ -112,6 +112,12 @@
 						skipping the related station stream in FinDer PGA input data. The default is 15s.
 					</description>
 				</parameter>
+				<parameter name="clipTimeout" type="double" default="30" unit="s">
+					<description>
+						Define the delay following a clipped record that a stream is not used 
+						in FinDer. Default is 30s.
+					</description>
+				</parameter>
 			</group>
 			<group name="debug">
 				<parameter name="maxDelay" type="double" default="3" unit="s">
