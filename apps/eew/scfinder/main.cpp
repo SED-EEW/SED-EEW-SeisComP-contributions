@@ -749,16 +749,18 @@ class App : public Client::StreamApplication {
 					)
 				);
 
-				if ( ( strcmp( it->second->gainUnit.c_str(), "M/S" ) == 0 ) 
-					|| ( strcmp( it->second->gainUnit.c_str(), "m/s" ) == 0 )) {
-						SEISCOMP_DEBUG("the new PGA from %s is based on an velocimeter [%s]",
+				if ( ( strcmp( it->second->gainUnit.c_str(), "M/S**2" ) != 0 ) 
+					&& ( strcmp( it->second->gainUnit.c_str(), "m/s**2" ) != 0 ) 
+					&& ( strcmp( it->second->gainUnit.c_str(), "M/S/S" ) != 0 ) 
+					&& ( strcmp( it->second->gainUnit.c_str(), "m/s/s" ) != 0 )) {
+						SEISCOMP_DEBUG("the new PGA from %s  [%s] IS NOT based on an accelerometer",
 										mseedid.c_str(),
 										it->second->gainUnit.c_str());
 						continue;
 				}
 				// else: the new PGA is based on an accelerograph
 				
-				SEISCOMP_DEBUG("the new PGA from %s is based on an accelerometer [%s]",
+				SEISCOMP_DEBUG("the new PGA from %s [%s] is based on an accelerometer",
 								mseedid.c_str(),
 								it->second->gainUnit.c_str());
 
