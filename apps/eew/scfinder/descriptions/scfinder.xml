@@ -114,7 +114,7 @@
 				</parameter>
 				<parameter name="clipTimeout" type="double" default="30" unit="s">
 					<description>
-						Define the delay following a clipped record that a stream is not used 
+						Defines the delay following a clipped record that a stream is not used 
 						in FinDer. Default is 30s.
 					</description>
 				</parameter>

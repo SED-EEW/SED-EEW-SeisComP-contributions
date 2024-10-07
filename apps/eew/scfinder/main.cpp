@@ -709,9 +709,13 @@ class App : public Client::StreamApplication {
 			for ( it = _locationLookup.begin(); it != _locationLookup.end(); ++it ) {
 				if ( !it->second->maxPGA.timestamp.valid() ) continue;
 				
+				string location_code = it->second->meta->code() ;
+				if ( it->second->meta->code().empty() ) {
+					location_code = "--" ;
+				}
 				string mseedid = it->second->meta->station()->network()->code() + "." +
 					it->second->meta->station()->code() + "." +
-			        it->second->meta->code() + "." + 
+			        location_code + "." + 
 					it->second->maxPGA.channel;
 
 				/* checks whether the timestamp of the last element in the pgas vector 
@@ -738,21 +742,26 @@ class App : public Client::StreamApplication {
 						it->second->meta->station()->code(),
 						it->second->meta->station()->network()->code(),
 						it->second->maxPGA.channel.c_str(),
-						it->second->meta->code().empty()?"--":it->second->meta->code().c_str(),
+						location_code, //it->second->meta->code().empty()?"--":it->second->meta->code().c_str(),
 						Coordinate(it->second->meta->latitude(), it->second->meta->longitude()),
 						it->second->maxPGA.value*100, 
 						it->second->maxPGA.timestamp
 					)
 				);
 
-				if ( ( strcmp( it->second->gainUnit.c_str(), "M/S**2" ) != 0 ) 
-					&& ( strcmp( it->second->gainUnit.c_str(), "m/s**2" ) != 0 )
-					&& ( strcmp( it->second->gainUnit.c_str(), "M/S/S" ) != 0 )
-					&& ( strcmp( it->second->gainUnit.c_str(), "m/s/s" ) != 0 ) ) {
+				if ( ( strcmp( it->second->gainUnit.c_str(), "M/S" ) == 0 ) 
+					|| ( strcmp( it->second->gainUnit.c_str(), "m/s" ) == 0 )) {
+						SEISCOMP_DEBUG("the new PGA from %s is based on an velocimeter [%s]",
+										mseedid.c_str(),
+										it->second->gainUnit.c_str());
 						continue;
 				}
 				// else: the new PGA is based on an accelerograph
 				
+				SEISCOMP_DEBUG("the new PGA from %s is based on an accelerometer [%s]",
+								mseedid.c_str(),
+								it->second->gainUnit.c_str());
+
 				/* Checking conflicting PGA for the same network/station/location code */
 				for ( size_t i = 0; i < _latestMaxPGAs.size(); ++i ) {
 					PGA_Data &pga = _latestMaxPGAs[i];
@@ -762,16 +771,15 @@ class App : public Client::StreamApplication {
 					if ( strcmp( pga.get_name().c_str(), it->second->meta->station()->code().c_str() ) != 0 ) {
 						continue;
 					}
-					if ( strcmp( pga.get_location_code().c_str(), it->second->meta->code().c_str() ) != 0 ) {
+					if ( strcmp( pga.get_location_code().c_str(), location_code.c_str() ) != 0 ) {
 						continue;
 					}
-					if ( strcmp( pga.get_location_code().c_str(), it->second->meta->code().c_str() ) != 0 ) {
+					// else: same net.sta.loc code
+
+					if ( strcmp( pga.get_channel().substr(0,2).c_str(), it->second->maxPGA.channel.substr(0,2).c_str() ) == 0 ) {				
 						continue;
 					}
-					if ( strcmp( pga.get_channel().substr(0,2).c_str(), it->second->maxPGA.channel.substr(0,2).c_str() ) == 0 ) {
-						continue;
-					}
-					// else: conflicting PGA from another instrument code of the same net.sta.loc code
+					// else: another instrument code of the same net.sta.loc code
 
 					SEISCOMP_DEBUG("WARNING: conflicting PGA in buffer for %s [%s] (%f cm/s/s) with %s.%s.%s.%s %f %f (%f cm/s/s at %s)",
 									mseedid.c_str(),
@@ -788,7 +796,7 @@ class App : public Client::StreamApplication {
 
 					_latestMaxPGAs.erase( _latestMaxPGAs.begin() + i );
 					i--;
-
+					
 					SEISCOMP_DEBUG("WARNING: removed %s.%s.%s.%s %f %f (%f cm/s/s at %s)",
 									pga.get_network().c_str(),
 									pga.get_name().c_str(),
