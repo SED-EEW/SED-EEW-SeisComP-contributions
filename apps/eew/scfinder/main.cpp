@@ -249,7 +249,7 @@ class App : public Client::StreamApplication {
 			commandline().addOption("Offline", "te", "End time of data acquisition time window, requires also --ts", &_strTe, false);
 
 			commandline().addGroup("Mode");
-			commandline().addOption("Mode", "playback", "Run in playback mode which means that the reference time is set to the timestamp to the latest record instead of systemtime");
+			commandline().addOption("Mode", "playback", "Run in playback mode which means that the reference time is set to the timestamp to the latest record instead of systemtime (disables warning on delay)");
 		}
 
 
@@ -382,6 +382,10 @@ class App : public Client::StreamApplication {
 				eewCfg.maxDelay = configGetDouble("debug.maxDelay");
 			}
 			catch ( ... ) {}
+
+			if ( _playbackMode ) {
+				eewCfg.maxDelay = 999999999.0 ;
+			}
 
 			// Convert to all signal units
 			eewCfg.wantSignal[Processing::WaveformProcessor::MeterPerSecondSquared] = true;
@@ -603,15 +607,8 @@ class App : public Client::StreamApplication {
 					timestamp);
 			if ( stream ) {
 				gainunit = stream->gainUnit().c_str() ; 
-				SEISCOMP_DEBUG("[%s.%s.%s.%s] signal unit found : %s", 
-							proc->waveformID().networkCode().c_str(),
-							proc->waveformID().stationCode().c_str(),
-							proc->waveformID().locationCode().c_str(),
-							proc->waveformID().channelCode().c_str(),
-							stream->gainUnit().c_str()) ;
-
 			} else {
-				SEISCOMP_ERROR(
+				SEISCOMP_WARNING(
 						"[%s.%s.%s.%s] unable to retrieve gain unit from inventory", 
 									proc->waveformID().networkCode().c_str(),
 									proc->waveformID().stationCode().c_str(),
@@ -647,7 +644,7 @@ class App : public Client::StreamApplication {
 				if ( (it->second->maxPGA.timestamp < minAmplTime)
 				  || (timestamp < minAmplTime)
 				  || (value >= it->second->maxPGA.value) ) {
-					if ( it->second->updateMaximum(minAmplTime) ) {
+					if ( it->second->updateMaximum(minAmplTime, _preferredGainUnits) ) {
 						#if defined(LOG_AMPS)
 						std::cout << "M " << id << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.value << "   clipped: " << it->second->maxPGA.clipped << std::endl;
 						#endif
@@ -660,7 +657,7 @@ class App : public Client::StreamApplication {
 			if ( referenceTimeUpdated ) {
 				for ( it = _locationLookup.begin(); it != _locationLookup.end(); ++it ) {
 					if ( it->second->maxPGA.timestamp >= minAmplTime ) continue;
-					if ( it->second->updateMaximum(minAmplTime) ) {
+					if ( it->second->updateMaximum(minAmplTime, _preferredGainUnits) ) {
 						#if defined(LOG_AMPS)
 						std::cout << "M " << it->first << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.value << "   clipped: " << it->second->maxPGA.clipped << std::endl;
 						#endif
@@ -1127,7 +1124,7 @@ class App : public Client::StreamApplication {
 	private:
 		struct Amplitude {
 			Amplitude() {}
-			Amplitude(double v, const Core::Time &ts, const std::string &cha, bool cli, string gu) : value(v), timestamp(ts), channel(cha), clipped(cli), gainunit(gu) {}
+			Amplitude(double v, const Core::Time &ts, const std::string &cha, bool cli, const std::string gu) : value(v), timestamp(ts), channel(cha), clipped(cli), gainunit(gu) {}
 
 			bool operator==(const Amplitude &other) const {
 				return value == other.value && timestamp == other.timestamp;
@@ -1153,7 +1150,7 @@ class App : public Client::StreamApplication {
 			PGABuffer       pgas;
 			Amplitude       maxPGA;
 
-			bool updateMaximum(const Core::Time &minTime);
+			bool updateMaximum(const Core::Time &minTime, const std::string preferredGainUnits);
 		};
 
 		// Mapping of id=net.sta.loc to SensorLocation object
@@ -1197,7 +1194,7 @@ class App : public Client::StreamApplication {
 };
 
 
-bool App::Buddy::updateMaximum(const Core::Time &minTime) {
+bool App::Buddy::updateMaximum(const Core::Time &minTime, const std::string preferredGainUnits) {
 	Amplitude lastMaximum = maxPGA;
 	maxPGA = Amplitude();
 
@@ -1206,8 +1203,9 @@ bool App::Buddy::updateMaximum(const Core::Time &minTime) {
 		PGABuffer::iterator it;
 		for ( it = pgas.begin(); it != pgas.end(); ++it ) {
 
-			if (   ( strcmp( lastMaximum.gainunit.c_str(), "M/S**2" ) == 0 ) 
-				&& ( strcmp( it->gainunit.c_str(), "M/S**2" ) != 0 ) ) {
+			if ( !preferredGainUnits.empty() 
+			     && ( strcmp( lastMaximum.gainunit.c_str(), preferredGainUnits.c_str() ) == 0 ) 
+				 && ( strcmp( it->gainunit.c_str(), preferredGainUnits.c_str() ) != 0 ) ) {
 
 					SEISCOMP_DEBUG("%s [%s] rules over %s [%s]",
 									lastMaximum.channel.c_str(),
