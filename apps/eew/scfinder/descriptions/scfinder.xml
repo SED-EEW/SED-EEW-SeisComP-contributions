@@ -118,6 +118,12 @@
 						in FinDer. Default is 30s.
 					</description>
 				</parameter>
+				<parameter name="preferredGainUnits" type="string" default="M/S**2">
+					<description>
+						Defines the preferred data gain units in case envelopes are provided by several 
+						different instruments from the same location code. Default is "M/S**2".
+					</description>
+				</parameter>
 			</group>
 			<group name="debug">
 				<parameter name="maxDelay" type="double" default="3" unit="s">
