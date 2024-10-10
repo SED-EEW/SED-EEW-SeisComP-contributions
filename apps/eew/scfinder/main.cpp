@@ -598,22 +598,29 @@ class App : public Client::StreamApplication {
 					it->second->meta = loc;
 			}
 
-			// TO DO : avoid requesting for each envelope ... 
+			// Retrieving the gain unit for a specific channel 
 			string gainunit = "none" ; 
-			DataModel::Stream *stream = Client::Inventory::Instance()->getStream(proc->waveformID().networkCode(), 
-					proc->waveformID().stationCode(),
-					proc->waveformID().locationCode(),
-					proc->waveformID().channelCode().substr(0,2)+"Z", 
-					timestamp);
-			if ( stream ) {
-				gainunit = stream->gainUnit().c_str() ; 
+			string channel = proc->waveformID().channelCode().substr(0,2); 
+
+			if (it->second->gainunits.find(channel) != it->second->gainunits.end()) {
+				gainunit = it->second->gainunits[channel] ; 
 			} else {
-				SEISCOMP_WARNING(
-						"[%s.%s.%s.%s] unable to retrieve gain unit from inventory", 
-									proc->waveformID().networkCode().c_str(),
-									proc->waveformID().stationCode().c_str(),
-									proc->waveformID().locationCode().c_str(), 
-									proc->waveformID().channelCode().c_str());
+				DataModel::Stream *stream = Client::Inventory::Instance()->getStream(proc->waveformID().networkCode(), 
+						proc->waveformID().stationCode(),
+						proc->waveformID().locationCode(),
+						channel+"Z", 
+						timestamp);
+				if ( stream ) {
+					gainunit = stream->gainUnit().c_str() ; 
+					it->second->gainunits[channel] = gainunit ; //.insert(make_pair(channel, gainunit));
+				} else {
+					SEISCOMP_WARNING(
+							"[%s.%s.%s.%s] unable to retrieve gain unit from inventory", 
+										proc->waveformID().networkCode().c_str(),
+										proc->waveformID().stationCode().c_str(),
+										proc->waveformID().locationCode().c_str(), 
+										proc->waveformID().channelCode().c_str());
+				}
 			}
 
 			// The reference time is the global ticker of the current time. That
@@ -1149,6 +1156,7 @@ class App : public Client::StreamApplication {
 			SensorLocation *meta;
 			PGABuffer       pgas;
 			Amplitude       maxPGA;
+			std::map<std::string, std::string> gainunits;
 
 			bool updateMaximum(const Core::Time &minTime, const std::string preferredGainUnits);
 		};
@@ -1203,6 +1211,11 @@ bool App::Buddy::updateMaximum(const Core::Time &minTime, const std::string pref
 		PGABuffer::iterator it;
 		for ( it = pgas.begin(); it != pgas.end(); ++it ) {
 
+			// Skip if value is smaller or outdated.
+			if ( maxPGA.timestamp.valid() && it->value < maxPGA.value ) continue;			
+
+			// Skip if gain unit does not match the configured prevailing 
+			// (default M/S**2) but lastMaximum already does.
 			if ( !preferredGainUnits.empty() 
 			     && ( strcmp( lastMaximum.gainunit.c_str(), preferredGainUnits.c_str() ) == 0 ) 
 				 && ( strcmp( it->gainunit.c_str(), preferredGainUnits.c_str() ) != 0 ) ) {
@@ -1215,14 +1228,12 @@ bool App::Buddy::updateMaximum(const Core::Time &minTime, const std::string pref
 					continue;
 			}
 
-			if ( !maxPGA.timestamp.valid() || it->value >= maxPGA.value ) {
-				maxPGA.timestamp = it->timestamp;
-				maxPGA.value = it->value;
-				maxPGA.channel = it->channel;
-				maxPGA.gainunit = it->gainunit;
-			}
+			maxPGA.timestamp = it->timestamp;
+			maxPGA.value = it->value;
+			maxPGA.channel = it->channel;
+			maxPGA.gainunit = it->gainunit;
 
-			// Update latest clipped timestamp
+			// If clipped, update latest clipped timestamp
 			if ( !it->clipped ) continue ;
 			if ( maxPGA.lastclipped > it->timestamp ) continue ;			
 			maxPGA.lastclipped = it->timestamp;
