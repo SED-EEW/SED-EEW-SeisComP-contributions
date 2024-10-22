@@ -70,6 +70,9 @@ FinDer # *methodID* from preferred origins in the configuration of
                               "Hypo71",\
                               "LOCSAT"
 
+   eventAssociation.priorities =  AGENCY, STATUS, METHOD, PHASES_AUTOMATIC, TIME_AUTOMATIC 
+
+
 .. note::
    
    Do not include the "MVS" nor "Mfd" magnitude types within :ref:`scevent` list of preferred 
