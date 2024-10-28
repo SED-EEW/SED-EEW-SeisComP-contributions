@@ -224,6 +224,6 @@ Porras Loría, J.L., Massin, F., Arroyo-Solórzano, M., Arroyo, I., Linkimer, L.
 
 .. target-notes::
 
-.. _`Virtual Seismologist` : http://www.seismo.ethz.ch/en/research-and-teaching/products-software/EEW/Virtual-Seismologist/
+.. _`Virtual Seismologist` : http://www.seismo.ethz.ch/en/knowledge/earthquake-data-and-analysis-tools/EEW/finite-fault-rupture-detector-finder/
 .. _`CISN ShakeAlert EEW system` : http://www.cisn.org/eew/
 .. _`Earthquake Early Warning Display` : https://github.com/SED-EEW/EEWD

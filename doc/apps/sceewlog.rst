@@ -310,10 +310,10 @@ References
 
 .. target-notes::
 
-.. _`Virtual Seismologist` : http://www.seismo.ethz.ch/en/research-and-teaching/products-software/EEW/Virtual-Seismologist/
+.. _`Virtual Seismologist` : http://www.seismo.ethz.ch/en/knowledge/earthquake-data-and-analysis-tools/EEW/Virtual-Seismologist/index.html
 .. _`dateutil` : https://pypi.python.org/pypi/python-dateutil/
 .. _`ActiveMQ` : http://activemq.apache.org/
-.. _`Earthquake Early Warning Display (EEWD)` : http://www.seismo.ethz.ch/en/research-and-teaching/products-software/EEW/earthquake-early-warning-display-eewd/
+.. _`Earthquake Early Warning Display (EEWD)` : http://www.seismo.ethz.ch/en/knowledge/earthquake-data-and-analysis-tools/EEW/earthquake-early-warning-display-eewd/
 .. _`UserDisplay` : http://www.eew.caltech.edu/research/userdisplay.html
 .. _`stompy` : https://pypi.python.org/pypi/stompy/
 .. _`lxml` : http://lxml.de/

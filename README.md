@@ -22,7 +22,7 @@ Additionally, if you also intend to run the **scfinder** module, you need:
   - The [SED SeisComP contributions](https://github.com/swiss-seismological-service/sed-SeisComP-contributions) data model extension
 
 Please see the SeisComP [README](https://github.com/SeisComP/seiscomp/blob/master/README.md) and FinDer
-[README](https://gitlab.seismo.ethz.ch/SED-EEW/FinDer/-/blob/master/README.md) for additional dependencies.
+[README](https://github.com/SED-EEW/FinDer/blob/master/README.md) for additional dependencies.
 
 # Installation
 For installation, the *SED-EEW-SeisComP-contributions* sources have to be added as a SeisComP submodule and compiled together with SeisComP.
@@ -75,7 +75,7 @@ git checkout jakarta
 ## Adding scfinder
 
 If you intend to use the scfinder SeisComP module you need to indicate **where FinDer was installed** by
-setting the `FinDer_INCLUDE_DIR` and `FinDer_LIBRARY` environment variables. [By default](https://gitlab.seismo.ethz.ch/SED-EEW/FinDer)
+setting the `FinDer_INCLUDE_DIR` and `FinDer_LIBRARY` environment variables. [By default](https://github.com/SED-EEW/FinDer)
 these should be
 
       - `FinDer_INCLUDE_DIR           /usr/local/include/finder`

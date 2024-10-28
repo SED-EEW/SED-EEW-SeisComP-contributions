@@ -3,7 +3,7 @@
 .. figure:: base/media/SED-ETHZ.png
    :width: 50%
    :align: center
-   :target: http://www.seismo.ethz.ch/en/research-and-teaching/fields_of_research/earthquake-early-warning
+   :target: http://www.seismo.ethz.ch/en/knowledge/earthquake-data-and-analysis-tools/EEW/software-and-algorithms/
 
 =========================
 ESE modules documentation
@@ -99,6 +99,6 @@ Behr, Y., J. F. Clinton, C. Cauzzi, E. Hauksson, K. Jónsdóttir, C. G. Marius, 
 
 .. _`GNU Affero General Public License` : http://www.gnu.org/licenses/agpl-3.0.en.html
 .. _`SED Public License for Seiscomp Contributions` : http://www.seismo.ethz.ch/static/seiscomp_contrib/license.txt
-.. _`Finite-Fault Rupture Detector` : http://www.seismo.ethz.ch/en/research-and-teaching/products-software/EEW/finite-fault-rupture-detector-finder/
-.. _`Virtual Seismologist` : http://www.seismo.ethz.ch/en/research-and-teaching/products-software/EEW/Virtual-Seismologist/
+.. _`Finite-Fault Rupture Detector` : http://www.seismo.ethz.ch/en/knowledge/earthquake-data-and-analysis-tools/EEW/finite-fault-rupture-detector-finder/
+.. _`Virtual Seismologist` : http://www.seismo.ethz.ch/en/knowledge/earthquake-data-and-analysis-tools/EEW/Virtual-Seismologist/
 .. _`SED-ETHZ EEW SeisComP contributions package` : https://github.com/SED-EEW/SED-EEW-SeisComP-contributions

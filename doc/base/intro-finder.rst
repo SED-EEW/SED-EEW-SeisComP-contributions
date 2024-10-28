@@ -116,5 +116,5 @@ Cauzzi, C., Behr, Y. D., Clinton, J., Kastli, P., Elia, L., & Zollo, A., 2016:
 
 .. target-notes::
 
-.. _`Finite-Fault Rupture Detector` : http://www.seismo.ethz.ch/en/research-and-teaching/products-software/EEW/finite-fault-rupture-detector-finder/
+.. _`Finite-Fault Rupture Detector` : http://www.seismo.ethz.ch/en/knowledge/earthquake-data-and-analysis-tools/EEW/finite-fault-rupture-detector-finder/
 .. _`Earthquake Early Warning Display` : https://github.com/SED-EEW/EEWD

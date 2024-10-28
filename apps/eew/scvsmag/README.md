@@ -155,10 +155,10 @@ Early Warning Algorithm in Switzerland and California. Abstract 1481084 presente
 
 
 \page scenv scenvelope
-*scenvelope* is part of a new SeisComP implementation of the [Virtual Seismologist]( http://www.seismo.ethz.ch/research/vs) 
+*scenvelope* is part of a new SeisComP implementation of the [Virtual Seismologist](http://www.seismo.ethz.ch/en/knowledge/earthquake-data-and-analysis-tools/EEW/Virtual-Seismologist/index.html) 
 (VS) Earthquake Early Warning algorithm (Cua, 2005; Cua and Heaton, 2007) released 
 under the 'SED Public License for SeisComP Contributions' 
-(http://www.seismo.ethz.ch/static/seiscomp_contrib/license.txt ). It generates 
+(http://www.seismo.ethz.ch/static/seiscomp_contrib/license.txt). It generates 
 real-time envelope values for horizontal and vertical 
 acceleration, velocity and displacement from raw acceleration and velocity 
 waveforms. It was implemented to handle the waveform pre-processing necessary for the 
@@ -341,7 +341,7 @@ Start time of data acquisition time window, requires also \-\-te.
 End time of data acquisition time window, requires also \-\-ts.
 
 \page scvsm scvsmag
-*scvsmag* is part of a new SeisComP implementation of the [Virtual Seismologist]( http://www.seismo.ethz.ch/research/vs) 
+*scvsmag* is part of a new SeisComP implementation of the [Virtual Seismologist](http://www.seismo.ethz.ch/en/knowledge/earthquake-data-and-analysis-tools/EEW/Virtual-Seismologist/index.html) 
 (VS) Earthquake Early Warning algorithm (Cua, 2005; Cua and Heaton, 2007) released 
 under the 'SED Public License for SeisComP Contributions' 
 (http://www.seismo.ethz.ch/static/seiscomp_contrib/license.txt ). For a given 
@@ -613,7 +613,7 @@ Borcherdt, R. D., 1994: Estimates of Site-Dependent Response Spectra for Design 
 
 \page scvsml scvsmaglog
 
-*scvsmaglog* is part of a new SeisComP implementation of the [Virtual Seismologist]( http://www.seismo.ethz.ch/research/vs) 
+*scvsmaglog* is part of a new SeisComP implementation of the [Virtual Seismologist](http://www.seismo.ethz.ch/en/knowledge/earthquake-data-and-analysis-tools/EEW/Virtual-Seismologist/index.html) 
 (VS) Earthquake Early Warning algorithm (Cua, 2005; Cua and Heaton, 2007) released 
 under the 'SED Public License for SeisComP Contributions' 
 (http://www.seismo.ethz.ch/static/seiscomp_contrib/license.txt ). It logs the VS 

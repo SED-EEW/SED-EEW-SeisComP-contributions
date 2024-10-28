@@ -81,4 +81,4 @@ FinDer # *methodID* from preferred origins in the configuration of
 
 .. target-notes::
 
-.. _`Finite-Fault Rupture Detector` : http://www.seismo.ethz.ch/en/research-and-teaching/products-software/EEW/finite-fault-rupture-detector-finder/
+.. _`Finite-Fault Rupture Detector` : http://www.seismo.ethz.ch/en/knowledge/earthquake-data-and-analysis-tools/EEW/finite-fault-rupture-detector-finder/
