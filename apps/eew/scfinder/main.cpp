@@ -1212,6 +1212,7 @@ bool App::Buddy::updateMaximum(const Core::Time &minTime, const std::string pref
 		for ( it = pgas.begin(); it != pgas.end(); ++it ) {
 
 			// Skip if value is smaller or outdated.
+			if ( it->timestamp < minTime ) continue;
 			if ( maxPGA.timestamp.valid() && it->value < maxPGA.value ) continue;			
 
 			// Skip if gain unit does not match the configured prevailing 
@@ -1220,11 +1221,11 @@ bool App::Buddy::updateMaximum(const Core::Time &minTime, const std::string pref
 			     && ( strcmp( lastMaximum.gainunit.c_str(), preferredGainUnits.c_str() ) == 0 ) 
 				 && ( strcmp( it->gainunit.c_str(), preferredGainUnits.c_str() ) != 0 ) ) {
 
-					SEISCOMP_DEBUG("%s [%s] rules over %s [%s]",
-									lastMaximum.channel.c_str(),
-									lastMaximum.gainunit.c_str(),
-									it->channel.c_str(),
-									it->gainunit.c_str() );
+					// SEISCOMP_DEBUG("%s [%s] rules over %s [%s]",
+					// 				lastMaximum.channel.c_str(),
+					// 				lastMaximum.gainunit.c_str(),
+					// 				it->channel.c_str(),
+					// 				it->gainunit.c_str() );
 					continue;
 			}
 
