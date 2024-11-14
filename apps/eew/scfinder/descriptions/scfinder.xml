@@ -8,7 +8,7 @@
 		<configuration>
 			<parameter name="saturationThreshold" type="double" default="80" unit="percent">
 				<description>
-					Saturation threshold in percent of 2**31 of raw values (COUNTS).
+					Saturation threshold in percent of 2**23 of raw values (COUNTS).
 				</description>
 			</parameter>
 			<parameter name="baselineCorrectionBuffer" type="double" default="60" unit="s">
