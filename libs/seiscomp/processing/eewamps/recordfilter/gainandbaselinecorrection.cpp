@@ -193,12 +193,12 @@ Record *GainAndBaselineCorrectionRecordFilter<T>::feed(const Record *rec) {
 	if ( clipMask ) {
 		//std::cerr << rec->streamID() << ": set clip mask: clipped = " << clipMask->numberOfBitsSet() << std::endl;
 		SEISCOMP_INFO("%s: set clip mask: clipped = %zu",
-		              rec->streamID().c_str(), 
+		              rec->streamID().c_str(),
 					  clipMask->numberOfBitsSet());
 		SEISCOMP_DEBUG("%s: rec.size()=%d clipMask->size()=%zu correctedData->size()=%d",
-		               rec->streamID().c_str(), 
-					   rec->data()->size(), 
-					   clipMask->size(), 
+		               rec->streamID().c_str(),
+					   rec->data()->size(),
+					   clipMask->size(),
 					   correctedData->size());
 	}
 
@@ -220,7 +220,7 @@ Record *GainAndBaselineCorrectionRecordFilter<T>::feed(const Record *rec) {
 			Core::TimeSpan diff = rec->startTime() - _lastEndTime;
 			// Overlap or gap does not matter, we need to reset the filter
 			// for non-continuous records
-			if ( fabs(diff) > (0.5/_samplingFrequency) ) {
+			if ( fabs(diff.length()) > (0.5 / _samplingFrequency) ) {
 				SEISCOMP_DEBUG("[%s] discontinuity of %fs: reset filter",
 				               rec->streamID().c_str(), (double)diff);
 				_baselineCorrection.reset();
