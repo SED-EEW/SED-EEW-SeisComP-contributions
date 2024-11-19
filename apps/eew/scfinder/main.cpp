@@ -829,6 +829,11 @@ class App : public Client::StreamApplication {
                 (*fit)->get_rupture_length(), 
                 (*fit)->get_rupture_width(), 
                 (*fit)->get_rupture_dip());
+            if (slip_calc.calc_pgd_mag()) {
+                SEISCOMP_INFO("PGD magnitude %.2f", slip_calc.get_pgd_mag());
+            } else {
+                SEISCOMP_INFO("PGD magnitude calculation failed");
+            }
             if (slip_calc.project_rupture()) {
               if (slip_calc.project_slip()) {
                 SEISCOMP_INFO("FinDerS slip magnitude %.2f", slip_calc.get_slip_mag());
