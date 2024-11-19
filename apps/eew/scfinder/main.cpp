@@ -56,6 +56,7 @@
 #include "finder.h"
 #include "finite_fault.h"
 #include "finder_util.h"
+#include "slip_calc.h"
 
 #define USE_FINDER
 //#define LOG_AMPS
@@ -230,6 +231,7 @@ class App : public Client::StreamApplication {
 
 			_finderAmplitudesDirty = false;
 			_finderScanDataDirty = false;
+      _bFinDerS = true;
 		}
 
 
@@ -343,6 +345,12 @@ class App : public Client::StreamApplication {
 				_finderScanCallInterval = configGetDouble("finder.scanInterval");
 			}
 			catch ( ... ) {}
+			try {
+				_slipConfig = configGetPath("finder.slipconfig");
+			}
+			catch ( ... ) {
+        _bFinDerS = false;
+      }
 
 			try {
 				_finderMaxEnvelopeBufferDelay = configGetDouble("finder.maxEnvelopeBufferDelay");
@@ -372,7 +380,11 @@ class App : public Client::StreamApplication {
 			// Convert to all signal units
 			eewCfg.wantSignal[Processing::WaveformProcessor::MeterPerSecondSquared] = true;
 			eewCfg.wantSignal[Processing::WaveformProcessor::MeterPerSecond] = false;
-			eewCfg.wantSignal[Processing::WaveformProcessor::Meter] = false;
+      if (_bFinDerS) {
+			  eewCfg.wantSignal[Processing::WaveformProcessor::Meter] = true;
+      } else {
+			  eewCfg.wantSignal[Processing::WaveformProcessor::Meter] = false;
+     }
 
 			_eewProc.setConfiguration(eewCfg);
 			_eewProc.setEnvelopeCallback(bind(&App::handleEnvelope, this,
@@ -463,6 +475,9 @@ class App : public Client::StreamApplication {
 				SEISCOMP_ERROR("Finder error: %s", e.what());
 				return false;
 			}
+      if (_bFinDerS) {
+        _slip_config.read_config_file(_slipConfig.c_str());
+      }
 			#endif
 
 			SEISCOMP_DEBUG("FinDer version is %s",
@@ -523,13 +538,15 @@ class App : public Client::StreamApplication {
 		void handleEnvelope(const Processing::EEWAmps::BaseProcessor *proc,
 		                    double value, const Core::Time &timestamp,
 		                    bool clipped) {
-			if ( proc->signalUnit() != Processing::WaveformProcessor::MeterPerSecondSquared ) {
+
+      if ( proc->signalUnit() != Processing::WaveformProcessor::MeterPerSecondSquared &&
+          proc->signalUnit() != Processing::WaveformProcessor::Meter ) {
 				SEISCOMP_WARNING("Unexpected envelope unit: %s",
 				                 proc->signalUnit().toString());
 				return;
-			}
+      }
 
-			string id = proc->waveformID().networkCode() + "." +
+      std::string id = proc->waveformID().networkCode() + "." +
 			            proc->waveformID().stationCode() + "." +
 			            proc->waveformID().locationCode();
 
@@ -569,6 +586,7 @@ class App : public Client::StreamApplication {
 				if ( it == _locationLookup.end() ) {
 					BuddyPtr buddy = new Buddy;
 					buddy->pgas.setCapacity(_bufferLength),
+					buddy->pgds.setCapacity(_bufferLength),
 					buddy->meta = loc;
 					_locationLookup[id] = buddy;
 					it = _locationLookup.find(id); 
@@ -599,37 +617,68 @@ class App : public Client::StreamApplication {
 			std::cout << "+ " << id << "." << proc->waveformID().channelCode() << "   " << _referenceTime.iso() << "   " << minAmplTime.iso() << "   " << timestamp.iso() << "   " << value << std::endl;
 
 			#endif
-			// Buffer envelope value
-			if ( it->second->pgas.feed(Amplitude(value, timestamp, proc->waveformID().channelCode())) ) {
-				// Buffer changed -> update maximum
-				if ( (it->second->maxPGA.timestamp < minAmplTime)
-				  || (timestamp < minAmplTime)
-				  || (value >= it->second->maxPGA.value) ) {
-					if ( it->second->updateMaximum(minAmplTime) ) {
-						#if defined(LOG_AMPS)
-						std::cout << "M " << id << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.value << std::endl;
-						#endif
-					}
-				}
-			}
+			// Buffer PGA envelope value
+      if ( proc->signalUnit() == Processing::WaveformProcessor::MeterPerSecondSquared ) {
+        if ( it->second->pgas.feed(Amplitude(value, timestamp, proc->waveformID().channelCode())) ) {
+          // Buffer changed -> update maximum
+          if ( (it->second->maxPGA.timestamp < minAmplTime)
+            || (timestamp < minAmplTime)
+            || (value >= it->second->maxPGA.value) ) {
+            if ( it->second->updateMaximum(minAmplTime, false) ) {
+              #if defined(LOG_AMPS)
+              std::cout << "M " << id << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.value << std::endl;
+              #endif
+            }
+          }
+        }
+        // If reference time has updated then all locations must be updated
+        // as well
+        if ( referenceTimeUpdated ) {
+          for ( it = _locationLookup.begin(); it != _locationLookup.end(); ++it ) {
+            if ( it->second->maxPGA.timestamp >= minAmplTime ) continue;
+            if ( it->second->updateMaximum(minAmplTime, false) ) {
+              #if defined(LOG_AMPS)
+              std::cout << "M " << it->first << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.value << std::endl;
+              #endif
+            }
+          }
+        }
 
-			// If reference time has updated then all locations must be updated
-			// as well
-			if ( referenceTimeUpdated ) {
-				for ( it = _locationLookup.begin(); it != _locationLookup.end(); ++it ) {
-					if ( it->second->maxPGA.timestamp >= minAmplTime ) continue;
-					if ( it->second->updateMaximum(minAmplTime) ) {
-						#if defined(LOG_AMPS)
-						std::cout << "M " << it->first << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.value << std::endl;
-						#endif
-					}
-				}
-			}
+        _finderAmplitudesDirty = true;
 
-			_finderAmplitudesDirty = true;
+        // Maximum updated, call Finder
+        scanFinderData();
+      }
 
-			// Maximum updated, call Finder
-			scanFinderData();
+			// Buffer PGD envelope value
+      if ( proc->signalUnit() == Processing::WaveformProcessor::Meter ) {
+        value = fabs(value);
+        if ( it->second->pgds.feed(Amplitude(value, timestamp, proc->waveformID().channelCode())) ) {
+          // Buffer changed -> update maximum
+          if ( (it->second->maxPGD.timestamp < minAmplTime)
+            || (timestamp < minAmplTime)
+            || (value >= it->second->maxPGD.value) ) {
+            if ( it->second->updateMaximum(minAmplTime, true) ) {
+              #if defined(LOG_AMPS)
+              std::cout << "M " << id << "   " << it->second->maxPGD.timestamp.iso() << "   " << it->second->maxPGD.value << std::endl;
+              #endif
+            }
+          }
+        }
+        // If reference time has updated then all locations must be updated
+        // as well
+        if ( referenceTimeUpdated ) {
+          for ( it = _locationLookup.begin(); it != _locationLookup.end(); ++it ) {
+            if ( it->second->maxPGD.timestamp >= minAmplTime ) continue;
+            if ( it->second->updateMaximum(minAmplTime, true) ) {
+              #if defined(LOG_AMPS)
+              std::cout << "M " << it->first << "   " << it->second->maxPGD.timestamp.iso() << "   " << it->second->maxPGD.value << std::endl;
+              #endif
+            }
+          }
+        }
+      }
+
 		}
 
 
@@ -662,6 +711,7 @@ class App : public Client::StreamApplication {
 			LocationLookup::iterator it;
 
 			_latestMaxPGAs.clear();
+			_latestMaxPGDs.clear();
 
 			#if defined(LOG_AMPS)
 			std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << std::endl;
@@ -682,6 +732,18 @@ class App : public Client::StreamApplication {
 					continue;
 				}
 
+        if (_bFinDerS) {
+ 				  _latestMaxPGDs.push_back(
+					  FinDerS::PGD_Data(
+						  it->second->meta->station()->code(),
+						  it->second->meta->station()->network()->code(),
+						  it->second->maxPGD.channel.c_str(),
+						  it->second->meta->code().empty()?"--":it->second->meta->code().c_str(),
+						  Coordinate(it->second->meta->latitude(), it->second->meta->longitude()),
+						  it->second->maxPGD.value*100, it->second->maxPGD.timestamp
+					  )
+				  );       
+        }
 				_latestMaxPGAs.push_back(
 					PGA_Data(
 						it->second->meta->station()->code(),
@@ -689,8 +751,7 @@ class App : public Client::StreamApplication {
 						it->second->maxPGA.channel.c_str(),
 						it->second->meta->code().empty()?"--":it->second->meta->code().c_str(),
 						Coordinate(it->second->meta->latitude(), it->second->meta->longitude()),
-						it->second->maxPGA.value*100, 
-						it->second->maxPGA.timestamp
+						it->second->maxPGA.value*100, it->second->maxPGA.timestamp
 					)
 				);
 				#if defined(LOG_AMPS)
@@ -760,12 +821,37 @@ class App : public Client::StreamApplication {
 				// event_continue == false when we want to stop processing
 				try {
 					(*fit)->process(tick, _latestMaxPGAs);
+          if (_bFinDerS) {
+            FinDerS::Slip_Calc slip_calc(&_slip_config, 
+                (*fit)->get_finder_rupture_list(), 
+                _latestMaxPGDs, 
+                (*fit)->get_finder_centroid(), 
+                (*fit)->get_rupture_length(), 
+                (*fit)->get_rupture_width(), 
+                (*fit)->get_rupture_dip());
+            if (slip_calc.calc_pgd_mag()) {
+                SEISCOMP_INFO("PGD magnitude %.2f", slip_calc.get_pgd_mag());
+            } else {
+                SEISCOMP_INFO("PGD magnitude calculation failed");
+            }
+            if (slip_calc.project_rupture()) {
+              if (slip_calc.project_slip()) {
+                SEISCOMP_INFO("FinDerS slip magnitude %.2f", slip_calc.get_slip_mag());
+              } else {
+                SEISCOMP_INFO("FinDerS slip magnitude calculation failed");
+              }
+            } else {
+              SEISCOMP_INFO("FinDerS rupture projection calculation failed");
+            }
+          }
 				}
 				catch ( FiniteFault::Error &e ) {
 					SEISCOMP_ERROR("Exception from FinDer::process: %s", e.what());
 				}
 				if ((*fit)->get_rupture_length() > maxRupLen) {
-					maxRupLen = (*fit)->get_rupture_length();
+					//maxRupLen = (*fit)->get_rupture_length();
+          // JADEBUG: use maxL_overtime to prevent shrink
+					maxRupLen = (*fit)->get_maxrupture_length();
 				}
 
 				if ( (*fit)->get_finder_flags().get_message() &&
@@ -783,7 +869,7 @@ class App : public Client::StreamApplication {
 			}
 			if (_finderList.size() == 0) {
 				if (_bufVarLen != _bufDefaultLen) {
-					SEISCOMP_DEBUG("Resetting data window to %ld", _bufDefaultLen.seconds());
+					SEISCOMP_INFO("Resetting data window to %ld", _bufDefaultLen.seconds());
 				}
 				_bufVarLen = _bufDefaultLen;
 			} else {
@@ -791,7 +877,7 @@ class App : public Client::StreamApplication {
 				if (maxRupLen > _bufVarLen * rup2time) {
 					double tmp = maxRupLen / rup2time;
 					_bufVarLen = min((long)tmp, _bufferLength.seconds());
-					SEISCOMP_DEBUG("Increasing data window to %ld because of active FinDer event rupture length %.1f", 
+					SEISCOMP_INFO("Increasing data window to %ld because of active FinDer event rupture length %.1f", 
 					  _bufVarLen.seconds(), maxRupLen);
 				}
 			}
@@ -1092,8 +1178,10 @@ class App : public Client::StreamApplication {
 			SensorLocation *meta;
 			PGABuffer       pgas;
 			Amplitude       maxPGA;
+			PGABuffer       pgds;
+			Amplitude       maxPGD;
 
-			bool updateMaximum(const Core::Time &minTime);
+			bool updateMaximum(const Core::Time &minTime, const bool _bFinDerS);
 		};
 
 		// Mapping of id=net.sta.loc to SensorLocation object
@@ -1106,6 +1194,7 @@ class App : public Client::StreamApplication {
 		std::string                    _magnitudeGroup;
 		std::string                    _strongMotionGroup;
 		std::string                    _finderConfig;
+		std::string                    _slipConfig;
 
 		Core::TimeSpan                 _bufferLength;
 		Core::TimeSpan                 _bufDefaultLen;
@@ -1132,27 +1221,50 @@ class App : public Client::StreamApplication {
 		LocationLookup                 _locationLookup;
 		Finder_List                    _finderList;
 		PGA_Data_List                  _latestMaxPGAs;
+    FinDerS::PGD_Data_List         _latestMaxPGDs;
+    bool                           _bFinDerS;
+
+    FinDerS::Slip_Config           _slip_config;
 };
 
 
-bool App::Buddy::updateMaximum(const Core::Time &minTime) {
-	Amplitude lastMaximum = maxPGA;
-	maxPGA = Amplitude();
+bool App::Buddy::updateMaximum(const Core::Time &minTime, const bool _bDoPGD) {
 
-	if ( !pgas.empty() && pgas.back().timestamp >= minTime ) {
-		// Update maxmimum
-		PGABuffer::iterator it;
-		for ( it = pgas.begin(); it != pgas.end(); ++it ) {
-			if ( it->timestamp < minTime ) continue;
-			if ( !maxPGA.timestamp.valid() || it->value >= maxPGA.value ) {
-				maxPGA.timestamp = it->timestamp;
-				maxPGA.value = it->value;
-				maxPGA.channel = it->channel;
-			}
-		}
-	}
+  if (!_bDoPGD) {
+    Amplitude lastMaximum = maxPGA;
+    maxPGA = Amplitude();
+    if ( !pgas.empty() && pgas.back().timestamp >= minTime ) {
+      // Update maxmimum
+      PGABuffer::iterator it;
+      for ( it = pgas.begin(); it != pgas.end(); ++it ) {
+        if ( it->timestamp < minTime ) continue;
+        if ( !maxPGA.timestamp.valid() || it->value >= maxPGA.value ) {
+          maxPGA.timestamp = it->timestamp;
+          maxPGA.value = it->value;
+          maxPGA.channel = it->channel;
+        }
+      }
+    }
+	  return maxPGA != lastMaximum;
 
-	return maxPGA != lastMaximum;
+  } else {
+ 	  Amplitude lastMaximum = maxPGD;
+  	maxPGD = Amplitude();
+  	if ( !pgds.empty() && pgds.back().timestamp >= minTime ) {
+  		// Update maxmimum
+  		PGABuffer::iterator it;
+  		for ( it = pgds.begin(); it != pgds.end(); ++it ) {
+  			if ( it->timestamp < minTime ) continue;
+  			if ( !maxPGD.timestamp.valid() || it->value >= maxPGD.value ) {
+  				maxPGD.timestamp = it->timestamp;
+  				maxPGD.value = it->value;
+  				maxPGD.channel = it->channel;
+  			}
+  		}
+  	}
+	  return maxPGD != lastMaximum;
+  }
+
 }
 
 
