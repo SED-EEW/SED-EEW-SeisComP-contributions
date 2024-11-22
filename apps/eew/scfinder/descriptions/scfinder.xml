@@ -8,7 +8,7 @@
 		<configuration>
 			<parameter name="saturationThreshold" type="double" default="80" unit="percent">
 				<description>
-					Saturation threshold in percent of 2**31 of raw values (COUNTS).
+					Saturation threshold in percent of 2**23 of raw values (COUNTS).
 				</description>
 			</parameter>
 			<parameter name="baselineCorrectionBuffer" type="double" default="60" unit="s">
@@ -110,6 +110,19 @@
 					<description>
 						Sets the maximum delay for the latest update of each envelope buffer before 
 						skipping the related station stream in FinDer PGA input data. The default is 15s.
+					</description>
+				</parameter>
+				<parameter name="clipTimeout" type="double" default="30" unit="s">
+					<description>
+						Defines the delay following a clipped record that a stream is not used 
+						in FinDer. Default is 30s.
+					</description>
+				</parameter>
+				<parameter name="preferredGainUnits" type="string" default="M/S**2">
+					<description>
+						Defines the preferred data gain units in case envelopes are provided by several 
+						different instruments from the same location code. Default is "M/S**2". Set ""
+						(empty) to disable prevailing.
 					</description>
 				</parameter>
 			</group>

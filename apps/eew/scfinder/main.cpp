@@ -227,6 +227,10 @@ class App : public Client::StreamApplication {
 			_finderScanCallInterval.set(1);
 			// Default envelope buffer delay is 15s
 			_finderMaxEnvelopeBufferDelay.set(15);
+			// Default duration of data skipping following clipping is 30s
+			_finderClipTimeout.set(30);
+			// Default preferred data units
+			_preferredGainUnits = "M/S**2";
 
 			_finderAmplitudesDirty = false;
 			_finderScanDataDirty = false;
@@ -245,7 +249,7 @@ class App : public Client::StreamApplication {
 			commandline().addOption("Offline", "te", "End time of data acquisition time window, requires also --ts", &_strTe, false);
 
 			commandline().addGroup("Mode");
-			commandline().addOption("Mode", "playback", "Run in playback mode which means that the reference time is set to the timestamp to the latest record instead of systemtime");
+			commandline().addOption("Mode", "playback", "Run in playback mode which means that the reference time is set to the timestamp to the latest record instead of systemtime (disables warning on delay)");
 		}
 
 
@@ -349,6 +353,16 @@ class App : public Client::StreamApplication {
 			}
 			catch ( ... ) {}
 
+			try {
+				_finderClipTimeout = configGetDouble("finder.clipTimeout");
+			}
+			catch ( ... ) {}
+
+			try {
+				_preferredGainUnits = configGetString("finder.preferredGainUnits");
+			}
+			catch ( ... ) {}
+
 			_creationInfo.setAgencyID(agencyID());
 			_creationInfo.setAuthor(author());
 
@@ -368,6 +382,10 @@ class App : public Client::StreamApplication {
 				eewCfg.maxDelay = configGetDouble("debug.maxDelay");
 			}
 			catch ( ... ) {}
+
+			if ( _playbackMode ) {
+				eewCfg.maxDelay = 999999999.0 ;
+			}
 
 			// Convert to all signal units
 			eewCfg.wantSignal[Processing::WaveformProcessor::MeterPerSecondSquared] = true;
@@ -533,6 +551,10 @@ class App : public Client::StreamApplication {
 			            proc->waveformID().stationCode() + "." +
 			            proc->waveformID().locationCode();
 
+			if ( clipped ) {
+				SEISCOMP_WARNING("[%s] Envelope clipped",proc->streamID().c_str());
+			}
+
 			LocationLookup::iterator it;
 			it = _locationLookup.find(id);
 			if ( it == _locationLookup.end() || !epochMatch(it->second->meta, timestamp) ) {
@@ -545,7 +567,7 @@ class App : public Client::StreamApplication {
 				);
 
 				if ( loc == NULL ) {
-					SEISCOMP_WARNING("%s.%s: no sensor location found for '%s' at time %s: ignore envelope value",
+					SEISCOMP_WARNING("[%s.%s.%s] no sensor location found at time %s: ignore envelope value",
 					                 proc->waveformID().networkCode().c_str(),
 					                 proc->waveformID().stationCode().c_str(),
 					                 proc->waveformID().locationCode().c_str(),
@@ -558,14 +580,13 @@ class App : public Client::StreamApplication {
 					loc->longitude();
 				}
 				catch ( std::exception &e ) {
-					SEISCOMP_WARNING("%s.%s: location '%s': failed to add coordinate: %s",
+					SEISCOMP_WARNING("[%s.%s.%s] failed to add coordinate: %s",
 					                 proc->waveformID().networkCode().c_str(),
 					                 proc->waveformID().stationCode().c_str(),
 					                 proc->waveformID().locationCode().c_str(),
 					                 e.what());
 					return;
-				}
-
+				}								
 				if ( it == _locationLookup.end() ) {
 					BuddyPtr buddy = new Buddy;
 					buddy->pgas.setCapacity(_bufferLength),
@@ -575,6 +596,31 @@ class App : public Client::StreamApplication {
 				}
 				else
 					it->second->meta = loc;
+			}
+
+			// Retrieving the gain unit for a specific channel 
+			string gainunit = "none" ; 
+			string channel = proc->waveformID().channelCode().substr(0,2); 
+
+			if (it->second->gainunits.find(channel) != it->second->gainunits.end()) {
+				gainunit = it->second->gainunits[channel] ; 
+			} else {
+				DataModel::Stream *stream = Client::Inventory::Instance()->getStream(proc->waveformID().networkCode(), 
+						proc->waveformID().stationCode(),
+						proc->waveformID().locationCode(),
+						channel+"Z", 
+						timestamp);
+				if ( stream ) {
+					gainunit = stream->gainUnit().c_str() ; 
+					it->second->gainunits[channel] = gainunit ; //.insert(make_pair(channel, gainunit));
+				} else {
+					SEISCOMP_WARNING(
+							"[%s.%s.%s.%s] unable to retrieve gain unit from inventory", 
+										proc->waveformID().networkCode().c_str(),
+										proc->waveformID().stationCode().c_str(),
+										proc->waveformID().locationCode().c_str(), 
+										proc->waveformID().channelCode().c_str());
+				}
 			}
 
 			// The reference time is the global ticker of the current time. That
@@ -596,18 +642,18 @@ class App : public Client::StreamApplication {
 			Core::Time minAmplTime = _referenceTime - _bufVarLen;
 
 			#if defined(LOG_AMPS)
-			std::cout << "+ " << id << "." << proc->waveformID().channelCode() << "   " << _referenceTime.iso() << "   " << minAmplTime.iso() << "   " << timestamp.iso() << "   " << value << std::endl;
+			std::cout << "+ " << id << "." << proc->waveformID().channelCode() << "   " << _referenceTime.iso() << "   " << minAmplTime.iso() << "   " << timestamp.iso() << "   " << value << "   clipped:" << clipped << std::endl;
 
 			#endif
 			// Buffer envelope value
-			if ( it->second->pgas.feed(Amplitude(value, timestamp, proc->waveformID().channelCode())) ) {
+			if ( it->second->pgas.feed(Amplitude(value, timestamp, proc->waveformID().channelCode(), clipped, gainunit)) ) {
 				// Buffer changed -> update maximum
 				if ( (it->second->maxPGA.timestamp < minAmplTime)
 				  || (timestamp < minAmplTime)
 				  || (value >= it->second->maxPGA.value) ) {
-					if ( it->second->updateMaximum(minAmplTime) ) {
+					if ( it->second->updateMaximum(minAmplTime, _preferredGainUnits) ) {
 						#if defined(LOG_AMPS)
-						std::cout << "M " << id << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.value << std::endl;
+						std::cout << "M " << id << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.value << "   clipped: " << it->second->maxPGA.clipped << std::endl;
 						#endif
 					}
 				}
@@ -618,9 +664,9 @@ class App : public Client::StreamApplication {
 			if ( referenceTimeUpdated ) {
 				for ( it = _locationLookup.begin(); it != _locationLookup.end(); ++it ) {
 					if ( it->second->maxPGA.timestamp >= minAmplTime ) continue;
-					if ( it->second->updateMaximum(minAmplTime) ) {
+					if ( it->second->updateMaximum(minAmplTime, _preferredGainUnits) ) {
 						#if defined(LOG_AMPS)
-						std::cout << "M " << it->first << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.value << std::endl;
+						std::cout << "M " << it->first << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.value << "   clipped: " << it->second->maxPGA.clipped << std::endl;
 						#endif
 					}
 				}
@@ -672,15 +718,29 @@ class App : public Client::StreamApplication {
 			for ( it = _locationLookup.begin(); it != _locationLookup.end(); ++it ) {
 				if ( !it->second->maxPGA.timestamp.valid() ) continue;
 				
-				/* The above code is checking if the timestamp of the last element in the `pgas` vector is within
-				the last <_finderMaxEnvelopeBufferDelay, default 15> seconds. If the condition is true, the code 
-				will continue with the next iteration of the loop. */
+				string mseedid = it->second->meta->station()->network()->code() + "." +
+					it->second->meta->station()->code() + "." +
+			        it->second->meta->code() + "." + 
+					it->second->maxPGA.channel;
+
+				/* checks whether the timestamp of the last element in the pgas vector 
+				falls within the previous 15 seconds, continuing the loop if true */
 				if ( ( it->second->pgas.back().timestamp.seconds() ) < ( _referenceTime.seconds() - _finderMaxEnvelopeBufferDelay ) ) {
-					std::cout << "Station skipped \t PGA buffer starts (iso,s)\t PGA buffer end (iso,s)\t Reference time (iso,s)" << std::endl;
+					std::cout << "Instrument skipped \t PGA buffer starts (iso,s)\t PGA buffer end (iso,s)\t Reference time (iso,s)" << std::endl;
 					std::cout << it->first << "\t" << it->second->pgas.front().timestamp.iso() << "\t" << it->second->pgas.back().timestamp.iso() << "\t" << _referenceTime.iso() << std::endl;
 					std::cout << it->first << "\t" << it->second->pgas.front().timestamp.seconds() << "\t" << it->second->pgas.back().timestamp.seconds() <<  "\t" << _referenceTime.seconds() << std::endl;
 					continue;
 				}
+
+				/* Checking conditions related to clipping of an instrument's data */
+				if ( it->second->pgas.back().clipped ) {
+					SEISCOMP_DEBUG("[%s] Instrument clipped and skipped", mseedid.c_str());
+					continue;
+				}
+				if ( ( it->second->maxPGA.lastclipped.seconds() ) >= ( _referenceTime.seconds() - _finderClipTimeout ) ) {
+					SEISCOMP_DEBUG("[%s] Instrument clipped recently and skipped", mseedid.c_str());
+					continue;
+				}	
 
 				_latestMaxPGAs.push_back(
 					PGA_Data(
@@ -693,6 +753,7 @@ class App : public Client::StreamApplication {
 						it->second->maxPGA.timestamp
 					)
 				);
+
 				#if defined(LOG_AMPS)
 				std::cout << it->first << "   " << it->second->maxPGA.timestamp.iso() << "   " << it->second->maxPGA.timestamp.seconds() << "   " << (it->second->maxPGA.value*100) << std::endl;
 				#endif
@@ -1070,7 +1131,7 @@ class App : public Client::StreamApplication {
 	private:
 		struct Amplitude {
 			Amplitude() {}
-			Amplitude(double v, const Core::Time &ts, const std::string &cha) : value(v), timestamp(ts), channel(cha) {}
+			Amplitude(double v, const Core::Time &ts, const std::string &cha, bool cli, const std::string gu) : value(v), timestamp(ts), channel(cha), clipped(cli), gainunit(gu) {}
 
 			bool operator==(const Amplitude &other) const {
 				return value == other.value && timestamp == other.timestamp;
@@ -1083,6 +1144,9 @@ class App : public Client::StreamApplication {
 			double      value;
 			Core::Time  timestamp;
 			std::string channel;
+			bool        clipped;
+			Core::Time  lastclipped;
+			string      gainunit;
 		};
 
 		typedef Ring<Amplitude> PGABuffer;
@@ -1092,8 +1156,9 @@ class App : public Client::StreamApplication {
 			SensorLocation *meta;
 			PGABuffer       pgas;
 			Amplitude       maxPGA;
+			std::map<std::string, std::string> gainunits;
 
-			bool updateMaximum(const Core::Time &minTime);
+			bool updateMaximum(const Core::Time &minTime, const std::string preferredGainUnits);
 		};
 
 		// Mapping of id=net.sta.loc to SensorLocation object
@@ -1126,16 +1191,18 @@ class App : public Client::StreamApplication {
 		Core::TimeSpan                 _finderProcessCallInterval;
 		Core::TimeSpan                 _finderScanCallInterval;
 		Core::TimeSpan                 _finderMaxEnvelopeBufferDelay;
+		Core::TimeSpan                 _finderClipTimeout;
 		bool                           _finderAmplitudesDirty;
 		bool                           _finderScanDataDirty;
 
 		LocationLookup                 _locationLookup;
 		Finder_List                    _finderList;
 		PGA_Data_List                  _latestMaxPGAs;
+		std::string                    _preferredGainUnits;
 };
 
 
-bool App::Buddy::updateMaximum(const Core::Time &minTime) {
+bool App::Buddy::updateMaximum(const Core::Time &minTime, const std::string preferredGainUnits) {
 	Amplitude lastMaximum = maxPGA;
 	maxPGA = Amplitude();
 
@@ -1143,12 +1210,34 @@ bool App::Buddy::updateMaximum(const Core::Time &minTime) {
 		// Update maxmimum
 		PGABuffer::iterator it;
 		for ( it = pgas.begin(); it != pgas.end(); ++it ) {
+
+			// Skip if value is smaller or outdated.
 			if ( it->timestamp < minTime ) continue;
-			if ( !maxPGA.timestamp.valid() || it->value >= maxPGA.value ) {
-				maxPGA.timestamp = it->timestamp;
-				maxPGA.value = it->value;
-				maxPGA.channel = it->channel;
+			if ( maxPGA.timestamp.valid() && it->value < maxPGA.value ) continue;			
+
+			// Skip if gain unit does not match the configured prevailing 
+			// (default M/S**2) but lastMaximum already does.
+			if ( !preferredGainUnits.empty() 
+			     && ( strcmp( lastMaximum.gainunit.c_str(), preferredGainUnits.c_str() ) == 0 ) 
+				 && ( strcmp( it->gainunit.c_str(), preferredGainUnits.c_str() ) != 0 ) ) {
+
+					// SEISCOMP_DEBUG("%s [%s] rules over %s [%s]",
+					// 				lastMaximum.channel.c_str(),
+					// 				lastMaximum.gainunit.c_str(),
+					// 				it->channel.c_str(),
+					// 				it->gainunit.c_str() );
+					continue;
 			}
+
+			maxPGA.timestamp = it->timestamp;
+			maxPGA.value = it->value;
+			maxPGA.channel = it->channel;
+			maxPGA.gainunit = it->gainunit;
+
+			// If clipped, update latest clipped timestamp
+			if ( !it->clipped ) continue ;
+			if ( maxPGA.lastclipped > it->timestamp ) continue ;			
+			maxPGA.lastclipped = it->timestamp;
 		}
 	}
 
