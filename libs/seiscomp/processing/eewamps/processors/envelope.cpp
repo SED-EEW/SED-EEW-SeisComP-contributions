@@ -26,6 +26,7 @@
 #include "envelope.h"
 #include "../config.h"
 
+#include <seiscomp/core/exceptions.h>
 
 namespace Seiscomp {
 namespace Processing {
@@ -162,8 +163,20 @@ void EnvelopeProcessor::process(const Record *rec, const DoubleArray &data) {
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 void EnvelopeProcessor::setupTimeWindow(const Core::Time &ref) {
 	if ( _config->vsfndr.envelopeInterval.seconds() > 0 ) {
-		double r = floor(((double)ref / (double)_config->vsfndr.envelopeInterval));
-		_currentStartTime = r * _config->vsfndr.envelopeInterval;
+
+				
+		try {
+			double r = floor(((double)ref / (double)_config->vsfndr.envelopeInterval));
+			_currentStartTime = r * _config->vsfndr.envelopeInterval;
+		}
+		catch ( const Core::OverflowException& ) { 
+			std::cout << "Record start time (" << ref.iso().c_str() << ") cannot be converted to double and TimeWindow unchanged" << std::endl;
+		}
+		catch ( const std::exception &e ) {
+			SEISCOMP_WARNING("%s", e.what());
+			std::cout << "Unknown issue:" << e.what() << std::endl;
+
+		}
 
 		// Fix for possible rounding errors
 		if ( ref.microseconds() == 0 )
