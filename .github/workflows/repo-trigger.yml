@@ -1,0 +1,17 @@
+name: Trigger FinDer Workflow
+
+on:
+  push:
+    branches:
+      - master  
+
+jobs:
+  trigger-repo-b:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger FinDer Dispatch
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.REPO_B_PAT }}
+          repository: SED-EEW/FinDer  
+          event-type: repo-update
