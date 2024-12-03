@@ -92,7 +92,7 @@ void EnvelopeProcessor::process(const Record *rec, const DoubleArray &data) {
 	if ( !_stream.initialized ) {
 		SEISCOMP_INFO("%s: initializing envelope processor", rec->streamID().c_str());
 
-		_samplePool.reset((int)(rec->samplingFrequency()*_config->vsfndr.envelopeInterval+0.5)+1);
+		_samplePool.reset((int)(rec->samplingFrequency() * _config->vsfndr.envelopeInterval.length() + 0.5) + 1);
 		_dt = Core::TimeSpan(1.0 / rec->samplingFrequency());
 
 		setupTimeWindow(rec->startTime());
@@ -110,8 +110,8 @@ void EnvelopeProcessor::process(const Record *rec, const DoubleArray &data) {
 
 	if ( clipMask != NULL && ((unsigned int)data.size()) != clipMask->size() ) {
 		SEISCOMP_WARNING("%s: data.size() != clipMask->size() (%d != %zu)",
-		                  rec->streamID().c_str(), 
-						  data.size(), 
+		                  rec->streamID().c_str(),
+						  data.size(),
 						  clipMask->size());
 	}
 
@@ -147,7 +147,7 @@ void EnvelopeProcessor::process(const Record *rec, const DoubleArray &data) {
 
 			if ( ((unsigned int)i) >= clipMask->size() ){
 				SEISCOMP_WARNING("%s: cannot check if data[%d] is clipped (clip mask too short) unreliable data.",
-								rec->streamID().c_str(), 
+								rec->streamID().c_str(),
 								i);
 			}
 			ts += _dt;
@@ -163,7 +163,7 @@ void EnvelopeProcessor::process(const Record *rec, const DoubleArray &data) {
 void EnvelopeProcessor::setupTimeWindow(const Core::Time &ref) {
 	if ( _config->vsfndr.envelopeInterval.seconds() > 0 ) {
 		double r = floor(((double)ref / (double)_config->vsfndr.envelopeInterval));
-		_currentStartTime = r * _config->vsfndr.envelopeInterval;
+		_currentStartTime = r * _config->vsfndr.envelopeInterval.length();
 
 		// Fix for possible rounding errors
 		if ( ref.microseconds() == 0 )

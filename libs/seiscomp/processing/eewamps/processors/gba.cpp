@@ -217,11 +217,11 @@ void GbAProcessor::updateAndPublishTriggerAmplitudes(Trigger &trigger) {
 	for ( it = _amplitudeBuffer->begin(); it != _amplitudeBuffer->end(); ++it ) {
 		const GbARecord *rec = static_cast<const GbARecord*>(it->get());
 		if ( rec->endTime() <= trigger.time ) continue;
-		int startSample = (trigger.time-rec->startTime())*rec->samplingFrequency();
+		int startSample = (trigger.time - rec->startTime()).length() * rec->samplingFrequency();
 		if ( startSample < 0 ) startSample = 0;
 		if ( startSample >= rec->sampleCount() ) continue;
 
-		int endSample = (trigger.time+_config->gba.cutOffTime-rec->startTime())*rec->samplingFrequency()+1;
+		int endSample = (trigger.time + _config->gba.cutOffTime - rec->startTime()).length() * rec->samplingFrequency() + 1;
 		if ( endSample > rec->sampleCount() ) endSample = rec->sampleCount();
 
 		maxEvaluationTime = rec->startTime() + Core::TimeSpan(endSample/rec->samplingFrequency());

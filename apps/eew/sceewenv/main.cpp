@@ -148,16 +148,16 @@ class App : public Client::StreamApplication {
 			                                  placeholders::_3,
 			                                  placeholders::_4));
 			_eewProc.setInventory(Client::Inventory::Instance()->inventory());
- 
+
 			if ( !_eewProc.init(configuration(), "eewenv.") )
 				return false;
- 
+
 			_eewProc.showConfig();
 			_eewProc.showRules();
 
 			if ( commandline().hasOption("dump-config") )
 				return true;
- 
+
 			if ( _startTime.valid() ) recordStream()->setStartTime(_startTime);
 			if ( _endTime.valid() ) recordStream()->setEndTime(_endTime);
 
@@ -292,7 +292,7 @@ class App : public Client::StreamApplication {
 					tmp.setChannelCode(proc->waveformID().channelCode());
 
 				tmp.setStartTime(timestamp);
-				tmp.setSamplingFrequency(1.0 / _eewProc.configuration().vsfndr.envelopeInterval);
+				tmp.setSamplingFrequency(1.0 / _eewProc.configuration().vsfndr.envelopeInterval.length());
 
 				FloatArrayPtr data = new FloatArray(1);
 				data->set(0, value);

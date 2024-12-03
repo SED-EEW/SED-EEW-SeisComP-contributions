@@ -316,7 +316,7 @@ bool VsMagnitude::init() {
 	}
 
 	// set the timespan of the cache
-	_cache.setTimeSpan(TimeSpan(_timeout));
+	_cache.setTimeSpan(TimeSpan(_timeout, 0));
 
 	// get objects from the database if they are not in the cache
 	if ( isDatabaseEnabled() )
@@ -582,7 +582,7 @@ void VsMagnitude::handleEvent(Event *event) {
 		// set time to track how long it takes to estimate the magnitude
 		// and how long it took for the origin to arrive
 		vsevent->originArrivalTime = Core::Time::GMT();
-		
+
 		try {
 			vsevent->originCreationTime = org->creationInfo().creationTime();
 		}
@@ -742,7 +742,7 @@ void VsMagnitude::processEvents() {
 				for ( cev = _publishedEvents.begin();
 						cev != _publishedEvents.end(); ) {
 					if ( cev->second
-							< (_currentTime - Core::TimeSpan(_timeout)) ) {
+							< (_currentTime - Core::TimeSpan(_timeout, 0)) ) {
 						_publishedEvents.erase(cev++);
 						continue;
 					}
@@ -939,7 +939,7 @@ void VsMagnitude::process(VsEvent *evt, Event *event) {
 
 		for ( size_t i = 0; i < inputs.size(); ++i ) {
 			const VsInput &input = inputs[i];
-			
+
 			if ( Math::isNaN(input.mest)  ) {
                                 continue ;
                         }

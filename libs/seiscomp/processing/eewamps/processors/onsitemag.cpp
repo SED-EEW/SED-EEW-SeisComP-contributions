@@ -216,11 +216,11 @@ void OnsiteMagnitudeProcessor::updateAndPublishTriggerAmplitudes(Trigger &trigge
 	for ( it = _tauPBuffer.begin(); it != _tauPBuffer.end(); ++it ) {
 		const Record *rec = it->get();
 		if ( rec->endTime() <= startTime ) continue;
-		int startSample = (startTime-rec->startTime())*rec->samplingFrequency();
+		int startSample = (startTime - rec->startTime()).length() * rec->samplingFrequency();
 		if ( startSample < 0 ) startSample = 0;
 		if ( startSample >= rec->sampleCount() ) continue;
 
-		int endSample = (endTime-rec->startTime())*rec->samplingFrequency()+1;
+		int endSample = (endTime - rec->startTime()).length() * rec->samplingFrequency() + 1;
 		if ( endSample > rec->sampleCount() ) endSample = rec->sampleCount();
 
 		maxEvaluationTime = rec->startTime() + Core::TimeSpan(endSample/rec->samplingFrequency());
@@ -290,15 +290,16 @@ void OnsiteMagnitudeProcessor::updateAndPublishTriggerAmplitudes(Trigger &trigge
 				break;
 			}
 
-			startSample = (lastEndTime-rec->startTime())*rec->samplingFrequency();
+			startSample = (lastEndTime - rec->startTime()).length() * rec->samplingFrequency();
 		}
-		else
-			startSample = (trigger.time-rec->startTime())*rec->samplingFrequency();
+		else {
+			startSample = (trigger.time - rec->startTime()).length() * rec->samplingFrequency();
+		}
 
 		if ( startSample < 0 ) startSample = 0;
 		if ( startSample >= rec->sampleCount() ) continue;
 
-		int endSample = (endTime-rec->startTime())*rec->samplingFrequency()+1;
+		int endSample = (endTime - rec->startTime()).length() * rec->samplingFrequency() + 1;
 		if ( endSample > rec->sampleCount() ) endSample = rec->sampleCount();
 		else {
 			double r = integralVelocity / integralDisplacement;
