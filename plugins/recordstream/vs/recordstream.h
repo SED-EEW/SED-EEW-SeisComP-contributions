@@ -22,6 +22,7 @@
 #include <seiscomp/core/interruptible.h>
 #include <seiscomp/core/datetime.h>
 #include <seiscomp/core/genericrecord.h>
+#include <seiscomp/core/version.h>
 #include <seiscomp/io/recordstream.h>
 #include <seiscomp/io/recordstream/streamidx.h>
 #include <seiscomp/datamodel/vs/vs_package.h>
@@ -70,40 +71,49 @@ struct Node {
 
 class VSConnection : public Seiscomp::IO::RecordStream {
 	public:
+#if SC_API_VERSION < SC_API_VERSION_CHECK(17,0,0)
+		using TimeType = Seiscomp::Core::Time;
+#else
+		using TimeType = OPT(Seiscomp::Core::Time);
+#endif
+
+
+	public:
 		//! C'tor
 		VSConnection();
-		
+
 		//! Destructor
-		virtual ~VSConnection();
+		~VSConnection() override;
 
 	public:
 		//! Initialize the arclink connection.
-		virtual bool setSource(const std::string &source);
-		
-		virtual bool addStream(const std::string &networkCode,
-		                       const std::string &stationCode,
-		                       const std::string &locationCode,
-		                       const std::string &channelCode);
+		bool setSource(const std::string &source) override;
 
-		virtual bool addStream(const std::string &networkCode,
-		                       const std::string &stationCode,
-		                       const std::string &locationCode,
-		                       const std::string &channelCode,
-		                       const Seiscomp::Core::Time &startTime,
-		                       const Seiscomp::Core::Time &endTime);
-  
+		bool addStream(const std::string &networkCode,
+		               const std::string &stationCode,
+		               const std::string &locationCode,
+		               const std::string &channelCode) override;
+
+		bool addStream(const std::string &networkCode,
+		               const std::string &stationCode,
+		               const std::string &locationCode,
+		               const std::string &channelCode,
+		               const TimeType &startTime,
+		               const TimeType &endTime) override;
+
 		//! Adds the given start time to the server connection description
-		virtual bool setStartTime(const Seiscomp::Core::Time &stime);
-		
+		bool setStartTime(const TimeType &stime) override;
+
 		//! Adds the given end time to the server connection description
-		virtual bool setEndTime(const Seiscomp::Core::Time &etime);
+		bool setEndTime(const TimeType &etime) override;
 
 		//! Terminates the arclink connection.
-		virtual void close();
+		void close() override;
 
 		//! Returns the data stream
-		virtual Seiscomp::Record *next();
+		Seiscomp::Record *next() override;
 
+	private:
 		//! Removes all stream list, time window, etc. -entries from the connection description object.
 		bool clear();
 

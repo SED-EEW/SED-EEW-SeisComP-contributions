@@ -202,8 +202,7 @@ bool VSConnection::addStream(const string &net, const string &sta,
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 bool VSConnection::addStream(const string &net, const string &sta,
                              const string &loc, const string &cha,
-                             const Seiscomp::Core::Time &,
-                             const Seiscomp::Core::Time &) {
+                             const TimeType &, const TimeType &) {
 	return addStream(net, sta, loc, cha);
 }
 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -212,7 +211,7 @@ bool VSConnection::addStream(const string &net, const string &sta,
 
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-bool VSConnection::setStartTime(const Seiscomp::Core::Time &) {
+bool VSConnection::setStartTime(const TimeType &) {
 	return true;
 }
 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -221,7 +220,7 @@ bool VSConnection::setStartTime(const Seiscomp::Core::Time &) {
 
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-bool VSConnection::setEndTime(const Seiscomp::Core::Time &) {
+bool VSConnection::setEndTime(const TimeType &) {
 	return true;
 }
 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
