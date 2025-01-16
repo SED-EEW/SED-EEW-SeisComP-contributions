@@ -20,6 +20,7 @@
 
 
 #include <seiscomp/logging/log.h>
+#include <seiscomp/core/version.h>
 #include <seiscomp/processing/operator/ncomps.h>
 #include <seiscomp/io/records/mseedrecord.h>
 #include <seiscomp/io/recordfilter/demux.h>
@@ -138,7 +139,11 @@ class StreamOperator : public NCompsOperator<double,N,PROC> {
 
 			bool hasCommonEndTime = true;
 			for ( int i = 0; i < N; ++i ) {
+#if SC_API_VERSION < SC_API_VERSION_CHECK(17,0,0)
 				if ( !this->_states[i].endTime.valid() ) {
+#else
+				if ( !this->_states[i].endTime ) {
+#endif
 					hasCommonEndTime = false;
 					break;
 				}
@@ -147,7 +152,11 @@ class StreamOperator : public NCompsOperator<double,N,PROC> {
 			if ( hasCommonEndTime ) {
 				for ( int i = 0; i < N; ++i ) {
 					if ( this->_states[i].buffer.empty() ) continue;
+#if SC_API_VERSION < SC_API_VERSION_CHECK(17,0,0)
 					Core::TimeSpan delay = this->_states[i].buffer.back()->endTime() - this->_states[i].endTime;
+#else
+					Core::TimeSpan delay = this->_states[i].buffer.back()->endTime() - *this->_states[i].endTime;
+#endif
 					if ( delay > _currentDelay )
 						_currentDelay = delay;
 				}
