@@ -24,6 +24,17 @@ Command-line arguments:
 For example, to run the script:
 ```bash
 python script_name.py --event_id <event_id> origin_id <origin_id> --shakemap_flag <shakemap_flag>
+
+### Requirements 
+
+- Python libraries in lines 40-54 
+- Strong motion seiscomp database extension 
+- Shakemap 
+- Adjust:
+   - lines 1: the python environment  
+   - lines 57-65: the global variables
+   - all SQL lines: the postgresql-specific syntax (e.g. replace ".m_"  by ".").
+
 """
 
 import os

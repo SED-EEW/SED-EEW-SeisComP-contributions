@@ -56,7 +56,10 @@ INSTALL(FILES ${descs} DESTINATION ${SC3_PACKAGE_APP_DESC_DIR})
 SC_ADD_PYTHON_PROG(sceewdump)
 
 # sceewlog2file
-SC_ADD_PYTHON_PROG(sceewlog2file)
+SC_ADD_PYTHON_PROG(eew2file)
 
 # eewlogconfplot
 SC_ADD_PYTHON_PROG(eewlogconfplot)
+
+# eew2shakemap: make rupture-json and all xml input from db + call shakemap
+SC_ADD_PYTHON_PROG(eew2shakemap)

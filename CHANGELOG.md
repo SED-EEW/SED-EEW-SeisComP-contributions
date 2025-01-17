@@ -4,6 +4,8 @@
   
 * sceewlog
 
+  * [#69](https://github.com/SED-EEW/SED-EEW-SeisComP-contributions/pull/69): New script `eew2shakemap` to prepare and run shakemap based on EEW solition via option `EEW.script`.
+  
   * [#61](https://github.com/SED-EEW/SED-EEW-SeisComP-contributions/pull/61): New options `FCM.topicnotification` and `FCM.eewmessagecomment` to send notification by topic and/or create an EEW message as a comment of the relevant magnitude.
 
 * scfinder:

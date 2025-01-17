@@ -28,7 +28,7 @@ IF(FinDer_FOUND)
 		utils/makeFinDerPlot.py
 		utils/makeFinDerPlot.sh
 		)
-		SC_INSTALL_DATA(FD ${FinDer_FOUND})
+		SC_INSTALL_DATA(FD FinDer)
 	ENDIF(SC_GLOBAL_PYTHON_WRAPPER)
 
 ELSE(FinDer_FOUND)
