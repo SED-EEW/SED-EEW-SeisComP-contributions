@@ -39,7 +39,8 @@
 				magnitude=.. lat=.. lon=.. depth=.. nstorg=.. nstmag=.. ot=.. When the module 
 				is started, the script is tested with argument test=1. An example of a script 
 				preparing a data file for posting on social media is provided with 
-				$SEISCOMP_ROOT/bin/sceewlog2file.
+				$SEISCOMP_ROOT/bin/eew2file. An example of a script that can be adjusted to run 
+				Shakemap from EEW solutions is provided with $SEISCOMP_ROOT/bin/eew2shakemap.
 				</description>
 			</parameter>
 			<group name="email">
