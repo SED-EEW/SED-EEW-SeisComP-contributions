@@ -21,9 +21,15 @@ Command-line arguments:
 1. **event_id**: The ID of the earthquake event.
 2. **origin_id**: The origin ID associated with the event.
 3. **shakemap_flag**: False or True: Flag that determines if ShakeMap calculation shall be exectuted. (optional)
-For example, to run the script:
+
+For example, to run the script based on origin ID:
 ```bash
-python script_name.py --event_id <event_id> origin_id <origin_id> --shakemap_flag <shakemap_flag>
+python eew2shakemap.py --event_id <event_id> --origin_id <origin_id> --shakemap_flag <shakemap_flag>
+```
+To run the script based on event ID:
+```bash
+python eew2shakemap.py --event_id <event_id> --shakemap_flag <shakemap_flag>
+```
 
 ### Requirements 
 
