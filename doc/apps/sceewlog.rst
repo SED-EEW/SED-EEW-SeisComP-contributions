@@ -46,57 +46,6 @@ to configuration of the ActiveMQ broker.
 Please refer to `ActiveMQ`_ for setting up an ActiveMQ broker.
 
 
-Firebase Cloud Messaging
-========================
-EEW messages are controlled by the parameters Magnitude Association and Regionalized Profiles. Notifications are sent using the `HTTP v1`_ when topic notification option is enabled and it requires the following python libraries:
-
-.. code-block:: sh
-   
-   google
-   requests
-   google-auth-oauthlib
-   firebase-admin
-
-Further information on the Firebase Cloud Messaging interface can be found in `Firebase Cloud Messaging`_. This interface is activated in the module configuration file with the option:
-
-.. code-block:: sh
-
-   FCM.activate = true
-
-When this is enable then two options are possible: 
-
-1) For **sending push notification to a topic**:
-
-.. code-block:: sh
-
-   FCM.topicnotification = true
-
-In this case the configuration file defined in *FCM.dataFile* must be provided and containing the firebase configuration. Additionally, the python libraries mentioned above must be installed. The configuration file includes the path to a service JSON (see the Firebase project console `Service JSON File`_), the broadcasted topic (notification topic), the project ID string (see `Project ID`_), and it controls (enable or disable) notification to Android, iOS and a legacy notification format.
-Below is an example how this file, referenced in the *FCM.dataFile*, looks like:
-
-.. code-block:: python 
-   
-   [TOPICS]
-   topic=eqAlerts
-   [SERVICEFILE]
-   servicefile= /opt/fcm/credentials/projectServiceFile.json
-   [PROJECTID]
-   projectid = myappid
-   [ENABLED_OS]
-   android = true
-   ios = true
-   [SUPPORT_OLD_FORMAT]
-   oldformat = true
-
-2) For creating an **eew message dictionary**:
-
-
-.. code-block:: sh
-
-   FCM.eewmessagecomment = true
-
-In this case this message contains the EQ origin information. It will be added as a comment type: *eewmessage* and text will be the message dictionary. In addition to this, the comment will be sent to the messaging system so that any other module can listen to this comment.
- 
 .. _sceewlog-reports:
 
 Reports
@@ -247,6 +196,58 @@ For the *stationMagNumber* evaluation is necessary to have a similar list of Mag
 In this example for the mag type *Mfd* is necessary to at least have 7 stations to pass this evaluation, otherwise, the evaluation ends. For *MVS* must be at least 4 stations that have been used to qunatify the magnitude, otherwise, the valution ends.
 
 
+Firebase Cloud Messaging
+========================
+EEW messages are controlled by the parameters Magnitude Association and Regionalized Profiles. Notifications are sent using the `HTTP v1`_ when topic notification option is enabled and it requires the following python libraries:
+
+.. code-block:: sh
+   
+   google
+   requests
+   google-auth-oauthlib
+   firebase-admin
+
+Further information on the Firebase Cloud Messaging interface can be found in `Firebase Cloud Messaging`_. This interface is activated in the module configuration file with the option:
+
+.. code-block:: sh
+
+   FCM.activate = true
+
+When this is enable then two options are possible: 
+
+1) For **sending push notification to a topic**:
+
+.. code-block:: sh
+
+   FCM.topicnotification = true
+
+In this case the configuration file defined in *FCM.dataFile* must be provided and containing the firebase configuration. Additionally, the python libraries mentioned above must be installed. The configuration file includes the path to a service JSON (see the Firebase project console `Service JSON File`_), the broadcasted topic (notification topic), the project ID string (see `Project ID`_), and it controls (enable or disable) notification to Android, iOS and a legacy notification format.
+Below is an example how this file, referenced in the *FCM.dataFile*, looks like:
+
+.. code-block:: python 
+   
+   [TOPICS]
+   topic=eqAlerts
+   [SERVICEFILE]
+   servicefile= /opt/fcm/credentials/projectServiceFile.json
+   [PROJECTID]
+   projectid = myappid
+   [ENABLED_OS]
+   android = true
+   ios = true
+   [SUPPORT_OLD_FORMAT]
+   oldformat = true
+
+2) For creating an **eew message dictionary**:
+
+
+.. code-block:: sh
+
+   FCM.eewmessagecomment = true
+
+In this case this message contains the EQ origin information. It will be added as a comment type: *eewmessage* and text will be the message dictionary. In addition to this, the comment will be sent to the messaging system so that any other module can listen to this comment.
+ 
+ 
 Headline Change for CAP1.2 XML alerts
 =====================================
 
