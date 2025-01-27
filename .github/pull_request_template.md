@@ -8,9 +8,10 @@ Please complete the following sections to help us review your contribution:
 
 _E.g., [sceewdump] adding new output format_
 
-## Related Issue  
-Reference to a related issue: _e.g., Closes #123, Fixes #456_  
-
+## Related Issue & Branch
+- Add reference to a related issue: _e.g., Closes #123, Fixes #456_  
+- Make sure that you have selected the right branch from which to pull.
+  
 ## Description of Changes  
 Provide a clear and concise description of the changes proposed:  
 - _What does this pull request do?_  
