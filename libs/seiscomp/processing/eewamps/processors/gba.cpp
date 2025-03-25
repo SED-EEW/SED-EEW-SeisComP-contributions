@@ -19,6 +19,7 @@
 #define SEISCOMP_COMPONENT EEWAMPS
 
 
+#include <seiscomp/core/version.h>
 #include <seiscomp/logging/log.h>
 #include <seiscomp/math/filter/butterworth.h>
 #include <seiscomp/datamodel/pick.h>
@@ -166,7 +167,11 @@ void GbAProcessor::process(const Record *rec, const DoubleArray &data) {
 		SEISCOMP_DEBUG("  filter bank range %f-%fHz", loFreq, hiFreq);
 	}
 
+#if SC_API_VERSION < SC_API_VERSION_CHECK(17,0,0)
 	Core::SmartPointer<GbARecord>::Impl gbaRec = new GbARecord(_config->gba.passbands.size(), *rec);
+#else
+	Core::SmartPointer<GbARecord> gbaRec = new GbARecord(_config->gba.passbands.size(), *rec);
+#endif
 	gbaRec->setData(new DoubleArray(data));
 
 	for ( size_t i = 0; i < _config->gba.passbands.size(); ++i ) {

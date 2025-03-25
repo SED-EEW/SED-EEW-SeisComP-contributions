@@ -565,7 +565,11 @@ HPreProcessor::HPreProcessor(const Config *config) : PreProcessor(config) {
 	// since both horizontals are combined into a single component
 	setUsedComponent(FirstHorizontal);
 
+#if SC_API_VERSION < SC_API_VERSION_CHECK(17,0,0)
 	Core::SmartPointer<L2NormOperator>::Impl op = new L2NormOperator(OpWrapper(this, FirstHorizontalComponent, SecondHorizontalComponent));
+#else
+	Core::SmartPointer<L2NormOperator> op = new L2NormOperator(OpWrapper(this, FirstHorizontalComponent, SecondHorizontalComponent));
+#endif
 	op->setRingBufferSize(_config->horizontalBufferSize);
 	_l2norm = op;
 	setOperator(_l2norm.get());
@@ -614,7 +618,11 @@ bool HPreProcessor::compile(const DataModel::WaveformStreamID &id) {
 
 	typedef HPreProcessor::L2Norm<double> OpWrapper;
 	typedef StreamOperator<2,OpWrapper> L2NormOperator;
+#if SC_API_VERSION < SC_API_VERSION_CHECK(17,0,0)
 	Core::SmartPointer<L2NormOperator>::Impl op;
+#else
+	Core::SmartPointer<L2NormOperator> op;
+#endif
 
 	if ( _coLocatedFilter ) {
 		if ( _unit == MeterPerSecond ) {

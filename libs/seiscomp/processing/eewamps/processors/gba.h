@@ -16,11 +16,12 @@
  ******************************************************************************/
 
 
-#ifndef __SEISCOMP_PROCESSING_EEWAMPS_PROCESSORS_GBA_H__
-#define __SEISCOMP_PROCESSING_EEWAMPS_PROCESSORS_GBA_H__
+#ifndef SEISCOMP_PROCESSING_EEWAMPS_PROCESSORS_GBA_H
+#define SEISCOMP_PROCESSING_EEWAMPS_PROCESSORS_GBA_H
 
 
 #include <seiscomp/core/recordsequence.h>
+#include <seiscomp/core/version.h>
 #include "../baseprocessor.h"
 
 
@@ -108,7 +109,11 @@ class SC_LIBEEWAMPS_API GbAProcessor : public BaseProcessor {
 	//  Private members
 	// ----------------------------------------------------------------------
 	private:
+#if SC_API_VERSION < SC_API_VERSION_CHECK(17,0,0)
 		typedef Core::SmartPointer<Filter>::Impl FilterPtr;
+#else
+		typedef Core::SmartPointer<Filter> FilterPtr;
+#endif
 		typedef std::deque<TriggerPtr> TriggerBuffer;
 
 		FilterPtr     *_filterBank;
