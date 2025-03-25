@@ -19,6 +19,7 @@
 #define SEISCOMP_COMPONENT EEWAMPS
 
 
+#include <seiscomp/core/version.h>
 #include <seiscomp/logging/log.h>
 #include <seiscomp/datamodel/pick.h>
 #include <seiscomp/io/records/mseedrecord.h>
@@ -159,7 +160,11 @@ void OnsiteMagnitudeProcessor::process(const Record *rec, const DoubleArray &dat
 	// Save tauC record
 	copyData = new DoubleArray(data);
 
+#if SC_API_VERSION < SC_API_VERSION_CHECK(17,0,0)
 	Core::SmartPointer<TauCRecord>::Impl tauCRecord = new TauCRecord(*rec);
+#else
+	Core::SmartPointer<TauCRecord> tauCRecord = new TauCRecord(*rec);
+#endif
 	tauCRecord->setData(copyData.get());
 	tauCRecord->displacement.setData(data.size(), data.typedData());
 	_displacementFilter.apply(tauCRecord->displacement.size(), tauCRecord->displacement.typedData());

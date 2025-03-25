@@ -23,6 +23,7 @@
 #include <seiscomp/core/typedarray.h>
 #include <seiscomp/core/genericrecord.h>
 #include <seiscomp/core/exceptions.h>
+#include <seiscomp/core/version.h>
 #include <seiscomp/datamodel/utils.h>
 
 #include "gainandbaselinecorrection.h"
@@ -164,7 +165,11 @@ Record *GainAndBaselineCorrectionRecordFilter<T>::feed(const Record *rec) {
 	if ( sourceData == NULL )
 		return NULL;
 
+#if SC_API_VERSION < SC_API_VERSION_CHECK(17,0,0)
 	typename Core::SmartPointer< NumericArray<T> >::Impl correctedData;
+#else
+	Core::SmartPointer< NumericArray<T> > correctedData;
+#endif
 
 	correctedData = (NumericArray<T>*)sourceData->copy(dispatchType<T>());
 	if ( !correctedData ) {
