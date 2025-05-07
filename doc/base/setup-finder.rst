@@ -7,10 +7,15 @@ FinDer setup
 Containerization  
 ----------------
 
-This requires `docker <https://docs.docker.com/engine/install/>`_ and ``ssh`` to be installed and enabled.  
+This requires `docker <https://docs.docker.com/engine/install/>`_ and ``ssh`` to be installed and enabled. You need to ask access to the finder package for your github account and accept the invitation.  
 
-#. First make sure that you complete ``docker login ghcr.io/sed-eew/finder`` (`authenticating to the container registry <https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry>`_)
-#. Start the docker (only once or when updating docker image, old docker version: replace ``host-gateway`` by ``$(ip addr show docker0 | grep -Po 'inet \K[\d.]+')``):: 
+#. First make sure that you complete ``docker login ghcr.io/sed-eew/finder`` (`authenticating to the container registry <https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry>`_). You need to generate a new Token (classic) from your github account with the ``read:packages`` option enabled.
+
+#. Download the finder docker image (only once):: 
+
+    docker pull ghcr.io/sed-eew/finder:master 
+
+#. Start the docker (only once or when updating docker image. For old docker versions: replace ``host-gateway`` by ``$(ip addr show docker0 | grep -Po 'inet \K[\d.]+')``):: 
 
     docker stop finder && docker rm finder # That is in case you update an existing one 
     docker run -d \
@@ -107,4 +112,13 @@ Operation
     utilities in ``/usr/local/src/FinDer/``.
 
 
+Common warnings and errors
+---------
 
+* **scmaster is not running [warning]** (in the running finder container): this is normal, scmaster is running on the host, not in the finder container. You can ignore this warning.
+
+* **NET.STA.LOC.CODE: max delay exceeded: XXXXs** (in scfinder log): this is a warning about your data streaming delays. See our section about optimizing data delays for EEW (coming soon). You can also adjust the maximum delay before issuing a warning in the :file:`scfinder.cfg` configuration file with the parameter ``debug.maxDelay``.
+
+* **Connection error: Client name not unique** (in scfinder log): this means that you have two (or more) scfinder instances running with the same name. You need to find and kill the duplicate instances in the docker container and/or host.
+
+* **Unit error** (in scfinder log): check your station metadata and/or remove the problematic channel(s) using the ``streams.blacklist`` parameter in the :file:`scfinder.cfg` configuration file.   
