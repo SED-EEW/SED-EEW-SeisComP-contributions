@@ -112,6 +112,15 @@ Operation
     utilities in ``/usr/local/src/FinDer/``.
 
 
+Offline testing
+---------
+To test finder offline on a given earthquake, copy the corresponding mseed data in the container, starting at least 1 min before the origin time (OT) and ending at least 2 min after the OT.
+Then run:
+    scfinder --offline --playback -I data.mseed
+
+The xml output should include FinDer solutions every seconds with rupture line parameters and their PDF.
+
+
 Common warnings and errors
 ---------
 
