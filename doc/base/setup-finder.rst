@@ -113,16 +113,17 @@ Operation
 
 
 Offline testing
----------
+---------------
 To test finder offline on a given earthquake, copy the corresponding mseed data in the container, starting at least 1 min before the origin time (OT) and ending at least 2 min after the OT.
-Then run:
-    scfinder --offline --playback -I data.mseed
+Then run::
+    
+    seiscomp-finder exec scfinder --offline --playback -I data.mseed
 
 The xml output should include FinDer solutions every seconds with rupture line parameters and their PDF.
 
 
 Common warnings and errors
----------
+--------------------------
 
 * **scmaster is not running [warning]** (in the running finder container): this is normal, scmaster is running on the host, not in the finder container. You can ignore this warning.
 
