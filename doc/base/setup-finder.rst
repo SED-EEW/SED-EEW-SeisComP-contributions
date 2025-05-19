@@ -7,10 +7,15 @@ FinDer setup
 Containerization  
 ----------------
 
-This requires `docker <https://docs.docker.com/engine/install/>`_ and ``ssh`` to be installed and enabled.  
+This requires `docker <https://docs.docker.com/engine/install/>`_ and ``ssh`` to be installed and enabled. You need to ask access to the finder package for your github account and accept the invitation.  
 
-#. First make sure that you complete ``docker login ghcr.io/sed-eew/finder`` (`authenticating to the container registry <https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry>`_)
-#. Start the docker (only once or when updating docker image, old docker version: replace ``host-gateway`` by ``$(ip addr show docker0 | grep -Po 'inet \K[\d.]+')``):: 
+#. First make sure that you complete ``docker login ghcr.io/sed-eew/finder`` (`authenticating to the container registry <https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry>`_). You need to generate a new Token (classic) from your github account with the ``read:packages`` option enabled.
+
+#. Download the finder docker image (only once):: 
+
+    docker pull ghcr.io/sed-eew/finder:master 
+
+#. Start the docker (only once or when updating docker image. For old docker versions: replace ``host-gateway`` by ``$(ip addr show docker0 | grep -Po 'inet \K[\d.]+')``):: 
 
     docker stop finder && docker rm finder # That is in case you update an existing one 
     docker run -d \
@@ -107,4 +112,21 @@ Operation
     utilities in ``/usr/local/src/FinDer/``.
 
 
+Offline testing
+---------------
+To test finder offline on a given earthquake, copy the corresponding mseed data and inventory in the container, starting at least 1 min before the origin time (OT) and ending at least 2 min after the OT.
+Then run::
+    
+    seiscomp-finder exec scfinder --offline --playback --inventory-db inventory.xml -I data.mseed
 
+The xml output should include FinDer solutions every seconds with rupture line parameters and their PDF.
+
+
+Common warnings and errors
+--------------------------
+
+* **scmaster is not running [warning]** (in the running finder container): ignore if scfinder is setup to connect to a messaging system outside of the finder container.
+
+* **NET.STA.LOC.CODE: max delay exceeded: XXXXs** (in scfinder log): see the parameter `debug.maxDelay <https://docs.gempa.de/sed-eew/current/apps/scfinder.html#confval-debug.maxDelay>`_.
+
+* **Unit error** (in scfinder log): check your station metadata and/or remove the problematic channel(s) using the `streams.blacklist <https://docs.gempa.de/sed-eew/current/apps/scfinder.html#confval-streams.blacklist>`_ parameter in the :file:`scfinder.cfg` configuration file.   
