@@ -114,10 +114,10 @@ Operation
 
 Offline testing
 ---------------
-To test finder offline on a given earthquake, copy the corresponding mseed data in the container, starting at least 1 min before the origin time (OT) and ending at least 2 min after the OT.
+To test finder offline on a given earthquake, copy the corresponding mseed data and inventory in the container, starting at least 1 min before the origin time (OT) and ending at least 2 min after the OT.
 Then run::
     
-    seiscomp-finder exec scfinder --offline --playback -I data.mseed
+    seiscomp-finder exec scfinder --offline --playback --inventory-db inventory.xml -I data.mseed
 
 The xml output should include FinDer solutions every seconds with rupture line parameters and their PDF.
 
@@ -125,10 +125,8 @@ The xml output should include FinDer solutions every seconds with rupture line p
 Common warnings and errors
 --------------------------
 
-* **scmaster is not running [warning]** (in the running finder container): this is normal, scmaster is running on the host, not in the finder container. You can ignore this warning.
+* **scmaster is not running [warning]** (in the running finder container): ignore if scfinder is setup to connect to a messaging system outside of the finder container.
 
-* **NET.STA.LOC.CODE: max delay exceeded: XXXXs** (in scfinder log): this is a warning about your data streaming delays. See our section about optimizing data delays for EEW (coming soon). You can also adjust the maximum delay before issuing a warning in the :file:`scfinder.cfg` configuration file with the parameter ``debug.maxDelay``.
+* **NET.STA.LOC.CODE: max delay exceeded: XXXXs** (in scfinder log): see the parameter `debug.maxDelay <https://docs.gempa.de/sed-eew/current/apps/scfinder.html#confval-debug.maxDelay>`_.
 
-* **Connection error: Client name not unique** (in scfinder log): this means that you have two (or more) scfinder instances running with the same name. You need to find and kill the duplicate instances in the docker container and/or host.
-
-* **Unit error** (in scfinder log): check your station metadata and/or remove the problematic channel(s) using the ``streams.blacklist`` parameter in the :file:`scfinder.cfg` configuration file.   
+* **Unit error** (in scfinder log): check your station metadata and/or remove the problematic channel(s) using the `streams.blacklist <https://docs.gempa.de/sed-eew/current/apps/scfinder.html#confval-streams.blacklist>`_ parameter in the :file:`scfinder.cfg` configuration file.   
