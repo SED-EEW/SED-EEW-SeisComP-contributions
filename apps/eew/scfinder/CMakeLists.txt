@@ -27,6 +27,7 @@ IF(FinDer_FOUND)
 		utils/makeFinDerPlot_config.py
 		utils/makeFinDerPlot.py
 		utils/makeFinDerPlot.sh
+                utils/makeFinderMask.sh
 		)
 		SC_INSTALL_DATA(FD FinDer)
 	ENDIF(SC_GLOBAL_PYTHON_WRAPPER)
