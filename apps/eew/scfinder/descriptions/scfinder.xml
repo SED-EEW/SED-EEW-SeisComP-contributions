@@ -125,6 +125,20 @@
 						(empty) to disable prevailing.
 					</description>
 				</parameter>
+				<parameter name="regionFile" type="string" default="">
+					<description>
+					Set the full file path to the BNA file that contains the region(s) used for filtering 
+					finder solutions. Geographic filtering requires both "regionFile" and "regionNames" 
+					to be defined and valid.
+					</description>
+				</parameter>
+				<parameter name="regionNames" type="string" default="">
+					<description>
+					Defines the name(s) of the region(s), as a comma-separated list, within which finder 
+					solutions should be filtered. Geographic filtering requires both "regionFile" and 
+					"regionNames" to be defined and valid.
+					</description>
+				</parameter>
 			</group>
 			<group name="debug">
 				<parameter name="maxDelay" type="double" default="3" unit="s">
