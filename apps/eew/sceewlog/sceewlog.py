@@ -266,6 +266,11 @@ class Listener(seiscomp.client.Application):
             self.eewScript = None
 
         if self.eewScript is not None :
+            
+            self.profilesInitConfig()
+            if self.assocMagActivate:
+                self.prioritiesInitConfig()
+            
             logprefix = '/tmp/sceewlog-script.'
             print("%s test=1 > %slog 2> %serr &" % ( self.eewScript, 
                                                            logprefix,
@@ -453,7 +458,7 @@ class Listener(seiscomp.client.Application):
                     tmpDic['likelihoodThresh'] = 0.0
                     pass
                 
-                if tmpVal >= 0.0 and tmpVal <= 1:
+                if tmpVal == -1 or ( tmpVal >= 0.0 and tmpVal <= 1 ):
                     tmpDic['likelihoodThresh'] = tmpVal
                 else:
                     seiscomp.logging.error('Incorrect RegFilters.profile.' + prof + '.likelihoodThresh. It must be between 0.0 to 1.0' )
@@ -788,14 +793,19 @@ class Listener(seiscomp.client.Application):
         # than MVS and Mfd
         # Generally the other mag types do not have likelihood values
         
-        if magType in self.magTypes and magType != 'MVS' and magType != 'Mfd' and ( self.activeMQ or self.fcm ):
+        if ( magType in self.magTypes 
+             and magType != 'MVS' 
+             and magType != 'Mfd' 
+             and ( self.eewScript is not None 
+                   or self.activeMQ or self.fcm )):
+            
             #collecting the event udpate
             evtDic =  self.event_dict[evID]['updates'][updateno]
             
             #evaluate to send or not the alert based on profiles
             self.alertEvaluation( evID, magID, updateno ) 
 
-    def execScript(self, magID, updateno):
+    def execScript(self, magID, updateno, **opt):
 
         if self.eewScript is None:
             return        
@@ -807,6 +817,12 @@ class Listener(seiscomp.client.Application):
         eew_parameters = self.event_dict[evID]['updates'][ updateno ]
         script_args = ' '.join(["%s='%s'" % ( k, v ) for i, (k, v) in enumerate(eew_parameters.items())])
         
+        script_args += ' evID='+evID
+        script_args += ' orgID='+orgID
+        
+        for k in opt:
+            script_args += ' %s=%s '%(k, opt[k])
+
         logprefix = '/tmp/sceewlog-script.'
         com = "%s %s > %slog 2> %serr &" % ( self.eewScript, 
                                              script_args, 
@@ -1354,7 +1370,7 @@ class Listener(seiscomp.client.Application):
                 seiscomp.logging.debug('depth max value was greater than %s' % ft['maxDepth'] )
                 noSend = True
             
-            if lhVal != None:
+            if ft['likelihoodThresh'] != -1 and lhVal != None:
                 if lhVal < ft['likelihoodThresh']:
                     seiscomp.logging.debug('likelihood threshold was less than %s' % ft['likelihoodThresh'] )
                     noSend = True
@@ -1386,7 +1402,9 @@ class Listener(seiscomp.client.Application):
                 self.event_dict[evID]['alert'] = True
                 
                 self.sendAlert( magID )
-                self.execScript( magID, updateno )
+                self.execScript( magID, updateno, 
+                                 profile = ft['name'], 
+                                 polygon = ft['bnaPolygon'] )
                 break
                             
         if len(self.profilesDic) == 0:
