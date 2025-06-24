@@ -1,8 +1,20 @@
 # Change Log
 
 ## Master
-  
+
+## tag 5.1.1.2025
+
+* Fix event data in unit test.  
+
+* [#71](https://github.com/SED-EEW/SED-EEW-SeisComP-contributions/pull/71): Support API 17.  
+
+* Documentation
+
+  * [#72](https://github.com/SED-EEW/SED-EEW-SeisComP-contributions/pull/72): Fixes FinDer setup.
+
 * sceewlog
+
+  * [#74](https://github.com/SED-EEW/SED-EEW-SeisComP-contributions/pull/74): Better support any magnitude.
 
   * [#69](https://github.com/SED-EEW/SED-EEW-SeisComP-contributions/pull/69): New script `eew2shakemap` to prepare and run shakemap based on EEW solition via option `EEW.script`.
   

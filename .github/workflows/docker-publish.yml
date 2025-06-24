@@ -67,5 +67,7 @@ jobs:
         with:
           context: .
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: |
+            ${{ steps.meta.outputs.tags }}
+            ${{ env.REGISTRY }}/sed-eew/sed-eew-seiscomp-contributions:latest
           labels: ${{ steps.meta.outputs.labels }}
