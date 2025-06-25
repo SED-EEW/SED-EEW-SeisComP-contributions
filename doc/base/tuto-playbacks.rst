@@ -55,9 +55,14 @@ And for the finder docker image (restricted access)::
 
     docker pull $IMAGE:$TAG 
 
-#. Start the docker (only once or when updating the docker image). For old docker versions: replace ``host-gateway`` by ``$(ip addr show docker0 | grep -Po 'inet \K[\d.]+')``:: 
+#. Start the test docker (only once or when updating the docker image). For old docker versions: replace ``host-gateway`` by ``$(ip addr show docker0 | grep -Po 'inet \K[\d.]+')``:
 
+   .. code-block:: bash
+        
     docker stop scpbd && docker rm scpbd # That is in case you update an existing one 
+    
+   .. code-block:: bash
+        
     docker run -d \
         --add-host=host.docker.internal:host-gateway  \
         -p 18022:18000 -p 222:22 \
@@ -80,10 +85,15 @@ Configuration
 
 #. Enable the required SeisComP automatic processing modules::     
     
-    docker exec -u sysop  -it scpbd /opt/seiscomp/bin/seiscomp enable \
+    docker exec -u sysop -it scpbd /opt/seiscomp/bin/seiscomp enable \
     scautopick scamp scautoloc scevent sceewenv scvsmag scfinder
 
-#. Import your own configuration (optional), using the user directory. These can be your `.cfg` files, bindings, `finder.config`, and finder mask::
+#. (Optional) You can also activate sceewlog in the docker to get a report log of the alerts::
+
+    docker exec -u sysop -it scpbd pip3 install pip install python-dateutil  # library needed for sceewlog
+    docker exec -u sysop -it scpbd /opt/seiscomp/bin/seiscomp enable sceewlog
+
+#. Import your own configuration in the user directory. These can be your `.cfg` files, bindings, `finder.config`, and finder mask::
     
     docker cp <path to your config file> scpbd:/home/sysop/.seiscomp/
 
@@ -114,21 +124,32 @@ Usage
     exit()"; }
     ms512 data_not512.mseed data.mseed
 
-#. Start the playback::
+#. Set the `no_mask` option in the finder configuration file (i.e., `finder.config`) to avoid calculating a mask for this playback::
 
+    # Note that this only works because we provide solely 
+    # the data from relevant stations in the mseed file.
+    FINDER_CONFIG="/usr/local/src/FinDer/config/finder.config"
+    docker exec -u sysop -it scpbd sed -i.BAK \
+    's/REGIONAL_MASK[[:space:]]\+calculate/REGIONAL_MASK no_mask/' $FINDER_CONFIG
+
+#. Start the playback:
+   
+   .. code-block:: bash
+    
     # For a scml inventory format, use:
     scpbd $USER@host.docker.internal:$(pwd)/data.mseed \
     $USER@host.docker.internal:$(pwd)/inv.xml,scml
     
+   .. code-block:: bash
+
     # And for a fdsnxml inventory format:
     scpbd $USER@host.docker.internal:$(pwd)/data.mseed \
     $USER@host.docker.internal:$(pwd)/inv.xml,fdsnxml
 
-
-#. (Optional) Check the data stream from another terminal::
+   .. code-block:: bash
     
+    # (Optional) Check that the data is streaming from another terminal:
     slinktool -Q localhost:18022 
-    scrttv -I slink://localhost:18022 
 
 #. Get and inspect the results::
     
@@ -136,3 +157,47 @@ Usage
     scolv -I file://data.mseed \
     -d sqlite3://event_db.sqlite  \
     --offline --debug
+
+#. If you activated the `sceewlog` module, you can also check the last report log::
+    
+    REPORT_PATH="/home/sysop/.seiscomp/log/VS_reports/"
+    LAST_REPORT=$(docker exec -it scpbd ls -At $REPORT_PATH | head -n1 | tr -d '\r\n')
+    docker cp scpbd:$REPORT_PATH$LAST_REPORT ./$LAST_REPORT
+    cat $LAST_REPORT
+
+Running the playback with the provided ELM dataset, on a relatively low-resource virtual machine (2 vcores and 8GB RAM), you can expect results such as::
+
+                                                                           |#St.   |
+    Tdiff |Type|Mag.|Lat.  |Lon.   |Depth |origin time (UTC)      |Lik.|Or.|Ma.|Str.|Len. |Author   |Creation t.            |Tdiff(current o.)
+    ------------------------------------------------------------------------------------------------------------------------------------------
+      5.61| MVS|4.25| 46.91|   9.23| 10.00|2020-10-25T19:35:40.84Z|0.99|  3|  3|    |     |scvsmag@7|2020-10-25T19:35:48.61Z|  7.77
+      6.58| MVS|4.87| 46.91|   9.23| 10.00|2020-10-25T19:35:40.84Z|0.99|  3|  3|    |     |scvsmag@7|2020-10-25T19:35:49.58Z|  8.74
+      7.58| MVS|4.05| 46.90|   9.13|  5.00|2020-10-25T19:35:42.35Z|0.40|  8|  8|    |     |scvsmag@7|2020-10-25T19:35:50.58Z|  8.23
+      8.69| MVS|4.21| 46.90|   9.13|  5.00|2020-10-25T19:35:42.35Z|0.99|  8|  8|    |     |scvsmag@7|2020-10-25T19:35:51.70Z|  9.35
+      9.68| MVS|4.23| 46.90|   9.13|  5.00|2020-10-25T19:35:42.35Z|0.99|  8|  8|    |     |scvsmag@7|2020-10-25T19:35:52.68Z| 10.33
+     10.69| MVS|4.42| 46.90|   9.13|  5.00|2020-10-25T19:35:42.35Z|0.99|  8|  8|    |     |scvsmag@7|2020-10-25T19:35:53.69Z| 11.34
+     11.81| Mfd|4.50| 46.95|   9.13| 10.00|2020-10-25T19:35:41.92Z|0.71|  0|  3|  70| 1.30|scfinder@|2020-10-25T19:35:54.81Z| 12.89
+     11.98| MVS|3.78| 46.91|   9.13|  5.00|2020-10-25T19:35:42.55Z|0.99| 28| 28|    |     |scvsmag@7|2020-10-25T19:35:54.98Z| 12.43
+     12.95| MVS|3.78| 46.91|   9.13|  5.00|2020-10-25T19:35:42.55Z|0.99| 28| 28|    |     |scvsmag@7|2020-10-25T19:35:55.95Z| 13.40
+     13.50| Mfd|4.50| 46.95|   9.20| 10.00|2020-10-25T19:35:41.80Z|0.79|  0|  3|  45| 1.30|scfinder@|2020-10-25T19:35:56.51Z| 14.71
+     13.94| MVS|3.86| 46.91|   9.13|  5.00|2020-10-25T19:35:42.55Z|0.99| 28| 28|    |     |scvsmag@7|2020-10-25T19:35:56.94Z| 14.39
+     14.64| MVS|3.87| 46.91|   9.13|  5.00|2020-10-25T19:35:42.55Z|0.99| 28| 28|    |     |scvsmag@7|2020-10-25T19:35:57.64Z| 15.09
+     14.74| Mfd|4.50| 46.96|   9.17| 10.00|2020-10-25T19:35:41.77Z|0.81|  0|  3|  45| 1.30|scfinder@|2020-10-25T19:35:57.75Z| 15.98
+     15.85| Mfd|4.50| 46.96|   9.16| 10.00|2020-10-25T19:35:41.79Z|0.81|  0|  3|  45| 1.30|scfinder@|2020-10-25T19:35:58.85Z| 17.05
+     16.01| MVS|3.55| 46.90|   9.14|  5.00|2020-10-25T19:35:42.70Z|0.99| 48| 44|    |     |scvsmag@7|2020-10-25T19:35:59.01Z| 16.31
+     16.83| MVS|3.52| 46.90|   9.14|  5.00|2020-10-25T19:35:42.70Z|0.99| 48| 45|    |     |scvsmag@7|2020-10-25T19:35:59.84Z| 17.13
+     18.21| MVS|3.38| 46.89|   9.14|  5.00|2020-10-25T19:35:42.79Z|0.99| 68| 53|    |     |scvsmag@7|2020-10-25T19:36:01.22Z| 18.42
+     18.94| MVS|3.36| 46.89|   9.14|  5.00|2020-10-25T19:35:42.79Z|0.99| 68| 54|    |     |scvsmag@7|2020-10-25T19:36:01.95Z| 19.15
+     20.01| MVS|3.33| 46.89|   9.14|  5.00|2020-10-25T19:35:42.79Z|0.99| 68| 55|    |     |scvsmag@7|2020-10-25T19:36:03.01Z| 20.22
+     20.92| Mfd|4.50| 46.92|   9.13| 10.00|2020-10-25T19:35:42.14Z|0.88|  0|  3|  45| 1.30|scfinder@|2020-10-25T19:36:03.92Z| 21.78
+     20.98| MVS|3.34| 46.89|   9.14|  5.00|2020-10-25T19:35:42.79Z|0.99| 68| 55|    |     |scvsmag@7|2020-10-25T19:36:03.98Z| 21.19
+     22.09| MVS|3.23| 46.89|   9.14|  5.00|2020-10-25T19:35:42.87Z|0.99| 88| 65|    |     |scvsmag@7|2020-10-25T19:36:05.09Z| 22.22
+     23.15| MVS|3.24| 46.89|   9.14|  5.00|2020-10-25T19:35:42.87Z|0.99| 88| 65|    |     |scvsmag@7|2020-10-25T19:36:06.15Z| 23.28
+     24.04| MVS|3.24| 46.89|   9.14|  5.00|2020-10-25T19:35:42.87Z|0.99| 88| 65|    |     |scvsmag@7|2020-10-25T19:36:07.04Z| 24.17
+     25.01| MVS|3.24| 46.89|   9.14|  5.00|2020-10-25T19:35:42.87Z|0.99| 88| 65|    |     |scvsmag@7|2020-10-25T19:36:08.01Z| 25.14
+     26.31| MVS|3.24| 46.89|   9.14|  5.00|2020-10-25T19:35:42.92Z|0.99|108| 66|    |     |scvsmag@7|2020-10-25T19:36:09.31Z| 26.39
+     27.26| MVS|3.25| 46.89|   9.14|  5.00|2020-10-25T19:35:42.92Z|0.99|108| 66|    |     |scvsmag@7|2020-10-25T19:36:10.26Z| 27.34
+     28.11| MVS|3.25| 46.89|   9.14|  5.00|2020-10-25T19:35:42.92Z|0.99|108| 66|    |     |scvsmag@7|2020-10-25T19:36:11.11Z| 28.18
+     29.08| MVS|3.25| 46.89|   9.14|  5.00|2020-10-25T19:35:42.92Z|0.99|108| 66|    |     |scvsmag@7|2020-10-25T19:36:12.09Z| 29.16
+     30.00| MVS|3.25| 46.89|   9.14|  5.00|2020-10-25T19:35:42.92Z|0.99|108| 66|    |     |scvsmag@7|2020-10-25T19:36:13.00Z| 30.08
+                                                                                                                                                                           4,127         Top
