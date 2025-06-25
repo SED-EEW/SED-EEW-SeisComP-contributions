@@ -52,6 +52,7 @@
 #include <seiscomp/processing/eewamps/processor.h>
 #include <seiscomp/math/geo.h>
 #include <functional>
+#include <seiscomp/geo/featureset.h>
 
 #include "finder.h"
 #include "finite_fault.h"
@@ -234,6 +235,8 @@ class App : public Client::StreamApplication {
 
 			_finderAmplitudesDirty = false;
 			_finderScanDataDirty = false;
+			_regionFile = "" ;
+			_regionNames = "" ;
 		}
 
 
@@ -363,6 +366,37 @@ class App : public Client::StreamApplication {
 			}
 			catch ( ... ) {}
 
+			auto* env = Seiscomp::Environment::Instance();
+			try {
+				_regionFile = env->absolutePath(configGetString("finder.regionFile"));
+			} catch (...) {}  
+
+			try {
+				_regionNames = "," + configGetString("finder.regionNames") + ",";
+			} catch (...) {}  
+
+			if (!_regionFile.empty() && !_regionNames.empty()) {
+				if (!_geoFeatureSet.readFile(_regionFile, nullptr)) {
+					SEISCOMP_ERROR("Failed to open region file %s", _regionFile.c_str());  
+					return false;
+				}
+				bool hasValidPolygon = false;
+				size_t numFeatures = _geoFeatureSet.features().size();
+				for (size_t i = 0; i < numFeatures; ++i) {
+					Seiscomp::Geo::GeoFeature* feature = _geoFeatureSet.features()[i];
+					std::string pattern = "," + feature->name() + ",";
+					if (_regionNames.find(pattern) != std::string::npos) {
+						hasValidPolygon = true;
+						break;
+					}
+				}
+				if (!hasValidPolygon) {
+					SEISCOMP_ERROR("No polygon in %s matches any name in regionNames: %s",
+								_regionFile.c_str(), _regionNames.c_str());
+					return false;
+				}
+			}
+			
 			_creationInfo.setAgencyID(agencyID());
 			_creationInfo.setAuthor(author());
 
@@ -869,6 +903,38 @@ class App : public Client::StreamApplication {
 
 			Coordinate epicenter = finder->get_epicenter();
 			Coordinate epicenter_uncertainty = finder->get_epicenter_uncer();
+			
+			if (!_regionFile.empty() && !_regionNames.empty()) {
+				bool validLatLon = false;
+				size_t numFeatures = _geoFeatureSet.features().size();
+				for (size_t i = 0; i < numFeatures; ++i) {
+					Seiscomp::Geo::GeoFeature *feature = _geoFeatureSet.features()[i];
+					
+					std::string pattern = "," + feature->name() + ",";
+					if (_regionNames.find(pattern) == std::string::npos) {
+						SEISCOMP_DEBUG("Filter region %s not in bna file polygons %s", 
+							feature->name().c_str(),
+							_regionNames.c_str());
+						continue;
+					}
+
+					if (feature->contains(Seiscomp::Geo::Vertex(epicenter.get_lat(), epicenter.get_lon()))) {
+						validLatLon = true;
+						SEISCOMP_DEBUG("FinDer epicenter (lat: %f  lon: %f) is within region %s", 
+							epicenter.get_lat(),
+							epicenter.get_lon(),
+							feature->name().c_str());
+						break; 
+					}
+				}
+				if (!validLatLon) {
+					SEISCOMP_DEBUG("FinDer epicenter (lat: %f  lon: %f) is not within any provided region %s", 
+						epicenter.get_lat(),
+						epicenter.get_lon(),
+						_regionNames.c_str());
+					return;
+				}
+			}
 
 			double deltalon,deltalat, azi1, azi2;
 			Math::Geo::delazi_wgs84(epicenter.get_lat(),
@@ -1199,6 +1265,10 @@ class App : public Client::StreamApplication {
 		Finder_List                    _finderList;
 		PGA_Data_List                  _latestMaxPGAs;
 		std::string                    _preferredGainUnits;
+
+		std::string                    _regionFile;
+		std::string                    _regionNames;
+		Seiscomp::Geo::GeoFeatureSet   _geoFeatureSet;
 };
 
 
