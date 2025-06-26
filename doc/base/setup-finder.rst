@@ -15,9 +15,14 @@ This requires `docker <https://docs.docker.com/engine/install/>`_ and ``ssh`` to
 
     docker pull ghcr.io/sed-eew/finder:master 
 
-#. Start the docker (only once or when updating docker image. For old docker versions: replace ``host-gateway`` by ``$(ip addr show docker0 | grep -Po 'inet \K[\d.]+')``):: 
-
+#. Start the docker (only once or when updating docker image. For old docker versions: replace ``host-gateway`` by ``$(ip addr show docker0 | grep -Po 'inet \K[\d.]+')``): 
+   
+   .. code-block:: bash
+    
     docker stop finder && docker rm finder # That is in case you update an existing one 
+   
+   .. code-block:: bash
+    
     docker run -d \
         --add-host=host.docker.internal:host-gateway  \
         -p 9878:22 \
@@ -35,6 +40,8 @@ This requires `docker <https://docs.docker.com/engine/install/>`_ and ``ssh`` to
 Configuration 
 -------------
 
+#. Prepare the FinDer mask (coming soon).
+
 #. Configure :ref:`finder` based on the example in :file:`/usr/local/src/FinDer/config/finder.config`.  e.g.:: 
 
     # Basic docker configuration 
@@ -46,29 +53,50 @@ Configuration
     # Copy your FinDer config to container
     docker cp myconf/finder.config finder:/home/sysop/.seiscomp/
 
-#. Configure :ref:`scfinder` (and SeisComP) with the ``seiscomp-finder`` shortcut, e.g.:: 
+#. Configure :ref:`scfinder` and SeisComP: 
 
-    # Basic scfinder container configuration 
+   Basic `scfinder` configuration:
+
+   .. code-block:: bash
+    
+    # Add the path (in container) to your finder config
     mkdir myconf
-    echo 'connection.server = host.docker.internal/production
-    database = host.docker.internal/seiscomp
-    finder.config = /home/sysop/.seiscomp/finder.config ' > myconf/scfinder.cfg
-
-    ## In case the db setup is more complex you might need to adjust the following and add it to the above:
-    #database.inventory = mysql://host.docker.internal/seiscomp
-    #database.config = mysql://host.docker.internal/seiscomp
+    echo 'finder.config = /home/sysop/.seiscomp/finder.config' > myconf/scfinder.cfg
     
     # Copy your scfinder config to container
     docker cp myconf/scfinder.cfg finder:/home/sysop/.seiscomp/
 
-    # Review and adjust configuration
+   A global configuration example is provided below in the case of a database, messaging system, and seedlink server running
+   on host. Adapt it to your needs, e.g., if your seedlink server running on an external machine.
+
+   .. code-block:: bash
+   
+    # Create a global configuration file for the container user (sysop) 
+    echo 'connection.server = host.docker.internal/production
+    database = host.docker.internal/seiscomp
+    recordstream = slink://host.docker.internal:18000' > myconf/global.cfg
+    
+    ## In case the db setup is more complex you might need to adjust the following and add it to the above:
+    #database.inventory = mysql://host.docker.internal/seiscomp
+    #database.config = mysql://host.docker.internal/seiscomp
+    
+    # Copy your global config to container
+    docker cp myconf/global.cfg finder:/home/sysop/.seiscomp/
+
+
+   (Optional) Review the configuration with the ``seiscomp-finder`` shortcut.
+
+   .. code-block:: bash
+
+    # Review and adjust configuration as needed
     seiscomp-finder exec scconfig
 
 
-#. Backup your configuration, e.g.,::
+#. Backup your configuration::
     
     docker cp  finder:/home/sysop/.seiscomp/finder.config  myconf/ 
     docker cp  finder:/home/sysop/.seiscomp/scfinder.cfg myconf/
+    docker cp  finder:/home/sysop/.seiscomp/global.cfg myconf/
 
 
 .. note::
@@ -97,14 +125,18 @@ Operation
     # restart modules
     seiscomp-finder restart    
 
+#. In the the event of restarting docker or the host system, once the ``seiscomp-finder`` alias is permanent, restart the finder container and its seiscomp modules as follows::
 
-#. Eventually, after restarting docker or the host system, once the ``seiscomp-finder`` alias is permanent, restart the finder container and its seiscomp as follows::
-    
     # restart docker container 
     docker start finder
     docker exec -u 0 -it  finder /etc/init.d/ssh start 
     seiscomp-finder restart
 
+
+.. note::
+
+    After interrupting the testing of scfinder in debug mode, scfinder may keep running in the container. 
+    This will prevent any further execution of scfinder. In this case, you need to log into the finder container and kill the scfinder process.
 
 .. note::
     

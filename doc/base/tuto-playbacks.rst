@@ -90,7 +90,7 @@ Configuration
 
 #. (Optional) You can also activate sceewlog in the docker to get a report log of the alerts::
 
-    docker exec -u sysop -it scpbd pip3 install pip install python-dateutil  # library needed for sceewlog
+    docker exec -u sysop -it scpbd pip3 install python-dateutil  # library needed for sceewlog
     docker exec -u sysop -it scpbd /opt/seiscomp/bin/seiscomp enable sceewlog
 
 #. Import your own configuration in the user directory. These can be your `.cfg` files, bindings, `finder.config`, and finder mask::
