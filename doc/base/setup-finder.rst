@@ -117,7 +117,8 @@ Operation
 #. Manage :ref:`scfinder` (and SeisComP) with the ``seiscomp-finder`` shortcut, e.g.::
 
     # debug and test:
-    seiscomp-finder exec scfinder --debug
+    docker exec -u sysop -it finder \
+        /opt/seiscomp/bin/seiscomp exec scfinder --debug
 
     # enable modules
     seiscomp-finder enable scfinder 
