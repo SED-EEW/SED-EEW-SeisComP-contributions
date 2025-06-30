@@ -31,3 +31,12 @@ Utilities
    /apps/scgof
    /apps/sceewdump
 
+=========
+Tutorials
+=========
+
+.. toctree::
+   :maxdepth: 3
+   
+   /base/tuto-playbacks
+

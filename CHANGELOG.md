@@ -10,6 +10,8 @@
 
 * Documentation
 
+  * [#75](https://github.com/SED-EEW/SED-EEW-SeisComP-contributions/pull/75): Create docker playback tutorial section and add extra finder setup infos.
+  
   * [#72](https://github.com/SED-EEW/SED-EEW-SeisComP-contributions/pull/72): Fixes FinDer setup.
 
 * sceewlog
