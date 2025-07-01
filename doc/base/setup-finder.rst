@@ -135,11 +135,6 @@ Operation
 
 
 .. note::
-
-    After interrupting the testing of scfinder in debug mode, scfinder may keep running in the container. 
-    This will prevent any further execution of scfinder. In this case, you need to log into the finder container and kill the scfinder process.
-
-.. note::
     
     You may also use FinDer without SeisComP with :file:`/usr/local/src/FinDer/finder_file` and related 
     utilities in ``/usr/local/src/FinDer/``.
