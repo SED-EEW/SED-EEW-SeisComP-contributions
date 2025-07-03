@@ -506,13 +506,13 @@ class App : public Client::StreamApplication {
 								SEISCOMP_DEBUG("+ %s.%s.%s  %f  %f",
 											net->code().c_str(), sta->code().c_str(),
 											loc->code().c_str(), loc->latitude(), loc->longitude());
+								break;
 							}
 							catch ( std::exception &e ) {
 								SEISCOMP_WARNING("%s.%s: location '%s': failed to add coordinate: %s",
 												net->code().c_str(), sta->code().c_str(),
 												loc->code().c_str(), e.what());
 							}
-							break;
 						}
 					}
 				}
