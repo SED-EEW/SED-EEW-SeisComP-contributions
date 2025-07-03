@@ -490,18 +490,29 @@ class App : public Client::StreamApplication {
 						SensorLocation *loc = sta->sensorLocation(l);
 						if ( loc->start() > refTime ) continue;
 						try { if ( loc->end() <= refTime ) continue; }
-						catch ( ... ) {}
+							catch ( ... ) {}
 
-						try {
-							station_coord_list.push_back(Coordinate(loc->latitude(), loc->longitude()));
-							SEISCOMP_DEBUG("+ %s.%s.%s  %f  %f",
-							               net->code().c_str(), sta->code().c_str(),
-						                   loc->code().c_str(), loc->latitude(), loc->longitude());
-						}
-						catch ( std::exception &e ) {
-							SEISCOMP_WARNING("%s.%s: location '%s': failed to add coordinate: %s",
-							                 net->code().c_str(), sta->code().c_str(),
-							                 loc->code().c_str(), e.what());
+						for ( size_t c = 0; c < loc->streamCount(); ++c ) {
+							Stream *cha = loc->stream(c);
+							if ( cha->start() > refTime ) continue;
+							try { if ( cha->end() <= refTime ) continue; }
+							catch ( ... ) {}
+
+							std::string sid = net->code() + "." + sta->code() + "." + loc->code() + "." + cha->code();
+							if ( !_eewProc.isStreamIDAllowed(sid) ) continue;
+
+							try {
+								station_coord_list.push_back(Coordinate(loc->latitude(), loc->longitude()));
+								SEISCOMP_DEBUG("+ %s.%s.%s  %f  %f",
+											net->code().c_str(), sta->code().c_str(),
+											loc->code().c_str(), loc->latitude(), loc->longitude());
+							}
+							catch ( std::exception &e ) {
+								SEISCOMP_WARNING("%s.%s: location '%s': failed to add coordinate: %s",
+												net->code().c_str(), sta->code().c_str(),
+												loc->code().c_str(), e.what());
+							}
+							break;
 						}
 					}
 				}
