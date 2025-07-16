@@ -243,6 +243,13 @@
 						End time of data acquisition time window, requires also --ts
 					</description>
 				</option>
+				<option long-flag="calculate-mask">
+					<description>
+						Calculate FinDer mask according to scfinder configuration (i.e.,
+						FinDer "MASK_STATION_DISTANCE" and scfinder "streams.whitelist" 
+						and "streams.blacklist"), output in specified path, and exit.
+					</description>
+				</option>
 			</group>
 		</command-line>
 	</module>
