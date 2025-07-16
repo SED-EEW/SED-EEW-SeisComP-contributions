@@ -39,4 +39,5 @@ Tutorials
    :maxdepth: 3
    
    /base/tuto-playbacks
+   /base/tuto-finder-mask
 
