@@ -74,11 +74,11 @@ Setup
     Note that two lists are actually displayed, and we are only interested in the second list that includes the station coordinates (increase the timeout as needed)::
 
         su sysop  # Run the seiscomp commands as the sysop user
-        timeout 3 seiscomp exec scfinder --debug --offline 2>&1
+        timeout -1 seiscomp exec scfinder --debug --offline 2>&1
     
     Capture a list of the stations coordinates::
     
-        timeout 3 seiscomp exec scfinder --debug --offline 2>&1 \
+        timeout -1 seiscomp exec scfinder --debug --offline 2>&1 \
             | grep "debug] + .* .*" | tr -d '\r' | awk '{print $6, $5}' > stations.xy
         exit  # To go back to the root user
 
@@ -90,7 +90,7 @@ Setup
 
     Run the mask generation script::
         
-        /opt/seiscomp/share/FinDer/makeFinderMask.sh stations.xy $MASK_STATION_DISTANCE
+        bash /opt/seiscomp/share/FinDer/makeFinderMask.sh stations.xy $MASK_STATION_DISTANCE
 
     (Optional) copy the mask image to host for visualization::
         
