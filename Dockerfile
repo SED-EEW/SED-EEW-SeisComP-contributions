@@ -1,6 +1,6 @@
-FROM amd64/debian:buster-slim
+FROM debian:bookworm-slim
 
-MAINTAINER Fred Massin  <fmassin@sed.ethz.ch>
+LABEL org.opencontainers.image.authors="Fred Massin <fmassin@sed.ethz.ch>, Thomas Planes <thomas.planes@sed.ethz.ch>"
 
 ENV    WORK_DIR /usr/local/src
 ENV INSTALL_DIR /opt/seiscomp
@@ -32,14 +32,14 @@ RUN echo 'force-unsafe-io' | tee /etc/dpkg/dpkg.cfg.d/02apt-speedup \
     && echo 'DPkg::Post-Invoke {"/bin/rm -f /var/cache/apt/archives/*.deb || true";};' | tee /etc/apt/apt.conf.d/no-cache \
     && apt-get update \
     && apt-get dist-upgrade -y --no-install-recommends \
-    && apt-get install -y \
+    && apt-get install -y --no-install-recommends \
     build-essential \
     festival \
     cmake \
     cmake-curses-gui \
     flex \
     g++ \
-    libgfortran4 \
+    libgfortran5 \
     libncurses5 \
     libncurses5-dev \
     gfortran \
@@ -50,30 +50,30 @@ RUN echo 'force-unsafe-io' | tee /etc/dpkg/dpkg.cfg.d/02apt-speedup \
     libboost-regex-dev \
     libboost-thread-dev \
     libboost-system-dev \
-    libboost-signals-dev \
     libboost-all-dev \
-    python \
-    python2.7 \
-    python-dbus-dev \
-    python-libxml2 \
-    python-numpy \
-    python-m2crypto \
-    python-dateutil \
+    python3 \
+    python3-dbus \
+    python3-libxml2 \
+    python3-numpy \
+    python3-m2crypto \
+    python3-dateutil \
     libghc-opengl-dev \
-    libqt4-opengl-dev \
-    libqtwebkit-dev \
+    qtbase5-dev \
+    qttools5-dev \
+    qttools5-dev-tools \
+    libqt5opengl5-dev \
+    libqt5svg5-dev \
+    libqt5webkit5 \
     default-libmysqlclient-dev \
     default-mysql-server \
     cmake-qt-gui \
     libcdio-dev \
-    libpython2.7 \
-    libpython2.7-dev \
-    libqt4-dev \
+    libpython3-dev \
     libsqlite3-dev \
     sqlite3 \
     libpq5 \
     libpq-dev \
-    python-twisted \
+    python3-twisted \
     libxml2 \
     libxml2-dev \
     openssh-server \
@@ -87,8 +87,8 @@ RUN echo 'force-unsafe-io' | tee /etc/dpkg/dpkg.cfg.d/02apt-speedup \
     # doc
     python3-sphinx \
     python3-pip \
-    && python3 -m pip install m2r \
-    && python3 -m pip install mistune==0.8.4
+    && python3 -m pip install --break-system-packages --no-cache-dir m2r mistune==0.8.4 \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install seiscomp
 RUN echo "Cloning base repository into $WORK_DIR/seiscomp" \
@@ -174,7 +174,7 @@ USER root
 
 RUN apt-get install -y python3-numpy
 
-RUN /etc/init.d/mysql start && \
+RUN mysqld_safe --skip-networking & \
     sleep 5 && \
     mysql -u root -e "CREATE DATABASE seiscomp" && \
     mysql -u root -e "CREATE USER 'sysop'@'localhost' IDENTIFIED BY 'sysop'" && \
