@@ -20,7 +20,7 @@ The setup of the FinDer Mask requires:
 
 .. warning::
 
-    The following steps will only work if you use a recent version of the finder docker image (downloaded after July X 2025).
+    The following steps will only work if you use a recent version of the finder docker image (downloaded after July 28 2025).
     Make sure to update you finder image as needed.   
 
 ..  
@@ -30,16 +30,13 @@ The setup of the FinDer Mask requires:
 Setup 
 -----
 
-#. Log into the docker container to access the configuration files and install a text editor of your choice::
+#. Log into the docker container to access the configuration files::
 
-    docker exec -w /home/sysop/.seiscomp -it finder bash
-    apt-get install vim
-    su sysop  # Switch to sysop user
+    docker exec -u sysop -w /home/sysop/.seiscomp -it finder bash
 
-#. Select the stations to enable or disable in ``scfinder.cfg``:
-    Set or edit the `streams.whitelist <https://docs.gempa.de/sed-eew/current/apps/scfinder.html#confval-streams.whitelist>`_ and
+#. Select the stations to enable or disable in ``scfinder.cfg`` (all the inventory is enabled by default):
+    Use vim to set or edit the `streams.whitelist <https://docs.gempa.de/sed-eew/current/apps/scfinder.html#confval-streams.whitelist>`_ and
     `streams.blacklist <https://docs.gempa.de/sed-eew/current/apps/scfinder.html#confval-streams.blacklist>`_ parameters. 
-
 
 #. (Optional) Change the default ``MASK_STATION_DISTANCE`` parameter:
     This parameter is defined in the ``finder.config`` file (default to 75.0 km) and will be used to generate the mask. You can adapt it according to your network density.
@@ -51,9 +48,9 @@ Setup
 
 #. Add the path to the new mask file in the ``finder.config`` configuration file:
     Set the ``REGIONAL_MASK`` parameter to: ``REGIONAL_MASK /home/sysop/.seiscomp/finder_mask.nc`` 
-    
-    .. 
-        (Optional) copy the mask file to host for later visualization::
+
+
+#. (Optional) Copy the mask file to host for later visualization::
         
         # From another terminal on host:
         docker cp finder:/home/sysop/.seiscomp/finder_mask.nc ./
