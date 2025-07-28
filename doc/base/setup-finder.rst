@@ -40,8 +40,6 @@ This requires `docker <https://docs.docker.com/engine/install/>`_ and ``ssh`` to
 Configuration 
 -------------
 
-#. Prepare the FinDer mask (coming soon).
-
 #. Configure :ref:`finder` based on the example in :file:`/usr/local/src/FinDer/config/finder.config`.  e.g.:: 
 
     # Basic docker configuration 
@@ -92,6 +90,8 @@ Configuration
     seiscomp-finder exec scconfig
 
 
+#. Prepare the FinDer mask (see :ref:`tutorial<FINDER_MASK>`).
+
 #. Backup your configuration::
     
     docker cp  finder:/home/sysop/.seiscomp/finder.config  myconf/ 
@@ -133,11 +133,6 @@ Operation
     docker exec -u 0 -it  finder /etc/init.d/ssh start 
     seiscomp-finder restart
 
-
-.. note::
-
-    After interrupting the testing of scfinder in debug mode, scfinder may keep running in the container. 
-    This will prevent any further execution of scfinder. In this case, you need to log into the finder container and kill the scfinder process.
 
 .. note::
     
