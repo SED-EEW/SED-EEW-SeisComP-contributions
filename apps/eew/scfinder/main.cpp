@@ -247,9 +247,10 @@ class App : public Client::StreamApplication {
 
 			commandline().addGroup("Offline");
 			commandline().addOption("Offline", "offline", "Do not connect to messaging, this implies --test");
-			commandline().addOption("Offline", "dump-config", "Show configuration in debug log and exits");
+			commandline().addOption("Offline", "dump-config", "Show configuration in debug log and exit");
 			commandline().addOption("Offline", "ts", "Start time of data acquisition time window, requires also --te", &_strTs, false);
 			commandline().addOption("Offline", "te", "End time of data acquisition time window, requires also --ts", &_strTe, false);
+			commandline().addOption("Offline", "calculate-mask", "Calculate FinDer mask according to FinDer and envelope configuration, output in specified path, and exit", &_strMask, false);
 
 			commandline().addGroup("Mode");
 			commandline().addOption("Mode", "playback", "Run in playback mode which means that the reference time is set to the timestamp to the latest record instead of systemtime (disables warning on delay)");
@@ -440,6 +441,9 @@ class App : public Client::StreamApplication {
 			if ( commandline().hasOption("dump-config") )
 				return true;
 
+			if ( commandline().hasOption("calculate-mask") )
+				return true;
+
 			_eewProc.showConfig();
 			_eewProc.showRules();
 
@@ -540,6 +544,11 @@ class App : public Client::StreamApplication {
 			// the Finder class destructor.
 			Finder::Nfinder = 0;
 
+			if ( commandline().hasOption("calculate-mask") ) {
+				if ( !Finder::Create_New_Mask(station_coord_list, _finderList, _strMask) )
+					return false;	
+			}
+
 			return true;
 		}
 
@@ -551,6 +560,16 @@ class App : public Client::StreamApplication {
 
 				_eewProc.showConfig();
 				_eewProc.showRules();
+
+				return true;
+			}
+
+			if ( commandline().hasOption("calculate-mask") ) {
+				StdoutOutput logChannel;
+				logChannel.subscribe(Logging::getComponentDebugs("EEWAMPS"));
+
+				if ( !initFinder() )
+					return false;				
 
 				return true;
 			}
@@ -1245,6 +1264,7 @@ class App : public Client::StreamApplication {
 		bool                           _playbackMode;
 		std::string                    _strTs;
 		std::string                    _strTe;
+		std::string                    _strMask;
 		std::string                    _magnitudeGroup;
 		std::string                    _strongMotionGroup;
 		std::string                    _finderConfig;

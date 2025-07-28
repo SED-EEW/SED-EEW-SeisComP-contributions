@@ -2,6 +2,10 @@
 
 ## Master
 
+* scfinder:
+   
+  * [#77](https://github.com/SED-EEW/SED-EEW-SeisComP-contributions/pull/77): Add option for computing the mask.
+
 ## tag 5.1.1.2025
 
 * Fix event data in unit test.  
