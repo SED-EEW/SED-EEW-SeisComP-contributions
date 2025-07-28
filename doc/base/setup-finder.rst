@@ -40,8 +40,6 @@ This requires `docker <https://docs.docker.com/engine/install/>`_ and ``ssh`` to
 Configuration 
 -------------
 
-#. Prepare the FinDer mask (coming soon).
-
 #. Configure :ref:`finder` based on the example in :file:`/usr/local/src/FinDer/config/finder.config`.  e.g.:: 
 
     # Basic docker configuration 
@@ -91,6 +89,8 @@ Configuration
     # Review and adjust configuration as needed
     seiscomp-finder exec scconfig
 
+
+#. Prepare the FinDer mask (see :ref:`tutorial<FINDER_MASK>`).
 
 #. Backup your configuration::
     
