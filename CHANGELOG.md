@@ -13,7 +13,9 @@
 * [#71](https://github.com/SED-EEW/SED-EEW-SeisComP-contributions/pull/71): Support API 17.  
 
 * Documentation
-
+  
+  * [#80](https://github.com/SED-EEW/SED-EEW-SeisComP-contributions/pull/80): Add mask to image conversion procedure in Mask tutorial section.
+  
   * [#79](https://github.com/SED-EEW/SED-EEW-SeisComP-contributions/pull/79): Create finder mask tutorial section.
   
   * [#75](https://github.com/SED-EEW/SED-EEW-SeisComP-contributions/pull/75): Create docker playback tutorial section and add extra finder setup infos.

@@ -41,7 +41,6 @@ Setup
 #. (Optional) Change the default ``MASK_STATION_DISTANCE`` parameter:
     This parameter is defined in the ``finder.config`` file (default to 75.0 km) and will be used to generate the mask. You can adapt it according to your network density.
 
-
 #. Generate the Mask by runing scfinder with the ``--calculate-mask`` option and the path to the output file::
 
     scfinder --calculate-mask ./finder_mask.nc --debug --offline
@@ -50,8 +49,26 @@ Setup
     Set the ``REGIONAL_MASK`` parameter to: ``REGIONAL_MASK /home/sysop/.seiscomp/finder_mask.nc`` 
 
 
-#. (Optional) Copy the mask file to host for later visualization::
-        
-        # From another terminal on host:
-        docker cp finder:/home/sysop/.seiscomp/finder_mask.nc ./
+Visualization 
+-------------
 
+#. Extract the grid boundaries from the mask file into variables (requires GMT)::
+
+    # You may need to adjust the commands depending on the GMT version
+    read minlon maxlon < <(gmt grdinfo finder_mask.nc | awk '/x_min:/ {print $3, $5}')
+    read minlat maxlat < <(gmt grdinfo finder_mask.nc | awk '/y_min:/ {print $3, $5}')
+
+#. Create a postscript image::
+
+    gmt psbasemap -Bpxa5f5 -Bpya5f5 -JM5.5i -R${minlon}/${maxlon}/${minlat}/${maxlat} -X2 -Y6 -P -K -V > mask.ps
+    gmt grdimage finder_mask.nc -JM5.5i -R${minlon}/${maxlon}/${minlat}/${maxlat}  -n+c -V -K -P -O -Q >> mask.ps
+    gmt pscoast -JM5.5i  -R${minlon}/${maxlon}/${minlat}/${maxlat} -W0.75p -Df -A10  -Na/0.75p -P -O -V >> mask.ps
+
+#. Copy the postscript file to the host for visualization::
+
+    # From a terminal on host
+    docker cp finder:/home/sysop/.seiscomp/mask.ps ./
+    
+#. Convert to pdf if needed (requires ghostscript)::
+    
+    gs -sDEVICE=pdfwrite -dNOPAUSE -dBATCH -sOutputFile=mask.pdf mask.ps
