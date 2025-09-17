@@ -167,7 +167,7 @@ EEW License
 
 The SeisComP EEW modules are free and open source. They are distributed
 under the GNU Affero General Public License (Free Software Foundation, version 3
-or later). For licence information on SED-ETHZ SeisComP EEW modules released
+or later). For licence information on ETHZ-SED SeisComP EEW modules released
 before SeisComP v4.0.0 see the Timeline in :ref:`EEW<EEW>`.
 
 References
