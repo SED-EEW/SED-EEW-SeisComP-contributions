@@ -65,7 +65,7 @@ source_suffix = ['.rst']
 master_doc = 'index'
 
 # General information about the project.
-project = u'SED-ETHZ EEW SeisComP contributions'
+project = u'ETHZ-SED EEW SeisComP contributions'
 copyright = u'2020, SED'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -257,7 +257,7 @@ def setup(app):
 # PDF settings
 pdf_stylesheets = ['sphinx', 'kerning', 'a4']
 pdf_documents = [
-    ('index', u'eew', u'SED-ETHZ EEW SeisComP contributions', u'SED'),
+    ('index', u'eew', u'ETHZ-SED SeisComP EEW contributions', u'SED'),
 ]
 
 pdf_appendices = []

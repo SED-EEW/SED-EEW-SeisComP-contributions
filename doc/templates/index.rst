@@ -9,7 +9,7 @@
 ESE modules documentation
 =========================
 
-This is the documentation for the SED-ETHZ EEW SeisComP modules.
+This is the documentation for the ETHZ-SED SeisComP EEW modules.
 
 .. _fig-EEW:
 
@@ -17,18 +17,18 @@ This is the documentation for the SED-ETHZ EEW SeisComP modules.
    :width: 100%
    :align: center
 
-   The SED-ETHZ SeisComP EEW modules (Massin, Clinton & Boese, 2021).
+   The ETHZ-SED SeisComP EEW modules (Massin, Clinton & Boese, 2021).
 
 About 
 -----
 
-Since 2021, the SED-ETHZ SeisComP EEW framework includes two EEW algorithms,
+Since 2021, the ETHZ-SED SeisComP EEW framework includes two EEW algorithms,
 the Virtual Seismologist and the Finite-Fault Rupture Detector. They are
 supported by generic pre-processing and post-processing modules. Their
 architecture is designed to be flexible and extensible to also include other
 EEW algorithms in the future.
 
-The architecture of the SED-ETHZ SeisComP EEW package is based on a common,
+The architecture of the ETHZ-SED SeisComP EEW package is based on a common,
 generic envelope processing library, compiled within the :ref:`sceewenv` module,
 that generates real-time envelope values for horizontal and vertical
 acceleration, velocity, and displacement from raw acceleration and velocity
@@ -62,8 +62,8 @@ Timeline
   of `scenvelope`, `scvsmag`, and `scvsmaglog`.
 - 2020, SeisComP v4.0.0: Licence for the VS modules changed from `SED Public
   License for Seiscomp Contributions`_ to `GNU Affero General Public License`_.
-- 2021: FinDer added to the SED-ETHZ SeisComP EEW package, modules repackaged,
-  from  SeisComP v4.6.0 in the `SED-ETHZ EEW SeisComP contributions package`_. Key 
+- 2021: FinDer added to the ETHZ-SED SeisComP EEW package, modules repackaged,
+  from  SeisComP v4.6.0 in the `ETHZ-SED SeisComP EEW contributions package`_. Key
   changes:
 
   1. `scfinder` module added.
@@ -101,4 +101,4 @@ Behr, Y., J. F. Clinton, C. Cauzzi, E. Hauksson, K. Jónsdóttir, C. G. Marius, 
 .. _`SED Public License for Seiscomp Contributions` : http://www.seismo.ethz.ch/static/seiscomp_contrib/license.txt
 .. _`Finite-Fault Rupture Detector` : http://www.seismo.ethz.ch/en/knowledge/earthquake-data-and-analysis-tools/EEW/finite-fault-rupture-detector-finder/
 .. _`Virtual Seismologist` : http://www.seismo.ethz.ch/en/knowledge/earthquake-data-and-analysis-tools/EEW/Virtual-Seismologist/
-.. _`SED-ETHZ EEW SeisComP contributions package` : https://github.com/SED-EEW/SED-EEW-SeisComP-contributions
+.. _`ETHZ-SED SeisComP EEW contributions package` : https://github.com/SED-EEW/SED-EEW-SeisComP-contributions
