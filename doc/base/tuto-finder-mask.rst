@@ -43,7 +43,7 @@ Setup
 
 #. Generate the Mask by runing scfinder with the ``--calculate-mask`` option and the path to the output file::
 
-    scfinder --calculate-mask ./finder_mask.nc --debug --offline
+    scfinder --calculate-mask /home/sysop/.seiscomp/finder_mask.nc --debug --offline
 
 #. Add the path to the new mask file in the ``finder.config`` configuration file:
     Set the ``REGIONAL_MASK`` parameter to: ``REGIONAL_MASK /home/sysop/.seiscomp/finder_mask.nc`` 
