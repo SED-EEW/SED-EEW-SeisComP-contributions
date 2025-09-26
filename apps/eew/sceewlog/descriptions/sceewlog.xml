@@ -276,7 +276,7 @@
 					Enable or disable FCM for using the eews2fcm interface.
 					</description>
 				</parameter>
-				<parameter name="topicnofication" type="boolean" default="false">
+				<parameter name="topicnotification" type="boolean" default="false">
 					<description>
 					Enable or disable FCM for topic notifications. It this case it is mandatory to provide the dataFile.
 					</description>
