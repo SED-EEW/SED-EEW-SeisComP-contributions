@@ -41,7 +41,7 @@ in :file:`global.cfg`:
 
 .. code-block:: sh
 
-   msgGroups = ENVELOPE, ...
+   defaultGroups = ${defaultGroups}, ENVELOPE
 
 and let *sceewenv* send the messages to the "ENVELOPE" group instead of
 "AMPLITUDE". Adjust :file:`sceewenv.cfg`:
