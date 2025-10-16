@@ -53,8 +53,8 @@ Users interested in EEW may decide to run both FinDer and VS together.
 :ref:`scvsmag` uses the preferred origin for VS magnitude computation, and it
 should not run on a FinDer origin. In order to run *scfinder* and 
 :ref:`scvsmag` on the same system, *scfinder* should be excluded from the 
-list of potential preferred origins. This can be achieved by excluding the 
-FinDer # *methodID* from preferred origins in the configuration of 
+list of potential preferred origins. This can be achieved by explicitely defining a 
+method priority list that does not include the FinDer *methodID* in the configuration of 
 :ref:`scevent`:
 
 .. code-block:: sh
