@@ -150,7 +150,7 @@ with the next configuration key-value pair:
   
 The following priorities are available:
 
-1. typeThresh
+1. magThresh
 2. likelihood
 3. Authors
 4. StationMagNumber
@@ -167,7 +167,7 @@ The *magThresh* prority is a list of minimal magnitude to be allowed for each ty
 
 .. code-block:: sh
    
-   magAssociation.typeThresh = Mfd:6.0,MVS:3.5,Mlv:2.5
+   magAssociation.magThresh = Mfd:6.0,MVS:3.5,Mlv:2.5
 
 For one specific update of an event, its magnitude type-value must be equal or higher than the listed ones to continue the evaluation. Otherwise, the evaluation ends and the evalution does not continue.
 

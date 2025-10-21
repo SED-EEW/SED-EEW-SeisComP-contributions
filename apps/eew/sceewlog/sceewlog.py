@@ -310,13 +310,13 @@ class Listener(seiscomp.client.Application):
             
         
         try:
-            tmpList = self.configGetStrings("magAssociation.typeThresh")
+            tmpList = self.configGetStrings("magAssociation.magThresh")
             self.assocMagTypeThresh = {}
             for tmp in tmpList:
                 magtype, magval = tmp.split(":")
                 self.assocMagTypeThresh[magtype] = float(magval)
         except:
-            seiscomp.logging.warning('Not possible to read magAssociation.typeThresh')
+            seiscomp.logging.warning('Not possible to read magAssociation.magThresh')
             seiscomp.logging.warning('setting default values: Mfd:6, MVS:3.5')
             self.assocMagTypeThresh = { "Mfd":6.0, "MVS": 3.5 }
         
