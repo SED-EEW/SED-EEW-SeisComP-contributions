@@ -221,7 +221,8 @@ When this is enable then two options are possible:
 
    FCM.topicnotification = true
 
-In this case the configuration file defined in *FCM.dataFile* must be provided and containing the firebase configuration. Additionally, the python libraries mentioned above must be installed. The configuration file includes the path to a service JSON (see the Firebase project console `Service JSON File`_), the broadcasted topic (notification topic), the project ID string (see `Project ID`_), and it controls (enable or disable) notification to Android, iOS and a legacy notification format.
+In this case the configuration file defined in *FCM.dataFile* must be provided and containing the firebase configuration. Additionally, the python libraries mentioned above must be installed. The configuration file includes the path to a service JSON (see the Firebase project console `Service JSON File`_), the broadcasted topic (notification topic), the project ID string (see `Project ID`_), and it controls (enable or disable) notification to Android and iOS.
+
 Below is an example how this file, referenced in the *FCM.dataFile*, looks like:
 
 .. code-block:: python 
@@ -235,8 +236,6 @@ Below is an example how this file, referenced in the *FCM.dataFile*, looks like:
    [ENABLED_OS]
    android = true
    ios = true
-   [SUPPORT_OLD_FORMAT]
-   oldformat = true
 
 2) For creating an **eew message dictionary**:
 

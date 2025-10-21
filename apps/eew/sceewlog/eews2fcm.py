@@ -73,7 +73,7 @@ class eews2fcm:
             self.topic = config.get('TOPICS', 'topic')
             self.serviceAccountFile = config.get('SERVICEFILE', 'servicefile')
             self.projectId = config.get('PROJECTID', 'projectid')
-            self.oldFormatSupport = config.getboolean("SUPPORT_OLD_FORMAT","oldformat") 
+            #self.oldFormatSupport = config.getboolean("SUPPORT_OLD_FORMAT","oldformat") 
             self.android = config.getboolean("ENABLED_OS","android")
             self.ios = config.getboolean("ENABLED_OS","ios")
         except:
