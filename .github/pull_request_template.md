@@ -16,7 +16,9 @@ _E.g., [sceewdump] adding new output format_
 Provide a clear and concise description of the changes proposed:  
 - _What does this pull request do?_  
 - _Why are these changes needed?_  
-- _How were these changes implemented?_  
+- _How were these changes implemented?_
+- Include a minimal description of the changes in the [CHANGELOG.md](https://github.com/SED-EEW/SED-EEW-SeisComP-contributions/blob/master/CHANGELOG.md) 🤓
+
 
 ## Testing
 Build tests will be ran automatically once the pull request is created. 😎
