@@ -252,7 +252,7 @@
 					just one or two. Listed comma separated.
 					</description>
 				</parameter>
-				<parameter name="typeThresh" type="string" default="Mfd:6,MVS:3.5">
+				<parameter name="magThresh" type="string" default="Mfd:6,MVS:3.5">
 					<description>
 					Set the minimum magnitude threshold values for each magnitude type configured in magTypes. 
 					</description>
