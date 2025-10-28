@@ -37,9 +37,6 @@ class eews2fcm:
     #language can be es-US or en-US. By default is es-US
     def __init__(self, worldCitiesFile, language = "es-US", fcmDataFile=None):
 
-        #this is the long string template for sending notification to apps with version less than 2.0.0
-        self.oldFormat = '''%EVTID%;%MAG%;%DEPTH%;%LAT%;%LON%;%LIKELIHOOD%;%ORTIME%;%TIMENOW%;NULL;%AGENCY%;%STATUS%;%TYPE%;%LOCATION%;%ORID%;%MAGID%;%STAMAGNUM%;%TIME_NOWMS%;%DISTANCE%'''
-
         self.fcmDataFile = fcmDataFile
         self.authKey = ''
         self.topic = ''
@@ -51,7 +48,6 @@ class eews2fcm:
         self.distance = 0
         self.projectId = "" 
         self.serviceAccountFile = ""
-        self.oldFormatSupport = False
         self.android = True
         self.ios = True
 
@@ -73,7 +69,6 @@ class eews2fcm:
             self.topic = config.get('TOPICS', 'topic')
             self.serviceAccountFile = config.get('SERVICEFILE', 'servicefile')
             self.projectId = config.get('PROJECTID', 'projectid')
-            #self.oldFormatSupport = config.getboolean("SUPPORT_OLD_FORMAT","oldformat") 
             self.android = config.getboolean("ENABLED_OS","android")
             self.ios = config.getboolean("ENABLED_OS","ios")
         except:
@@ -112,9 +107,6 @@ class eews2fcm:
         "location": "%LOCATION%",
         "numArrivals": "%STAMAGNUM%",
         "nearPlaceDist": "%DISTANCE%",
-        "message": "%OLDFORMAT%",
-        "title": "someOldformatTitle",
-        "body": "someOldformatBody",
         "magId": "%MAGID%"
         }
         
@@ -198,31 +190,7 @@ class eews2fcm:
         evtPayload["nearPlaceDist"] = str(self.distance)
         
         evtPayload["magId"] = prefMagID
-        
-        if self.oldFormatSupport:
-            oldMsg = self.oldFormat
-            oldMsg = oldMsg.replace("%EVTID%", evtid)
-            oldMsg = oldMsg.replace("%AGENCY%",agency)
-            oldMsg = oldMsg.replace("%MAG%",str(round(mag,1)))
-            oldMsg = oldMsg.replace("%DEPTH%",str(round(depth,1)))
-            oldMsg = oldMsg.replace("%LAT%",str(lat))
-            oldMsg = oldMsg.replace("%LON%",str(lon))
-            oldMsg = oldMsg.replace("%LIKELIHOOD%", likelihood )
-            oldMsg = oldMsg.replace("%ORTIME%", str(orTime))
-            oldMsg = oldMsg.replace("%TIMENOW%",str(now_seconds)) #exception: this is in seconds for old format
-            oldMsg = oldMsg.replace("%STATUS%","automatic")
-            oldMsg = oldMsg.replace("%TYPE%", "alert")
-            oldMsg = oldMsg.replace("%LOCATION%", location)
-            oldMsg = oldMsg.replace("%ORID%", prefOrID)
-            oldMsg = oldMsg.replace("%MAGID%", prefMagID)
-            oldMsg = oldMsg.replace("%STAMAGNUM%", str(numStaMag) )
-            oldMsg = oldMsg.replace("%TIME_NOWMS%",str(nowms))
-            oldMsg = oldMsg.replace("%DISTANCE%", str(self.distance) )
-            
-            evtPayload["message"]=oldMsg
-            evtPayload["body"]= "eqNotification"
-            evtPayload["title"]= "oldNotif"
-        
+       
         # Construct JSON request payload
         
         payload = {
