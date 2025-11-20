@@ -16,9 +16,15 @@
 
 #define SEISCOMP_COMPONENT VsMagnitude
 
+#include <seiscomp/core/version.h>
+#if SC_API_VERSION < SC_API_VERSION_CHECK(17, 0, 0)
 #include <seiscomp/logging/filerotator.h>
-#include <seiscomp/logging/channel.h>
 #include <seiscomp/logging/fd.h>
+#else
+#include <seiscomp/logging/output/filerotator.h>
+#include <seiscomp/logging/output/fd.h>
+#endif
+#include <seiscomp/logging/channel.h>
 #include <seiscomp/logging/log.h>
 
 #include <seiscomp/core/datamessage.h>
