@@ -6,6 +6,7 @@ Finite-Fault Rupture Detector
 
 Part of the :ref:`EEW<EEW>` package. 
 
+
 The FinDer software is distributed by the Swiss Seismological Service (SED) at 
 ETH Zurich. Access to the source code is limited to users who have an established 
 collaboration with the SED. In other cases, compiled binaries (in a docker image) 
@@ -118,3 +119,7 @@ Cauzzi, C., Behr, Y. D., Clinton, J., Kastli, P., Elia, L., & Zollo, A., 2016:
 
 .. _`Finite-Fault Rupture Detector` : http://www.seismo.ethz.ch/en/knowledge/earthquake-data-and-analysis-tools/EEW/finite-fault-rupture-detector-finder/
 .. _`Earthquake Early Warning Display` : https://github.com/SED-EEW/EEWD
+
+.. figure:: ../base/media/FinDer@200x.png
+    :width: 50%
+    :align: center

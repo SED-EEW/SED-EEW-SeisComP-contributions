@@ -5,6 +5,7 @@
    :align: center
    :target: http://www.seismo.ethz.ch/en/knowledge/earthquake-data-and-analysis-tools/EEW/software-and-algorithms/
 
+
 =========================
 ESE modules documentation
 =========================
@@ -102,3 +103,7 @@ Behr, Y., J. F. Clinton, C. Cauzzi, E. Hauksson, K. Jónsdóttir, C. G. Marius, 
 .. _`Finite-Fault Rupture Detector` : http://www.seismo.ethz.ch/en/knowledge/earthquake-data-and-analysis-tools/EEW/finite-fault-rupture-detector-finder/
 .. _`Virtual Seismologist` : http://www.seismo.ethz.ch/en/knowledge/earthquake-data-and-analysis-tools/EEW/Virtual-Seismologist/
 .. _`ETHZ-SED SeisComP EEW contributions package` : https://github.com/SED-EEW/SED-EEW-SeisComP-contributions
+
+.. figure:: base/media/ESE@200x.png
+   :width: 50%
+   :align: center
