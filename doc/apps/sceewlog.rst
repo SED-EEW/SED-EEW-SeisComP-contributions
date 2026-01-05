@@ -237,6 +237,9 @@ Below is an example how this file, referenced in the *FCM.dataFile*, looks like:
    ios = true
    [SUPPORT_OLD_FORMAT]
    oldformat = true
+   [EVENT_INFO]
+   save_evtinfo = true
+   collection_name = eqscollection
 
 2) For creating an **eew message dictionary**:
 
