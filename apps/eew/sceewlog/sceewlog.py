@@ -873,83 +873,96 @@ class Listener(seiscomp.client.Application):
         
         if self.udevt is not None:
             self.udevt.send( self.udevt.message_encoder( ep ) )
+            
+        # Calculate update index (0-based) for this specific event
+        # Count how many updates have been marked as 'eew' (alerts sent)
+        listUpdates = list( self.event_dict[evID]['updates'].values() )
+        numEEW = sum( d['eew'] for d in listUpdates )
+        # Current index is count - 1 (e.g., 1st alert -> count 1 -> index 0)
+        updateIndex = max(0, numEEW - 1)
         
-        if self.fcm and self.fcmTopicNotification:
-            self.moFcm.send( ep )
         
-        if self.fcm and self.fcmEewMessageComment:
-            # eew message will be sent to the messaging system and persist it in the db as a comment for the magnitude object.
-            try:
-                seiscomp.logging.debug(f"Creating and sending a comment type: eewmessage for the magnitude: {magID}")
-                
-                mag = self.cache.get(seiscomp.datamodel.Magnitude, magID)
-                
-                # Creating the message JSON
-                _message = self.moFcm.message_creator( ep )
-                _message_str = json.dumps( _message )
-                
-                # Comment
-                comment = seiscomp.datamodel.Comment();
-                
-                # ID
-                comment.setId("eewmessage")
-                
-                # attaching the string in text attribute of the comment object
-                comment.setText(str( _message_str ))
-                
-                #creation info
-                ci = seiscomp.datamodel.CreationInfo()
-                ci.setCreationTime(seiscomp.core.Time().GMT())
-                comment.setCreationInfo(ci)
-                
-                #adding the comment object to mag object
-                mag.add(comment)
-                
-                #Notifies
-                n = seiscomp.datamodel.Notifier(mag.publicID(), seiscomp.datamodel.OP_ADD, comment)
-                seiscomp.logging.debug("Notifier is enabled to send the alert message?: %s" % seiscomp.datamodel.Notifier.IsEnabled() )
-                msg = seiscomp.datamodel.NotifierMessage()
-                msg.attach(n)
-                a=self.connection().send( 'MAGNITUDE', msg )
-                seiscomp.logging.debug("Message comment sent? %s" % "Yes" if a else "No, failed" )
-            except Exception as e:
-                seiscomp.logging.error("There was an error while notifying a comment with the message dictionary for the app.")
-                seiscomp.logging.error("Error message: %s" % repr(e))
+        if self.fcm:
+            # Check and Save Event Info to Firestore if enabled
+            if self.moFcm and getattr(self.moFcm, 'saveEvtInfo', False):
+                self.moFcm.save_info(ep, updateIndex)
+
+            if self.fcmTopicNotification:
+                self.moFcm.send( ep )
+            
+            if self.fcmEewMessageComment:
+                # eew message will be sent to the messaging system and persist it in the db as a comment for the magnitude object.
+                try:
+                    seiscomp.logging.debug(f"Creating and sending a comment type: eewmessage for the magnitude: {magID}")
+                    
+                    mag = self.cache.get(seiscomp.datamodel.Magnitude, magID)
+                    
+                    # Creating the message JSON
+                    _message = self.moFcm.message_creator( ep )
+                    _message_str = json.dumps( _message )
+                    
+                    # Comment
+                    comment = seiscomp.datamodel.Comment();
+                    
+                    # ID
+                    comment.setId("eewmessage")
+                    
+                    # attaching the string in text attribute of the comment object
+                    comment.setText(str( _message_str ))
+                    
+                    #creation info
+                    ci = seiscomp.datamodel.CreationInfo()
+                    ci.setCreationTime(seiscomp.core.Time().GMT())
+                    comment.setCreationInfo(ci)
+                    
+                    #adding the comment object to mag object
+                    mag.add(comment)
+                    
+                    #Notifies
+                    n = seiscomp.datamodel.Notifier(mag.publicID(), seiscomp.datamodel.OP_ADD, comment)
+                    seiscomp.logging.debug("Notifier is enabled to send the alert message?: %s" % seiscomp.datamodel.Notifier.IsEnabled() )
+                    msg = seiscomp.datamodel.NotifierMessage()
+                    msg.attach(n)
+                    a=self.connection().send( 'MAGNITUDE', msg )
+                    seiscomp.logging.debug("Message comment sent? %s" % "Yes" if a else "No, failed" )
+                except Exception as e:
+                    seiscomp.logging.error("There was an error while notifying a comment with the message dictionary for the app.")
+                    seiscomp.logging.error("Error message: %s" % repr(e))
             
             
-        # Adding a comment on magnitude object with
-        # the number of times of EEW alert was sent (if enabled)
-        if self.fcm and self.eewComment:
-            try:
-                #counting how many EEW alerts were sent out
-                listUpdates = list( self.event_dict[evID]['updates'].values() )
-                numEEW = sum( d['eew'] for d in listUpdates )
-                #Notifying a comment about EEW on the magnitude object
-                mag = self.cache.get(seiscomp.datamodel.Magnitude, magID)
-                comment = seiscomp.datamodel.Comment();
-                comment.setId("EEW")
-                comment.setText(str(numEEW))
-                
-                #creation info
-                ci = seiscomp.datamodel.CreationInfo()
-                ci.setCreationTime(seiscomp.core.Time().GMT())
-                comment.setCreationInfo(ci)
-                
-                #adding the comment object to mag object
-                mag.add(comment)
-                
-                #Notifies
-                n = seiscomp.datamodel.Notifier(mag.publicID(), seiscomp.datamodel.OP_ADD, comment)
-                seiscomp.logging.debug("Notifier is enabled?: %s" % seiscomp.datamodel.Notifier.IsEnabled() )
-                msg = seiscomp.datamodel.NotifierMessage()
-                msg.attach(n)
-                a=self.connection().send( 'MAGNITUDE', msg )
-                seiscomp.logging.debug("Comment sent? %s" % "Yes" if a else "No, failed" )
-                seiscomp.logging.debug("EEW alert sent so far: %s" % str( numEEW ) )
-            except Exception as e:
-                seiscomp.logging.error("There was an error while notifying a comment with the Num of times that EEW alert were sent")
-                seiscomp.logging.error("Error message: %s" % repr(e))
-        
+            # Adding a comment on magnitude object with
+            # the number of times of EEW alert was sent (if enabled)
+            if self.eewComment:
+                try:
+                    #counting how many EEW alerts were sent out
+                    listUpdates = list( self.event_dict[evID]['updates'].values() )
+                    numEEW = sum( d['eew'] for d in listUpdates )
+                    #Notifying a comment about EEW on the magnitude object
+                    mag = self.cache.get(seiscomp.datamodel.Magnitude, magID)
+                    comment = seiscomp.datamodel.Comment();
+                    comment.setId("EEW")
+                    comment.setText(str(numEEW))
+                    
+                    #creation info
+                    ci = seiscomp.datamodel.CreationInfo()
+                    ci.setCreationTime(seiscomp.core.Time().GMT())
+                    comment.setCreationInfo(ci)
+                    
+                    #adding the comment object to mag object
+                    mag.add(comment)
+                    
+                    #Notifies
+                    n = seiscomp.datamodel.Notifier(mag.publicID(), seiscomp.datamodel.OP_ADD, comment)
+                    seiscomp.logging.debug("Notifier is enabled?: %s" % seiscomp.datamodel.Notifier.IsEnabled() )
+                    msg = seiscomp.datamodel.NotifierMessage()
+                    msg.attach(n)
+                    a=self.connection().send( 'MAGNITUDE', msg )
+                    seiscomp.logging.debug("Comment sent? %s" % "Yes" if a else "No, failed" )
+                    seiscomp.logging.debug("EEW alert sent so far: %s" % str( numEEW ) )
+                except Exception as e:
+                    seiscomp.logging.error("There was an error while notifying a comment with the Num of times that EEW alert were sent")
+                    seiscomp.logging.error("Error message: %s" % repr(e))
+            
 
 
 
@@ -1395,7 +1408,7 @@ class Listener(seiscomp.client.Application):
                 seiscomp.logging.debug('No alert for this origin and magnitude')
                 continue
             else:
-                seiscomp.logging.debug('Sending and alert....')
+                seiscomp.logging.debug('Sending alert....')
                 self.event_dict[evID]['updates'][updateno]['eew'] = True
                 #saving the last update sent or reported
                 self.event_dict[evID]['lastupdatesent'] = updateno 
