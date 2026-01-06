@@ -2,8 +2,11 @@
 
 ## Master
 
+* sceewlog:
+   * [#83](https://github.com/SED-EEW/SED-EEW-SeisComP-contributions/pull/83): Changed the "typeThresh" parameter name to "magThres" for consistency and understandability. Removed the parameter "oldformat" from FCM config (and related legacy code).
+
 * scfinder:
-   
+  
   * [#77](https://github.com/SED-EEW/SED-EEW-SeisComP-contributions/pull/77): Add option for computing the mask.
 
 ## tag 5.1.1.2025
