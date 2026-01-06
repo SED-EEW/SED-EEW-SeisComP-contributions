@@ -61,22 +61,21 @@ class eews2fcm:
         # Variables for Firestore Event Info
         self.saveEvtInfo = False
         self.collectionName = ""
-        self.db = None
+        self.dbFB = None
 
     def readFcmDataFile(self):
-        if os.path.exists( self.fcmDataFile ):
-            config = configparser.RawConfigParser()
-
-        else:
+        if not os.path.exists( self.fcmDataFile ):
             seiscomp.logging.error("the file %s does not exists" % self.fcmDataFile )
             return -1
 
+        config = configparser.RawConfigParser()
         try:
             config.read(self.fcmDataFile)
         except Exception as e:
             seiscomp.logging.error("Not possible to open %s " % self.fcmDataFile)
             return -1
 
+        # Read Mandatory Configuration
         try:
             self.topic = config.get('TOPICS', 'topic')
             self.serviceAccountFile = config.get('SERVICEFILE', 'servicefile')
@@ -84,28 +83,33 @@ class eews2fcm:
             self.oldFormatSupport = config.getboolean("SUPPORT_OLD_FORMAT","oldformat") 
             self.android = config.getboolean("ENABLED_OS","android")
             self.ios = config.getboolean("ENABLED_OS","ios")
-            
-            # Parsing new EVENT_INFO section
-            try:
-                self.saveEvtInfo = config.getboolean('EVENT_INFO', 'save_evtinfo')
-                self.collectionName = config.get('EVENT_INFO', 'collection_name')
-                
-                # Initialize Firestore if enabled
-                if self.saveEvtInfo:
-                    if not firebase_admin._apps:
-                        cred = credentials.Certificate(self.serviceAccountFile)
-                        firebase_admin.initialize_app(cred)
-                    self.db = firestore.client()
-                    seiscomp.logging.info(f"Firestore enabled. Collection: {self.collectionName}")
-            except Exception as e:
-                # If section is missing, default to False
-                self.saveEvtInfo = False
-                seiscomp.logging.debug("EVENT_INFO section not found or incomplete in FCM config. Firestore logging disabled.")
-        
         except Exception as er:
-            seiscomp.logging.error('Not possible to parse the configuration file.')
+            seiscomp.logging.error('Not possible to parse the configuration file (Mandatory sections).')
             seiscomp.logging.error("Error message: %s" % repr(er))
             return -1
+
+        # Read Optional EVENT_INFO Section 
+        try:
+            self.saveEvtInfo = config.getboolean('EVENT_INFO', 'save_evtinfo')
+            self.collectionName = config.get('EVENT_INFO', 'collection_name')
+            
+            # Initialize Firestore if enabled
+            if self.saveEvtInfo:
+                if not firebase_admin._apps:
+                    cred = credentials.Certificate(self.serviceAccountFile)
+                    firebase_admin.initialize_app(cred)
+                self.dbFB = firestore.client()
+                seiscomp.logging.info(f"Firestore enabled. Collection: {self.collectionName}")
+                
+        except Exception as e:
+            # If section is missing or incomplete, default to False.
+            # This is not a critical error, so we don't return -1.
+            self.saveEvtInfo = False
+            self.dbFB = None
+            seiscomp.logging.debug("EVENT_INFO section not found or incomplete in FCM config. Firestore logging disabled.")
+            
+        return 0
+        
     def get_access_token(self):
         """Retrieve a valid access token that can be used to authorize requests.
 
@@ -338,7 +342,7 @@ class eews2fcm:
         Saves earthquake information to a Firestore collection.
         Updates are stored within a map 'eqInfo' keyed by the update index.
         """
-        if not self.db or not self.collectionName:
+        if not self.dbFB or not self.collectionName:
             return
 
         try:
@@ -379,7 +383,7 @@ class eews2fcm:
             evtid = firestore_safe_id(evtid)
             
             # Reference to the document: collection/eventid
-            doc_ref = self.db.collection(self.collectionName).document(evtid)
+            doc_ref = self.dbFB.collection(self.collectionName).document(evtid)
             
             #  merge=True to update existing document or create new one
             doc_ref.set(payload, merge=True)
