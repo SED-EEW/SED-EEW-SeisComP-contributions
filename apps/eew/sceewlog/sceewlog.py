@@ -879,9 +879,11 @@ class Listener(seiscomp.client.Application):
         if not self.fcm:
             return
         
+        # Get the total number of alerts sent so far (including this one)
+        numEEW = self.event_dict[evID]['alert_counter']
+        
         # Calculate update index (0-based) for this specific event
-        listUpdates = list( self.event_dict[evID]['updates'].values() )
-        numEEW = sum( d['eew'] for d in listUpdates )
+        # (for example: 1st alert -> count 1 -> index 0)
         updateIndex = max(0, numEEW - 1)
         
         # Check and Save Event Info to Firestore if enabled
@@ -1051,6 +1053,7 @@ class Listener(seiscomp.client.Application):
                 self.event_dict[evID]['alert'] = False
                 self.event_dict[evID]['lastupdatesent'] = None
                 self.event_dict[evID]['updates'] = {}
+                self.event_dict[evID]['alert_counter'] = 0
                 try:
                     self.event_dict[evID]['timestamp'] = \
                         evt.creationInfo().modificationTime()
@@ -1403,6 +1406,8 @@ class Listener(seiscomp.client.Application):
             else:
                 seiscomp.logging.debug('Sending alert....')
                 self.event_dict[evID]['updates'][updateno]['eew'] = True
+                self.event_dict[evID]['alert_counter'] += 1
+                 
                 #saving the last update sent or reported
                 self.event_dict[evID]['lastupdatesent'] = updateno 
                 self.event_dict[evID]['alert'] = True
