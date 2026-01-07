@@ -241,6 +241,35 @@ Below is an example how this file, referenced in the *FCM.dataFile*, looks like:
    save_evtinfo = true
    collection_name = eqscollection
 
+
+The parameters in this configuration file are defined as follows:
+
+**[TOPICS]**
+
+* ``topic``: The name of the Firebase Cloud Messaging topic that mobile applications subscribe to. Alerts sent to this topic will be broadcast to all subscribed devices.
+
+**[SERVICEFILE]**
+
+* ``servicefile``: The absolute path to the Firebase Service Account private key JSON file. This file is required to authenticate the module with the Google/Firebase API.
+
+**[PROJECTID]**
+
+* ``projectid``: The unique identifier of your Firebase project.
+
+**[ENABLED_OS]**
+
+* ``android``: Boolean flag (``true`` or ``false``) to enable or disable sending push notifications to Android devices.
+* ``ios``: Boolean flag (``true`` or ``false``) to enable or disable sending push notifications to iOS devices.
+
+**[SUPPORT_OLD_FORMAT]**
+
+* ``oldformat``: Boolean flag (``true`` or ``false``). If set to ``true``, the notification payload will include a legacy string format in the ``message`` field to support older versions of the mobile application.
+
+**[EVENT_INFO]**
+
+* ``save_evtinfo``: Boolean flag (``true`` or ``false``). If set to ``true``, earthquake event parameters and their updates will be saved to a Firestore database.
+* ``collection_name``: The name of the Firestore collection where the event information will be stored. This parameter is only used if ``save_evtinfo`` is enabled. Documents within this collection will use the Event ID as the document name.
+
 2) For creating an **eew message dictionary**:
 
 
