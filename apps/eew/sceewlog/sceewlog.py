@@ -833,14 +833,13 @@ class Listener(seiscomp.client.Application):
 
     def sendAlert(self, magID):
         """
-        Send an alert to a UserDisplay, if one is configured
+        Send an alert to EEWD or FCM, if one is configured
         """
         if (self.udevt is None and 
             not self.fcm and 
             not self.eewComment):
             return
         
-
         seiscomp.logging.debug("Sending an alert for magnitude %s " % magID)
         orgID = self.origin_lookup[magID]
         evID = self.event_lookup[orgID]
@@ -871,13 +870,31 @@ class Listener(seiscomp.client.Application):
         else:
             seiscomp.logging.debug("Cannot find origin %s in cache." % orgID)
         
+        # Send to EEWD (ActiveMQ)
         if self.udevt is not None:
             self.udevt.send( self.udevt.message_encoder( ep ) )
         
-        if self.fcm and self.fcmTopicNotification:
+        # Check if FCM is enabled. If not, stop here.
+        
+        if not self.fcm:
+            return
+        
+        # Get the total number of alerts sent so far (including this one)
+        numEEW = self.event_dict[evID]['alert_counter']
+        
+        # Calculate update index (0-based) for this specific event
+        # (for example: 1st alert -> count 1 -> index 0)
+        updateIndex = max(0, numEEW - 1)
+        
+        # Check and Save Event Info to Firestore if enabled
+        if self.moFcm and getattr(self.moFcm, 'saveEvtInfo', False):
+            self.moFcm.save_info(ep, updateIndex)
+
+        # Send Topic Notification through FCM if enabled
+        if self.fcmTopicNotification:
             self.moFcm.send( ep )
         
-        if self.fcm and self.fcmEewMessageComment:
+        if self.fcmEewMessageComment:
             # eew message will be sent to the messaging system and persist it in the db as a comment for the magnitude object.
             try:
                 seiscomp.logging.debug(f"Creating and sending a comment type: eewmessage for the magnitude: {magID}")
@@ -890,11 +907,7 @@ class Listener(seiscomp.client.Application):
                 
                 # Comment
                 comment = seiscomp.datamodel.Comment();
-                
-                # ID
                 comment.setId("eewmessage")
-                
-                # attaching the string in text attribute of the comment object
                 comment.setText(str( _message_str ))
                 
                 #creation info
@@ -915,15 +928,12 @@ class Listener(seiscomp.client.Application):
             except Exception as e:
                 seiscomp.logging.error("There was an error while notifying a comment with the message dictionary for the app.")
                 seiscomp.logging.error("Error message: %s" % repr(e))
-            
-            
+        
+        
         # Adding a comment on magnitude object with
         # the number of times of EEW alert was sent (if enabled)
-        if self.fcm and self.eewComment:
+        if self.eewComment:
             try:
-                #counting how many EEW alerts were sent out
-                listUpdates = list( self.event_dict[evID]['updates'].values() )
-                numEEW = sum( d['eew'] for d in listUpdates )
                 #Notifying a comment about EEW on the magnitude object
                 mag = self.cache.get(seiscomp.datamodel.Magnitude, magID)
                 comment = seiscomp.datamodel.Comment();
@@ -949,8 +959,6 @@ class Listener(seiscomp.client.Application):
             except Exception as e:
                 seiscomp.logging.error("There was an error while notifying a comment with the Num of times that EEW alert were sent")
                 seiscomp.logging.error("Error message: %s" % repr(e))
-        
-
 
 
     def handleMagnitude(self, magnitude, parentID):
@@ -1045,6 +1053,7 @@ class Listener(seiscomp.client.Application):
                 self.event_dict[evID]['alert'] = False
                 self.event_dict[evID]['lastupdatesent'] = None
                 self.event_dict[evID]['updates'] = {}
+                self.event_dict[evID]['alert_counter'] = 0
                 try:
                     self.event_dict[evID]['timestamp'] = \
                         evt.creationInfo().modificationTime()
@@ -1395,8 +1404,10 @@ class Listener(seiscomp.client.Application):
                 seiscomp.logging.debug('No alert for this origin and magnitude')
                 continue
             else:
-                seiscomp.logging.debug('Sending and alert....')
+                seiscomp.logging.debug('Sending alert....')
                 self.event_dict[evID]['updates'][updateno]['eew'] = True
+                self.event_dict[evID]['alert_counter'] += 1
+                 
                 #saving the last update sent or reported
                 self.event_dict[evID]['lastupdatesent'] = updateno 
                 self.event_dict[evID]['alert'] = True
