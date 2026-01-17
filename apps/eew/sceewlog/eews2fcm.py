@@ -380,7 +380,7 @@ class eews2fcm:
             }
             
             # Using the safe Firestore ID name for the document
-            evtid = firestore_safe_id(evtid)
+            evtid = self.firestore_safe_id(evtid)
             
             # Reference to the document: collection/eventid
             doc_ref = self.dbFB.collection(self.collectionName).document(evtid)
