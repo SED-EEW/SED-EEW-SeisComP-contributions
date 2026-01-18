@@ -358,7 +358,7 @@ class eews2fcm:
             lon = origin.longitude().value()
             depth = origin.depth().value()
             orTime = origin.time().value().seconds() # Epoch seconds
-            now = time.time() 
+            now = time.time()*1000 
             
             # Prepare the dictionary for this specific update
             update_data = {
@@ -367,7 +367,7 @@ class eews2fcm:
                 "latitude": float(lat),
                 "longitude": float(lon),
                 "origintime": int(orTime),
-                "senttime": now,
+                "senttime": int(now),
                 "updatenumber": int(updateIndex)
             }
 
