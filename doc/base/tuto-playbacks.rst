@@ -40,12 +40,7 @@ For the scpbd docker image (unrestricted access)::
 And for the finder docker image (restricted access)::
 
     IMAGE="ghcr.io/sed-eew/finder"
-    TAG="v5.5.3.multipolygon"
-
-.. note::
-    The version of the finder docker image for playback (``TAG="v5.5.3.multipolygon"``) is currently different than the one 
-    for :ref:`real time monitoring<DOCKERFINDER>` (``TAG="master"``).
-    This will change shortly as we update all our playback containers to the latest SeisComP version.
+    TAG="latest"
 
 #. First make sure to `authenticate to the container registry <https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry>`_. You need to generate a new Token (classic) from your github account with the ``read:packages`` option enabled:: 
 
