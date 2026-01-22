@@ -91,6 +91,7 @@ Configuration
 #. Import your own configuration in the user directory. These can be your `.cfg` files, bindings, `finder.config`, and finder mask::
     
     docker cp <path to your config file> scpbd:/home/sysop/.seiscomp/
+    # nb: do not override scmaster.cfg and global parameters unless you know what you are doing
 
 #. Revise the default configuration::
     
