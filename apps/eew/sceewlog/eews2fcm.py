@@ -393,7 +393,7 @@ class eews2fcm:
             seiscomp.logging.error(f"Error saving event info to Firestore: {e}")
             
             
-    def firestore_safe_id(doc_id):
+    def firestore_safe_id(self, doc_id):
         doc_id = doc_id.strip()
         doc_id = doc_id.rsplit("/", 1)[-1]     # remove path
         doc_id = re.sub(r'[\x00-\x1F]', '', doc_id)  # remove control chars
