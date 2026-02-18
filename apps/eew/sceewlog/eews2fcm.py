@@ -33,6 +33,7 @@ import concurrent.futures
 import firebase_admin
 from firebase_admin import credentials, firestore
 import uuid
+from re import sub
 
 
 class eews2fcm:
@@ -396,8 +397,8 @@ class eews2fcm:
     def firestore_safe_id(self, doc_id):
         doc_id = doc_id.strip()
         doc_id = doc_id.rsplit("/", 1)[-1]     # remove path
-        doc_id = re.sub(r'[\x00-\x1F]', '', doc_id)  # remove control chars
-        doc_id = re.sub(r'\s+', '_', doc_id) # join with _ char in case of empty spaces.
+        doc_id = sub(r'[\x00-\x1F]', '', doc_id)  # remove control chars
+        doc_id = sub(r'\s+', '_', doc_id) # join with _ char in case of empty spaces.
     
         if doc_id in {"", ".", ".."}:
              seiscomp.logging.error(f"Invalid Firestore document ID: {doc_id}. Setting this to UUID of 8 characters")
