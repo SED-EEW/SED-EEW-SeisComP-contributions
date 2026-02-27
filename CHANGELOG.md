@@ -3,7 +3,7 @@
 ## Master
 
 * sceewlog
-   * [#XX] Update latest_event initial value to comply with seiscomp 7 API and avoid crash
+   * [#87] Update latest_event initial value to comply with seiscomp 7 API and avoid crash
 
 * Documentation:
    
