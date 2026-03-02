@@ -2,6 +2,9 @@
 
 ## Master
 
+* sceewlog
+   * [#87] Update latest_event initial value to comply with seiscomp 7 API and avoid crash
+
 * Documentation:
    
    * [#86] Update finder playback image tag to "latest" and warn against config overrides.

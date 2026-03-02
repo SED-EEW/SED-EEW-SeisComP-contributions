@@ -47,7 +47,7 @@ class Listener(seiscomp.client.Application):
         self.origin_lookup = {}
         self.event_lookup = {}
         self.received_comments = []
-        self.latest_event = seiscomp.core.Time.Null
+        self.latest_event = seiscomp.core.Time() # defaults to 01.01.1970
         # report settings
         self.storeReport = False
         self.ei = seiscomp.system.Environment.Instance()
