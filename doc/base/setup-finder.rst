@@ -13,7 +13,7 @@ This requires `docker <https://docs.docker.com/engine/install/>`_ and ``ssh`` to
 
 #. Download the finder docker image (only once):: 
 
-    docker pull ghcr.io/sed-eew/finder:master 
+    docker pull ghcr.io/sed-eew/finder:latest 
 
 #. Start the docker (only once or when updating docker image. For old docker versions: replace ``host-gateway`` by ``$(ip addr show docker0 | grep -Po 'inet \K[\d.]+')``): 
    
@@ -28,7 +28,7 @@ This requires `docker <https://docs.docker.com/engine/install/>`_ and ``ssh`` to
         -p 9878:22 \
         -v finder:/home/sysop \
         --name finder \
-        ghcr.io/sed-eew/finder:master
+        ghcr.io/sed-eew/finder:latest
 
 
 #. Setup ``ssh`` authentification key (see ``ssh-keygen``) and define a shortcut function to manage :ref:`scfinder` (and SeisComP) inside the docker container (once per host session, or add to your :file:`.profile` or :file:`.bashrc` to make it permanent):: 
