@@ -6,7 +6,9 @@
    * [#87] Update latest_event initial value to comply with seiscomp 7 API and avoid crash
 
 * Documentation:
-   
+
+   * [#88] Update finder image tag from 'master' to 'latest' in Finder setup section
+
    * [#86] Update finder playback image tag to "latest" and warn against config overrides.
 
 * scfinder:
