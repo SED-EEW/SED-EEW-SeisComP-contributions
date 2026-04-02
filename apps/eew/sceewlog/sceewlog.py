@@ -54,7 +54,7 @@ class Listener(seiscomp.client.Application):
         self.report_head = "                                                                   |#St.   |                                                              \n"
         self.report_head += "Tdiff |Type|Mag.|Lat.  |Lon.   |Depth |origin time (UTC)      |Lik.|Or.|Ma.|Str.|Len. |Author   |Creation t.            |Tdiff(current o.)\n"
         self.report_head += "-"*int(len(self.report_head)/2-1) + "\n"
-        self.report_directory = os.path.join(self.ei.logDir(), 'EEW_reports')
+        self.report_directory = os.path.join(self.ei.logDir(), 'ESE_reports')
         # email settings
         self.sendemail = True
         self.smtp_server = None
