@@ -3,6 +3,9 @@
 ## Master
 
 * sceewlog
+
+   * [#89] Change default report dir from VS_reports to ESE_reports
+
    * [#87] Update latest_event initial value to comply with seiscomp 7 API and avoid crash
 
 * Documentation:
