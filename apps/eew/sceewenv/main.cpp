@@ -75,6 +75,7 @@ class App : public Client::StreamApplication {
 
 			commandline().addGroup("Streams");
 			commandline().addOption("Streams", "dump", "Dump all processed streams as mseed to stdout");
+			commandline().addOption("Streams", "dump-envelope", "Dump the envelopes as mseed to stdout");
 
 			commandline().addOption("Messaging", "test", "Test mode, no messages are sent");
 
@@ -127,12 +128,14 @@ class App : public Client::StreamApplication {
 				return false;
 
 			_testMode = commandline().hasOption("test");
+			_dumpEnvelope = commandline().hasOption("dump-envelope");
 
 			_creationInfo.setAgencyID(agencyID());
 			_creationInfo.setAuthor(author());
 
 			Processing::EEWAmps::Config eewCfg;
 			eewCfg.dumpRecords = commandline().hasOption("dump");
+			_dumpEnvelope = _dumpEnvelope || eewCfg.dumpRecords;
 
 			eewCfg.vsfndr.enable = true;
 
@@ -268,7 +271,7 @@ class App : public Client::StreamApplication {
 			if ( clipped ) val->setQuality(DataModel::VS::EnvelopeValueQuality(DataModel::VS::clipped));
 			cha->add(val.get());
 
-			if ( _eewProc.configuration().dumpRecords ) {
+			if ( _dumpEnvelope ) {
 				GenericRecord tmp;
 				tmp.setNetworkCode(proc->waveformID().networkCode());
 				tmp.setStationCode(proc->waveformID().stationCode());
@@ -343,6 +346,7 @@ class App : public Client::StreamApplication {
 		size_t                         _sentMessagesTotal;
 
 		bool                           _testMode;
+		bool                           _dumpEnvelope;
 
 		std::string                    _strTs;
 		std::string                    _strTe;
