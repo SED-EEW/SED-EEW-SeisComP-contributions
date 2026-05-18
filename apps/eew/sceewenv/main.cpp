@@ -75,6 +75,8 @@ class App : public Client::StreamApplication {
 
 			commandline().addGroup("Streams");
 			commandline().addOption("Streams", "dump", "Dump all processed streams as mseed to stdout");
+			commandline().addOption("Streams", "dump-envelope", "Dump the selected envelope type as "
+					"mseed to stdout. Valid envelope types are disp, vel or acc", &_dumpEnvelope, false);
 
 			commandline().addOption("Messaging", "test", "Test mode, no messages are sent");
 
@@ -268,24 +270,34 @@ class App : public Client::StreamApplication {
 			if ( clipped ) val->setQuality(DataModel::VS::EnvelopeValueQuality(DataModel::VS::clipped));
 			cha->add(val.get());
 
-			if ( _eewProc.configuration().dumpRecords ) {
+			if (_eewProc.configuration().dumpRecords ||
+			    (_dumpEnvelope == "disp" &&
+			     proc->signalUnit() == Processing::WaveformProcessor::Meter) ||
+			    (_dumpEnvelope == "vel" &&
+			     proc->signalUnit() == Processing::WaveformProcessor::MeterPerSecond) ||
+			    (_dumpEnvelope == "acc" &&
+			     proc->signalUnit() == Processing::WaveformProcessor::MeterPerSecondSquared)) {
 				GenericRecord tmp;
 				tmp.setNetworkCode(proc->waveformID().networkCode());
 				tmp.setStationCode(proc->waveformID().stationCode());
-				switch ( proc->signalUnit() ) {
-					case Processing::WaveformProcessor::Meter:
-						tmp.setLocationCode("ED");
-						break;
-					case Processing::WaveformProcessor::MeterPerSecond:
-						tmp.setLocationCode("EV");
-						break;
-					case Processing::WaveformProcessor::MeterPerSecondSquared:
-						tmp.setLocationCode("EA");
-						break;
-					default:
-						break;
+				if ( ! _eewProc.configuration().dumpRecords ) {
+					tmp.setLocationCode(proc->waveformID().locationCode());
 				}
-
+				else {
+					switch ( proc->signalUnit() ) {
+						case Processing::WaveformProcessor::Meter:
+							tmp.setLocationCode("ED");
+							break;
+						case Processing::WaveformProcessor::MeterPerSecond:
+							tmp.setLocationCode("EV");
+							break;
+						case Processing::WaveformProcessor::MeterPerSecondSquared:
+							tmp.setLocationCode("EA");
+							break;
+						default:
+							break;
+					}
+				}
 				if ( proc->usedComponent() != Processing::WaveformProcessor::Vertical )
 					tmp.setChannelCode(proc->waveformID().channelCode()+'X');
 				else
@@ -343,6 +355,7 @@ class App : public Client::StreamApplication {
 		size_t                         _sentMessagesTotal;
 
 		bool                           _testMode;
+		std::string                    _dumpEnvelope;
 
 		std::string                    _strTs;
 		std::string                    _strTe;
