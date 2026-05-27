@@ -117,6 +117,12 @@ class App : public Client::StreamApplication {
 				}
 			}
 
+			if ( !_dumpEnvelope.empty() && _dumpEnvelope != "disp" && 
+			     _dumpEnvelope != "vel" && _dumpEnvelope != "acc" ) {
+				cerr << "Invalid argument for --dump-envelope option" << endl;
+				return false;
+			}
+
 			if ( !isInventoryDatabaseEnabled() )
 				setDatabaseEnabled(false, false);
 
