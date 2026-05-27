@@ -169,7 +169,10 @@ class App : public Client::StreamApplication {
 			if ( _startTime.valid() ) recordStream()->setStartTime(_startTime);
 			if ( _endTime.valid() ) recordStream()->setEndTime(_endTime);
 
-			_eewProc.subscribeToChannels(recordStream(), Core::Time::GMT());
+			if ( _startTime.valid() )
+				_eewProc.subscribeToChannels(recordStream(), _startTime);
+			else
+				_eewProc.subscribeToChannels(recordStream(), Core::Time::GMT());
 
 			// We do not need lookup objects by publicID
 			DataModel::PublicObject::SetRegistrationEnabled(false);
