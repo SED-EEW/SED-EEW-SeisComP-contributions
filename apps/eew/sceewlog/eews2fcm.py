@@ -126,7 +126,7 @@ class eews2fcm:
     # Method to create the message dictionary for Firebase
     # It is necessary to provide as input the event parameter object (ep)
     # It will return the message dictonary,
-    def message_creator(self, ep ):
+    def message_creator(self, ep, update_number=0):
          
         evtPayload = {
         "notificationType": "eqNotification",
@@ -147,7 +147,8 @@ class eews2fcm:
         "message": "%OLDFORMAT%",
         "title": "someOldformatTitle",
         "body": "someOldformatBody",
-        "magId": "%MAGID%"
+        "magId": "%MAGID%",
+        "updateNumber": "0"
         }
         
         #The time to live for both ios and android is one day. TODO: add a new configuration file to get this value
@@ -231,6 +232,8 @@ class eews2fcm:
         
         evtPayload["magId"] = prefMagID
         
+        evtPayload["updateNumber"] = str(update_number)
+        
         if self.oldFormatSupport:
             oldMsg = self.oldFormat
             oldMsg = oldMsg.replace("%EVTID%", evtid)
@@ -291,14 +294,14 @@ class eews2fcm:
             
         return payload
         
-    def send( self, ep ):
+    def send( self, ep, update_number=0 ):
         # A thread pool executor to send the message asynchronously
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            future = executor.submit(self._send_message, ep)
+            future = executor.submit(self._send_message, ep, update_number)
     
-    def _send_message(self, ep):
+    def _send_message(self, ep, update_number):
         # getting the message dictionary
-        payload = self.message_creator(ep)
+        payload = self.message_creator(ep, update_number=update_number)
 
         # Send HTTP request with authorization
         accessToken = self.get_access_token()
