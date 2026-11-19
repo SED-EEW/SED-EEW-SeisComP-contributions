@@ -41,6 +41,12 @@
 	#include <seiscomp/datamodel/vs/vs_package.h>
 #endif
 
+#if SC_API_VERSION >= SC_API_VERSION_CHECK(17,0,0)
+	#define UTC_NOW Core::Time::UTC()
+#else
+	#define UTC_NOW Core::Time::GMT()
+#endif
+
 #include <functional>
 #include <string>
 
@@ -172,7 +178,7 @@ class App : public Client::StreamApplication {
 			if ( _startTime.valid() )
 				_eewProc.subscribeToChannels(recordStream(), _startTime);
 			else
-				_eewProc.subscribeToChannels(recordStream(), Core::Time::GMT());
+				_eewProc.subscribeToChannels(recordStream(), UTC_NOW);
 
 			// We do not need lookup objects by publicID
 			DataModel::PublicObject::SetRegistrationEnabled(false);
@@ -188,7 +194,7 @@ class App : public Client::StreamApplication {
 			RecordPtr tmp(rec);
 
 			// Clear the current envelope map
-			_creationInfo.setCreationTime(Core::Time::GMT());
+			_creationInfo.setCreationTime(UTC_NOW);
 
 			_eewProc.feed(rec);
 
@@ -329,13 +335,13 @@ class App : public Client::StreamApplication {
 			if ( commandline().hasOption("dump-config") )
 				return true;
 
-			_appStartTime = Core::Time::GMT();
+			_appStartTime = UTC_NOW;
 			return StreamApplication::run();
 		}
 
 
 		void done() {
-			Core::Time now = Core::Time::GMT();
+			Core::Time now = UTC_NOW;
 			int secs = (now-_appStartTime).seconds();
 			if ( !_testMode )
 				SEISCOMP_INFO("Sent %ld messages with an average of %d messages per second",

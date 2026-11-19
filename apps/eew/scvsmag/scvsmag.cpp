@@ -30,6 +30,14 @@ VsEquations vs;
 
 }
 
+
+#if SC_API_VERSION >= SC_API_VERSION_CHECK(17,0,0)
+	#define UTC_NOW Core::Time::UTC()
+#else
+	#define UTC_NOW Core::Time::GMT()
+#endif
+
+
 /*!
  \brief set up messaging and some default values at startup
  */
@@ -326,7 +334,7 @@ bool VsMagnitude::init() {
 	_timeline.init(_backSlots, _headSlots, _clipTimeout);
 
 	if ( _realtime ) {
-		_currentTime = Core::Time::GMT();
+		_currentTime = UTC_NOW;
 		_timeline.setReferenceTime(_currentTime);
 	}
 
@@ -350,7 +358,7 @@ bool VsMagnitude::init() {
 	_processingInfoOutput = new Logging::FdOutput(STDERR_FILENO);
 	_processingInfoOutput->subscribe(_processingInfoChannel);
 	SEISCOMP_LOG(_processingInfoChannel,
-			"scvsmag module started at %s", Core::Time::GMT().toString("%FT%T.%fZ").c_str());
+			"scvsmag module started at %s", UTC_NOW.toString("%FT%T.%fZ").c_str());
 
 	if ( _logenvelopes ){
 		_envelopeInfoChannel =
@@ -477,7 +485,7 @@ void VsMagnitude::handleMessage(Core::Message* msg) {
 
 void VsMagnitude::handleTimeout() {
 	if ( _realtime ) {
-		_currentTime = Core::Time::GMT();
+		_currentTime = UTC_NOW;
 		_timeline.setReferenceTime(_currentTime);
 		processEvents();
 	}
@@ -581,13 +589,13 @@ void VsMagnitude::handleEvent(Event *event) {
 		}
 		// set time to track how long it takes to estimate the magnitude
 		// and how long it took for the origin to arrive
-		vsevent->originArrivalTime = Core::Time::GMT();
+		vsevent->originArrivalTime = UTC_NOW;
 
 		try {
 			vsevent->originCreationTime = org->creationInfo().creationTime();
 		}
 		catch ( ... ) {
-			vsevent->originCreationTime = Core::Time::GMT();
+			vsevent->originCreationTime = UTC_NOW;
 			SEISCOMP_INFO("origin has no creationInfo or creationTime, setting originCreationTime to current time.");
 		}
 
@@ -874,7 +882,7 @@ void VsMagnitude::process(VsEvent *evt, Event *event) {
 
 		// Record single station magnitudes
 		Notifier::SetEnabled(true);
-		_creationInfo.setCreationTime(Core::Time::GMT()); // was "_currentTime);" before but didn't allow sub-second precision.
+		_creationInfo.setCreationTime(UTC_NOW); // was "_currentTime);" before but didn't allow sub-second precision.
 		_creationInfo.setModificationTime(Core::None);
 		DataModel::StationMagnitudePtr staMag = DataModel::StationMagnitude::Create();
 		staMag->setMagnitude(RealQuantity(input.mest));
@@ -1006,7 +1014,7 @@ void VsMagnitude::process(VsEvent *evt, Event *event) {
 	out << "creation time: " << _currentTime.toString("%FT%T.%2fZ");
 	out << "; origin time: " << evt->time.toString("%FT%T.%2fZ");
 	Core::TimeSpan difftime = _currentTime - evt->time;
-	Core::Time now = Core::Time::GMT();
+	Core::Time now = UTC_NOW;
 	Core::TimeSpan difftime_oa = now - evt->originArrivalTime;
 	Core::TimeSpan difftime_ct = now - evt->originCreationTime;
 	out << "; t-diff: " << difftime.length();
@@ -1088,7 +1096,7 @@ void VsMagnitude::updateVSMagnitude(Event *event, VsEvent *vsevt) {
 	}
 
 	Notifier::SetEnabled(true);
-	_creationInfo.setCreationTime(Core::Time::GMT()); // was "_currentTime);" before but didn't allow sub-second precision.
+	_creationInfo.setCreationTime(UTC_NOW); // was "_currentTime);" before but didn't allow sub-second precision.
 	_creationInfo.setModificationTime(Core::None);
 	_creationInfo.setVersion(Core::toString(vsevt->update));
 	MagnitudePtr nmag = Magnitude::Create();
@@ -1144,7 +1152,7 @@ bool VsMagnitude::setComments(Magnitude *mag, const std::string id,
 	cmt->setId(id);
 	cmt->setText(Core::toString(value));
 	CreationInfo ci;
-	ci.setCreationTime(Core::Time::GMT()); // was "_currentTime);" before but didn't allow sub-second precision.
+	ci.setCreationTime(UTC_NOW); // was "_currentTime);" before but didn't allow sub-second precision.
 	cmt->setCreationInfo(ci);
 
 	if ( !mag->add(cmt.get()) ) {
