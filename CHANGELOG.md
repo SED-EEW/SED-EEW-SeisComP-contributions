@@ -12,6 +12,8 @@
 
 * Documentation:
 
+   * [#96] Fix failing build of online doc by removing distutils dependency 
+
    * [#88] Update finder image tag from 'master' to 'latest' in Finder setup section
 
    * [#86] Update finder playback image tag to "latest" and warn against config overrides.
