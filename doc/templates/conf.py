@@ -11,8 +11,7 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-#from distutils.version import LooseVersion
-from packaging.version import Version
+from distutils.version import LooseVersion
 import sphinx
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -41,7 +40,7 @@ extensions = [
     'sphinx.ext.graphviz', 'sphinx_copybutton',
 ]
 
-if Version(sphinx.__version__) < Version('1.4'):
+if LooseVersion(sphinx.__version__) < LooseVersion('1.4'):
     extensions.append('sphinx.ext.pngmath')
 else:
     extensions.append('sphinx.ext.imgmath')
@@ -248,7 +247,7 @@ intersphinx_mapping = {'seiscomp':('https://www.seiscomp.de/doc/', None)}
 
 
 def setup(app):
-    if Version(sphinx.__version__) < Version('1.8'):
+    if LooseVersion(sphinx.__version__) < LooseVersion('1.8'):
         app.add_description_unit('confval', 'confval',
                                  'pair: %s; configuration value')
     else:
