@@ -41,13 +41,13 @@ void Timeline::init(int past, int future, int timeout) {
 }
 
 bool Timeline::setReferenceTime(const Core::Time &ref) {
-	if ( !_referenceTime.valid() ) {
+	if ( !_referenceTime ) {
 		_referenceTime = ref;
 		return true;
 	}
 
-	Core::TimeSpan diff = ref - _referenceTime;
-	if ( (double) diff < 0 )
+	Core::TimeSpan diff = ref - *_referenceTime;
+	if ( (double)diff < 0 )
 		return false;
 
 	int steps = diff.seconds();
@@ -65,7 +65,7 @@ int Timeline::StreamCount(){
 
  */
 bool Timeline::step(int secs) {
-	_referenceTime += Core::TimeSpan(secs, 0);
+	*_referenceTime += Core::TimeSpan(secs, 0);
 
 	Stations::iterator it;
 	for ( it = _stations.begin(); it != _stations.end(); ++it ) {
@@ -107,16 +107,16 @@ bool Timeline::feed(const DataModel::VS::Envelope *env) {
 	for ( size_t i = 0; i < env->envelopeChannelCount(); ++i ) {
 		DataModel::VS::EnvelopeChannel *cha = env->envelopeChannel(i);
 
-		int idx = (int) (env->timestamp() - _referenceTime).seconds()
+		int idx = (int) (env->timestamp() - *_referenceTime).seconds()
 				+ _backSlots;
 		if ( idx < 0 ) {
 			SEISCOMP_DEBUG(
-					"ignoring received envelope (too old, current time = %s)", _referenceTime.iso().c_str());
+					"ignoring received envelope (too old, current time = %s)", _referenceTime->iso().c_str());
 			continue;
 		}
 		if ( idx >= bufferSize ) {
 			SEISCOMP_DEBUG(
-					"ignoring received envelope (too far in the future, current time = %s, idx = %d, bufferSize = %d)", _referenceTime.iso().c_str(), idx, bufferSize);
+					"ignoring received envelope (too far in the future, current time = %s, idx = %d, bufferSize = %d)", _referenceTime->iso().c_str(), idx, bufferSize);
 			continue;
 		}
 
@@ -231,9 +231,9 @@ ReturnCode Timeline::maxmimum(const StationID &id, const Core::Time &start,
 		const Core::Time &end, const Core::Time &pick, Envelope &max_Z,
 		Core::Time &timeVertical, Envelope &max_H, Core::Time &timeHorizontal,
 		std::string &locationCode, std::string &channelCode) const {
-		int start_idx = (int) (start - _referenceTime).seconds() + _backSlots;
-		int end_idx = (int) (end - _referenceTime).seconds() + _backSlots;
-		int pick_idx = (int) (pick - _referenceTime).seconds() + _backSlots;
+		int start_idx = (int) (start - *_referenceTime).seconds() + _backSlots;
+		int end_idx = (int) (end - *_referenceTime).seconds() + _backSlots;
+		int pick_idx = (int) (pick - *_referenceTime).seconds() + _backSlots;
 		int bufferSize = _headSlots + _backSlots;
 
 	// Check if time window is completely outside the buffer
@@ -364,9 +364,9 @@ ReturnCode Timeline::maxmimum(const StationID &id, const Core::Time &start,
 			std::count(max_Hidx,max_Hidx+ValueTypeQuantity,-1) == 0 ) {
 			locationCode = sensorVEL->locationCode;
 			channelCode = sensorVEL->streamCode;
-			timeVertical = _referenceTime
+			timeVertical = *_referenceTime
 					+ Core::TimeSpan(max_idx - _backSlots, 0);
-			timeHorizontal = _referenceTime
+			timeHorizontal = *_referenceTime
 					+ Core::TimeSpan(max_idx - _backSlots, 0);
 			return no_problem;
 		}
@@ -429,9 +429,9 @@ ReturnCode Timeline::maxmimum(const StationID &id, const Core::Time &start,
 			std::count(max_Hidx,max_Hidx+ValueTypeQuantity,-1) == 0 ) {
 			locationCode = sensorACC->locationCode;
 			channelCode = sensorACC->streamCode;
-			timeVertical = _referenceTime
+			timeVertical = *_referenceTime
 					+ Core::TimeSpan(max_idx - _backSlots, 0);
-			timeHorizontal = _referenceTime
+			timeHorizontal = *_referenceTime
 					+ Core::TimeSpan(max_idx - _backSlots, 0);
 			return no_problem;
 		}
@@ -506,7 +506,7 @@ ReturnCode Timeline::pollbuffer(double epiclat, double epiclon, double dthresh,
 
 		// check whether sensor is within the distance threshold
 		DataModel::SensorLocation *loc;
-		loc = inv->getSensorLocation(it->first.first, it->first.second, locationCode, _referenceTime);
+		loc = inv->getSensorLocation(it->first.first, it->first.second, locationCode, *_referenceTime);
 		if ( loc == NULL ) {
 			SEISCOMP_WARNING(
 					"%s.%s.%s: sensor location not in inventory: ignoring", it->first.first.c_str(), it->first.second.c_str(), locationCode.c_str());

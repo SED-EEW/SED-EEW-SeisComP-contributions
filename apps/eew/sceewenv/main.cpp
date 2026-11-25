@@ -41,6 +41,12 @@
 	#include <seiscomp/datamodel/vs/vs_package.h>
 #endif
 
+#if SC_API_VERSION >= SC_API_VERSION_CHECK(17,0,0)
+	#define UTC_NOW Core::Time::UTC()
+#else
+	#define UTC_NOW Core::Time::GMT()
+#endif
+
 #include <functional>
 #include <string>
 
@@ -101,38 +107,45 @@ class App : public Client::StreamApplication {
 					return false;
 				}
 
-				if ( !_startTime.fromString(_strTs.c_str(), "%F %T") ) {
+				Core::Time tmp;
+				if ( !tmp.fromString(_strTs.c_str(), "%F %T") ) {
 					cerr << "Wrong start time format: expected %F %T, e.g. \"2010-01-01 12:00:00\"" << endl;
 					return false;
 				}
 
-				if ( !_endTime.fromString(_strTe.c_str(), "%F %T") ) {
+				_startTime = tmp;
+
+				if ( !tmp.fromString(_strTe.c_str(), "%F %T") ) {
 					cerr << "Wrong end time format: expected %F %T, e.g. \"2010-01-01 12:00:00\"" << endl;
 					return false;
 				}
 
-				if ( _startTime >= _endTime ) {
+				_endTime = tmp;
+
+				if ( *_startTime >= *_endTime ) {
 					cerr << "Acquisition time window is empty or of negative length" << endl;
 					return true;
 				}
 			}
 
-			if ( !_dumpEnvelope.empty() && _dumpEnvelope != "disp" && 
+			if ( !_dumpEnvelope.empty() && _dumpEnvelope != "disp" &&
 			     _dumpEnvelope != "vel" && _dumpEnvelope != "acc" ) {
 				cerr << "Invalid argument for --dump-envelope option" << endl;
 				return false;
 			}
 
-			if ( !isInventoryDatabaseEnabled() )
+			if ( !isInventoryDatabaseEnabled() ) {
 				setDatabaseEnabled(false, false);
+			}
 
 			return true;
 		}
 
 
 		bool init() {
-			if ( !StreamApplication::init() )
+			if ( !StreamApplication::init() ) {
 				return false;
+			}
 
 			_testMode = commandline().hasOption("test");
 
@@ -157,22 +170,30 @@ class App : public Client::StreamApplication {
 			                                  placeholders::_4));
 			_eewProc.setInventory(Client::Inventory::Instance()->inventory());
 
-			if ( !_eewProc.init(configuration(), "eewenv.") )
+			if ( !_eewProc.init(configuration(), "eewenv.") ) {
 				return false;
+			}
 
 			_eewProc.showConfig();
 			_eewProc.showRules();
 
-			if ( commandline().hasOption("dump-config") )
+			if ( commandline().hasOption("dump-config") ) {
 				return true;
+			}
 
-			if ( _startTime.valid() ) recordStream()->setStartTime(_startTime);
-			if ( _endTime.valid() ) recordStream()->setEndTime(_endTime);
+			if ( _startTime ) {
+				recordStream()->setStartTime(*_startTime);
+			}
+			if ( _endTime ) {
+				recordStream()->setEndTime(*_endTime);
+			}
 
-			if ( _startTime.valid() )
-				_eewProc.subscribeToChannels(recordStream(), _startTime);
-			else
-				_eewProc.subscribeToChannels(recordStream(), Core::Time::GMT());
+			if ( _startTime ) {
+				_eewProc.subscribeToChannels(recordStream(), *_startTime);
+			}
+			else {
+				_eewProc.subscribeToChannels(recordStream(), UTC_NOW);
+			}
 
 			// We do not need lookup objects by publicID
 			DataModel::PublicObject::SetRegistrationEnabled(false);
@@ -188,7 +209,7 @@ class App : public Client::StreamApplication {
 			RecordPtr tmp(rec);
 
 			// Clear the current envelope map
-			_creationInfo.setCreationTime(Core::Time::GMT());
+			_creationInfo.setCreationTime(UTC_NOW);
 
 			_eewProc.feed(rec);
 
@@ -329,13 +350,13 @@ class App : public Client::StreamApplication {
 			if ( commandline().hasOption("dump-config") )
 				return true;
 
-			_appStartTime = Core::Time::GMT();
+			_appStartTime = UTC_NOW;
 			return StreamApplication::run();
 		}
 
 
 		void done() {
-			Core::Time now = Core::Time::GMT();
+			Core::Time now = UTC_NOW;
 			int secs = (now-_appStartTime).seconds();
 			if ( !_testMode )
 				SEISCOMP_INFO("Sent %ld messages with an average of %d messages per second",
@@ -370,8 +391,8 @@ class App : public Client::StreamApplication {
 		std::string                    _strTe;
 
 		Core::Time                     _appStartTime;
-		Core::Time                     _startTime;
-		Core::Time                     _endTime;
+		OPT(Core::Time)                _startTime;
+		OPT(Core::Time)                _endTime;
 };
 
 

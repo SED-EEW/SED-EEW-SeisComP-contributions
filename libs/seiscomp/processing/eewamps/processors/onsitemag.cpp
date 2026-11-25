@@ -28,6 +28,13 @@
 #include "../config.h"
 
 
+#if SC_API_VERSION >= SC_API_VERSION_CHECK(17,0,0)
+	#define UTC_NOW Core::Time::UTC()
+#else
+	#define UTC_NOW Core::Time::GMT()
+#endif
+
+
 namespace Seiscomp {
 namespace Processing {
 namespace EEWAmps {
@@ -99,7 +106,7 @@ bool OnsiteMagnitudeProcessor::handle(const DataModel::Pick *pick) {
 	}
 	catch ( ... ) {}
 
-	Core::Time now = Core::Time::GMT();
+	Core::Time now = UTC_NOW;
 	Core::TimeSpan diff = now - pick->time().value();
 
 	if ( diff >= _config->omp.cutOffTime ) {
@@ -124,7 +131,7 @@ bool OnsiteMagnitudeProcessor::handle(const DataModel::Pick *pick) {
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 void OnsiteMagnitudeProcessor::process(const Record *rec, const DoubleArray &data) {
-	Core::Time now = Core::Time::GMT();
+	Core::Time now = UTC_NOW;
 
 	if ( !_stream.initialized ) {
 		SEISCOMP_INFO("%s: initializing OMP processor", rec->streamID().c_str());
@@ -268,7 +275,7 @@ void OnsiteMagnitudeProcessor::updateAndPublishTriggerAmplitudes(Trigger &trigge
 		// Window no yet complete
 		return;
 
-	Core::Time lastEndTime;
+	OPT(Core::Time) lastEndTime;
 	double integralVelocity = 0;
 	double integralDisplacement = 0;
 
@@ -288,14 +295,14 @@ void OnsiteMagnitudeProcessor::updateAndPublishTriggerAmplitudes(Trigger &trigge
 
 		int startSample;
 
-		if ( lastEndTime.valid() ) {
-			Core::TimeSpan diff = rec->startTime()-lastEndTime;
+		if ( lastEndTime ) {
+			Core::TimeSpan diff = rec->startTime() - *lastEndTime;
 			if ( diff >= gapTolerance() ) {
 				SEISCOMP_ERROR("%s: gap detected, abort tauC computation", rec->streamID().c_str());
 				break;
 			}
 
-			startSample = (lastEndTime - rec->startTime()).length() * rec->samplingFrequency();
+			startSample = (*lastEndTime - rec->startTime()).length() * rec->samplingFrequency();
 		}
 		else {
 			startSample = (trigger.time - rec->startTime()).length() * rec->samplingFrequency();

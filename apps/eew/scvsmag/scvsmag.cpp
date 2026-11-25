@@ -30,6 +30,14 @@ VsEquations vs;
 
 }
 
+
+#if SC_API_VERSION >= SC_API_VERSION_CHECK(17,0,0)
+	#define UTC_NOW Core::Time::UTC()
+#else
+	#define UTC_NOW Core::Time::GMT()
+#endif
+
+
 /*!
  \brief set up messaging and some default values at startup
  */
@@ -326,8 +334,8 @@ bool VsMagnitude::init() {
 	_timeline.init(_backSlots, _headSlots, _clipTimeout);
 
 	if ( _realtime ) {
-		_currentTime = Core::Time::GMT();
-		_timeline.setReferenceTime(_currentTime);
+		_currentTime = UTC_NOW;
+		_timeline.setReferenceTime(*_currentTime);
 	}
 
 	_creationInfo.setAgencyID(agencyID());
@@ -350,7 +358,7 @@ bool VsMagnitude::init() {
 	_processingInfoOutput = new Logging::FdOutput(STDERR_FILENO);
 	_processingInfoOutput->subscribe(_processingInfoChannel);
 	SEISCOMP_LOG(_processingInfoChannel,
-			"scvsmag module started at %s", Core::Time::GMT().toString("%FT%T.%fZ").c_str());
+			"scvsmag module started at %s", UTC_NOW.toString("%FT%T.%fZ").c_str());
 
 	if ( _logenvelopes ){
 		_envelopeInfoChannel =
@@ -426,10 +434,9 @@ void VsMagnitude::handleMessage(Core::Message* msg) {
 			string str;
 
 			if ( !_realtime ) {
-				if ( !_currentTime.valid()
-						|| vsenv->timestamp() > _currentTime ) {
+				if ( !_currentTime || (vsenv->timestamp() > *_currentTime) ) {
 					_currentTime = vsenv->timestamp();
-					_timeline.setReferenceTime(_currentTime);
+					_timeline.setReferenceTime(*_currentTime);
 					dirty = true;
 				}
 			}
@@ -439,7 +446,7 @@ void VsMagnitude::handleMessage(Core::Message* msg) {
 				const DataModel::WaveformStreamID &wid = chan->waveformID();
 
 				str = "Current time: ";
-				str += _currentTime.toString("%FT%T.%3fZ");
+				str += _currentTime->toString("%FT%T.%3fZ");
 				str += "; Envelope: timestamp: ";
 				str += vsenv->timestamp().toString("%FT%T.%3fZ");
 				str += " waveformID: ";
@@ -477,8 +484,8 @@ void VsMagnitude::handleMessage(Core::Message* msg) {
 
 void VsMagnitude::handleTimeout() {
 	if ( _realtime ) {
-		_currentTime = Core::Time::GMT();
-		_timeline.setReferenceTime(_currentTime);
+		_currentTime = UTC_NOW;
+		_timeline.setReferenceTime(*_currentTime);
 		processEvents();
 	}
 }
@@ -562,8 +569,8 @@ void VsMagnitude::handleEvent(Event *event) {
 	OriginPtr org = _cache.get<Origin>(event->preferredOriginID());
 	if ( !org ){
 		SEISCOMP_WARNING("Object %s not found in cache\nIs the cache size big enough?\n"
-							"Have you subscribed to all necessary message groups?",
-							event->preferredOriginID().c_str());
+		                 "Have you subscribed to all necessary message groups?",
+		                 event->preferredOriginID().c_str());
 		return;
 	}
 	/// search for the corresponding VsEvent in the cache
@@ -573,21 +580,21 @@ void VsMagnitude::handleEvent(Event *event) {
 		/// if not found, create a new VsEvent
 		vsevent = new VsEvent;
 		if ( _expirationTimeReference == "ct" ){
-			vsevent->expirationTime = _currentTime + Core::TimeSpan(_eventExpirationTime, 0);
+			vsevent->expirationTime = *_currentTime + Core::TimeSpan(_eventExpirationTime, 0);
 		} else if ( _expirationTimeReference == "ot" ){
 			vsevent->expirationTime = org->time().value() + Core::TimeSpan(_eventExpirationTime, 0);
-			if ( !(_currentTime < vsevent->expirationTime) )
+			if ( !(*_currentTime < vsevent->expirationTime) )
 				return;
 		}
 		// set time to track how long it takes to estimate the magnitude
 		// and how long it took for the origin to arrive
-		vsevent->originArrivalTime = Core::Time::GMT();
+		vsevent->originArrivalTime = UTC_NOW;
 
 		try {
 			vsevent->originCreationTime = org->creationInfo().creationTime();
 		}
 		catch ( ... ) {
-			vsevent->originCreationTime = Core::Time::GMT();
+			vsevent->originCreationTime = UTC_NOW;
 			SEISCOMP_INFO("origin has no creationInfo or creationTime, setting originCreationTime to current time.");
 		}
 
@@ -715,13 +722,13 @@ struct VsInput {
  \brief Process all events in the cache
  */
 void VsMagnitude::processEvents() {
-	_lastProcessingTime = _currentTime;
+	_lastProcessingTime = *_currentTime;
 	VsEvents::iterator it;
 	for ( it = _events.begin(); it != _events.end(); ) {
 		VsEvent *evt = it->second.get();
 		EventPtr event = _cache.get<Event>(it->first);
 		if ( event != NULL ) {
-			if ( _currentTime < evt->expirationTime ) {
+			if ( *_currentTime < evt->expirationTime ) {
 				process(evt, event.get());
 				// only send the message / update the database if the event has a VS magnitude
 				if ( evt->vsMagnitude ) {
@@ -734,7 +741,7 @@ void VsMagnitude::processEvents() {
 				if ( evt->vsMagnitude )
 					updateVSMagnitude(event.get(), evt);
 				_events.erase(it++);
-				_publishedEvents[event->publicID()] = _currentTime;
+				_publishedEvents[event->publicID()] = *_currentTime;
 				SEISCOMP_LOG(_processingInfoChannel,
 						"Processing of event %s is finished.", event->publicID().c_str());
 				// erase outdated events
@@ -742,7 +749,7 @@ void VsMagnitude::processEvents() {
 				for ( cev = _publishedEvents.begin();
 						cev != _publishedEvents.end(); ) {
 					if ( cev->second
-							< (_currentTime - Core::TimeSpan(_timeout, 0)) ) {
+							< (*_currentTime - Core::TimeSpan(_timeout, 0)) ) {
 						_publishedEvents.erase(cev++);
 						continue;
 					}
@@ -874,7 +881,7 @@ void VsMagnitude::process(VsEvent *evt, Event *event) {
 
 		// Record single station magnitudes
 		Notifier::SetEnabled(true);
-		_creationInfo.setCreationTime(Core::Time::GMT()); // was "_currentTime);" before but didn't allow sub-second precision.
+		_creationInfo.setCreationTime(UTC_NOW); // was "_currentTime);" before but didn't allow sub-second precision.
 		_creationInfo.setModificationTime(Core::None);
 		DataModel::StationMagnitudePtr staMag = DataModel::StationMagnitude::Create();
 		staMag->setMagnitude(RealQuantity(input.mest));
@@ -1003,10 +1010,10 @@ void VsMagnitude::process(VsEvent *evt, Event *event) {
 	out.str("");
 	SEISCOMP_LOG(_processingInfoChannel, "%s", resultstr.c_str());
 
-	out << "creation time: " << _currentTime.toString("%FT%T.%2fZ");
+	out << "creation time: " << _currentTime->toString("%FT%T.%2fZ");
 	out << "; origin time: " << evt->time.toString("%FT%T.%2fZ");
-	Core::TimeSpan difftime = _currentTime - evt->time;
-	Core::Time now = Core::Time::GMT();
+	Core::TimeSpan difftime = *_currentTime - evt->time;
+	Core::Time now = UTC_NOW;
 	Core::TimeSpan difftime_oa = now - evt->originArrivalTime;
 	Core::TimeSpan difftime_ct = now - evt->originCreationTime;
 	out << "; t-diff: " << difftime.length();
@@ -1076,19 +1083,19 @@ void VsMagnitude::process(VsEvent *evt, Event *event) {
  */
 void VsMagnitude::updateVSMagnitude(Event *event, VsEvent *vsevt) {
 	SEISCOMP_DEBUG(
-			"%s: %s: VS = %.4f", event->publicID().c_str(), _currentTime.toString("%FT%T.%fZ").c_str(), *vsevt->vsMagnitude);
+			"%s: %s: VS = %.4f", event->publicID().c_str(), _currentTime->toString("%FT%T.%fZ").c_str(), *vsevt->vsMagnitude);
 	SEISCOMP_DEBUG("Update number is %d", vsevt->update);
 
 	OriginPtr org = _cache.get<Origin>(event->preferredOriginID());
 	if ( org == NULL ) {
 		SEISCOMP_WARNING("Object %s not found in cache\nIs the cache size big enough?\n"
-							"Have you subscribed to all necessary message groups?",
-							event->preferredOriginID().c_str());
+		                 "Have you subscribed to all necessary message groups?",
+		                 event->preferredOriginID().c_str());
 		return;
 	}
 
 	Notifier::SetEnabled(true);
-	_creationInfo.setCreationTime(Core::Time::GMT()); // was "_currentTime);" before but didn't allow sub-second precision.
+	_creationInfo.setCreationTime(UTC_NOW); // was "_currentTime);" before but didn't allow sub-second precision.
 	_creationInfo.setModificationTime(Core::None);
 	_creationInfo.setVersion(Core::toString(vsevt->update));
 	MagnitudePtr nmag = Magnitude::Create();
@@ -1144,7 +1151,7 @@ bool VsMagnitude::setComments(Magnitude *mag, const std::string id,
 	cmt->setId(id);
 	cmt->setText(Core::toString(value));
 	CreationInfo ci;
-	ci.setCreationTime(Core::Time::GMT()); // was "_currentTime);" before but didn't allow sub-second precision.
+	ci.setCreationTime(UTC_NOW); // was "_currentTime);" before but didn't allow sub-second precision.
 	cmt->setCreationInfo(ci);
 
 	if ( !mag->add(cmt.get()) ) {

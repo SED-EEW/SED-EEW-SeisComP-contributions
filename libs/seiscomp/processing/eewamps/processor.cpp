@@ -300,7 +300,7 @@ bool Processor::init(const Seiscomp::Config::Config &conf,
 		_members->config.vsfndr.filterDisp = conf.getBool(configPrefix + "vsfndr.filterDisp");
 	}
 	catch ( ... ) {}
-	
+
 	try {
 		_members->config.vsfndr.filterCornerFreq = conf.getDouble(configPrefix + "vsfndr.filterCornerFreq");
 	}
@@ -398,7 +398,11 @@ bool Processor::feed(const Seiscomp::Record *rec) {
 		return false;
 
 	try {
+#if SC_API_VERSION >= SC_API_VERSION_CHECK(17,0,0)
+		Core::TimeSpan delay = Core::Time::UTC() - rec->endTime();
+#else
 		Core::TimeSpan delay = Core::Time::GMT() - rec->endTime();
+#endif
 		if ( delay > _members->config.maxDelay ) {
 			SEISCOMP_WARNING("%s: max delay exceeded: %fs",
 			                 rec->streamID().c_str(), (double)delay);

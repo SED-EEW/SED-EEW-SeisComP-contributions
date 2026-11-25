@@ -28,6 +28,13 @@
 #include "../config.h"
 
 
+#if SC_API_VERSION >= SC_API_VERSION_CHECK(17,0,0)
+	#define UTC_NOW Core::Time::UTC()
+#else
+	#define UTC_NOW Core::Time::GMT()
+#endif
+
+
 namespace Seiscomp {
 namespace Processing {
 namespace EEWAmps {
@@ -116,7 +123,7 @@ bool GbAProcessor::handle(const DataModel::Pick *pick) {
 	}
 	catch ( ... ) {}
 
-	Core::Time now = Core::Time::GMT();
+	Core::Time now = UTC_NOW;
 	Core::TimeSpan diff = now - pick->time().value();
 
 	if ( diff >= _config->gba.cutOffTime ) {
@@ -143,7 +150,7 @@ bool GbAProcessor::handle(const DataModel::Pick *pick) {
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 void GbAProcessor::process(const Record *rec, const DoubleArray &data) {
-	Core::Time now = Core::Time::GMT();
+	Core::Time now = UTC_NOW;
 
 	if ( !_stream.initialized ) {
 		SEISCOMP_INFO("%s: initializing GbA processor", rec->streamID().c_str());
