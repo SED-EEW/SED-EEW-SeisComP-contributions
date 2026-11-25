@@ -153,17 +153,21 @@ void GainAndBaselineCorrectionRecordFilter<T>::setSaturationThreshold(double thr
 template <typename T>
 Record *GainAndBaselineCorrectionRecordFilter<T>::feed(const Record *rec) {
 	if ( !checkEpoch(rec) ) {
-		if ( !queryEpoch(rec) ) return NULL;
+		if ( !queryEpoch(rec) ) {
+			return nullptr;
+		}
 	}
 
 	// This comparison should be safe because we assigned that value explicitely
-	if ( _gainCorrectionFactor == 0.0 )
-		return NULL;
+	if ( _gainCorrectionFactor == 0.0 ) {
+		return nullptr;
+	}
 
 	// No data, no conversion
 	const Array *sourceData = rec->data();
-	if ( sourceData == NULL )
-		return NULL;
+	if ( !sourceData ) {
+		return nullptr;
+	}
 
 #if SC_API_VERSION < SC_API_VERSION_CHECK(17,0,0)
 	typename Core::SmartPointer< NumericArray<T> >::Impl correctedData;
@@ -175,7 +179,7 @@ Record *GainAndBaselineCorrectionRecordFilter<T>::feed(const Record *rec) {
 	if ( !correctedData ) {
 		SEISCOMP_WARNING("[%s] cannot convert data to %s",
 		                 rec->streamID().c_str(), dispatchTypeStr<T>());
-		return NULL;
+		return nullptr;
 	}
 
 	int n = correctedData->size();
@@ -209,7 +213,7 @@ Record *GainAndBaselineCorrectionRecordFilter<T>::feed(const Record *rec) {
 
 	*correctedData *= _gainCorrectionFactor;
 
-	if ( _lastEndTime.valid() ) {
+	if ( _lastEndTime ) {
 		// If the sampling frequency changed, reset the filter
 		if ( _samplingFrequency != rec->samplingFrequency() ) {
 			SEISCOMP_WARNING("[%s] sps change (%f != %f): reset filter",
@@ -219,22 +223,22 @@ Record *GainAndBaselineCorrectionRecordFilter<T>::feed(const Record *rec) {
 			_taper.reset();
 #endif
 			_baselineCorrection.reset();
-			_lastEndTime = Core::Time();
+			_lastEndTime = Core::None;
 		}
 		else {
-			Core::TimeSpan diff = rec->startTime() - _lastEndTime;
+			Core::TimeSpan diff = rec->startTime() - *_lastEndTime;
 			// Overlap or gap does not matter, we need to reset the filter
 			// for non-continuous records
 			if ( fabs(diff.length()) > (0.5 / _samplingFrequency) ) {
 				SEISCOMP_DEBUG("[%s] discontinuity of %fs: reset filter",
 				               rec->streamID().c_str(), (double)diff);
 				_baselineCorrection.reset();
-				_lastEndTime = Core::Time();
+				_lastEndTime = Core::None;
 			}
 		}
 	}
 
-	if ( !_lastEndTime.valid() ) {
+	if ( !_lastEndTime ) {
 		_samplingFrequency = rec->samplingFrequency();
 #ifdef BASELINE_CORRECTION_WITH_TAPER
 		_taper.setSamplingFrequency(_samplingFrequency);
@@ -276,7 +280,7 @@ Record *GainAndBaselineCorrectionRecordFilter<T>::feed(const Record *rec) {
 template <typename T>
 Record *GainAndBaselineCorrectionRecordFilter<T>::flush() {
 	// Nothing to flush, each record is processed in-place
-	return NULL;
+	return nullptr;
 }
 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -287,10 +291,10 @@ Record *GainAndBaselineCorrectionRecordFilter<T>::flush() {
 template <typename T>
 void GainAndBaselineCorrectionRecordFilter<T>::reset() {
 	_gainCorrectionFactor = 0.0;
-	_currentEpoch = Core::TimeWindow();
+	_currentEpoch = {};
 
 	// Reset last end time
-	_lastEndTime = Core::Time();
+	_lastEndTime = Core::None;
 	_baselineCorrection.reset();
 }
 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -311,19 +315,35 @@ RecordFilterInterface *GainAndBaselineCorrectionRecordFilter<T>::clone() const {
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 template <typename T>
 bool GainAndBaselineCorrectionRecordFilter<T>::checkEpoch(const Record *rec) const {
-	if ( !_currentEpoch.startTime().valid() )
+#if SC_API_VERSION < SC_API_VERSION_CHECK(17, 0, 0)
+	if ( !_currentEpoch.startTime().valid() ) {
+#else
+	if ( !_currentEpoch.startTime() ) {
+#endif
 		return false;
+	}
 
 	Core::Time etime = rec->endTime();
 
 	// Left outside
-	if ( etime <= _currentEpoch.startTime() )
+#if SC_API_VERSION < SC_API_VERSION_CHECK(17, 0, 0)
+	if ( etime <= _currentEpoch.startTime() ) {
+#else
+	if ( etime <= *_currentEpoch.startTime() ) {
+#endif
 		return false;
+	}
 
 	// Right outside
+#if SC_API_VERSION < SC_API_VERSION_CHECK(17, 0, 0)
 	if ( _currentEpoch.endTime().valid() &&
-	     rec->startTime() >= _currentEpoch.endTime() )
+	     rec->startTime() >= _currentEpoch.endTime() ) {
+#else
+	if ( _currentEpoch.endTime() &&
+	     rec->startTime() >= *_currentEpoch.endTime() ) {
+#endif
 		return false;
+	}
 
 	return true;
 }
@@ -338,7 +358,7 @@ bool GainAndBaselineCorrectionRecordFilter<T>::queryEpoch(const Record *rec) {
 	SEISCOMP_DEBUG("[%s] Query inventory", rec->streamID().c_str());
 
 	// No inventory, no gain correction
-	if ( _inventory == NULL ) {
+	if ( !_inventory ) {
 		SEISCOMP_ERROR("[%s] no inventory set, cannot correct data",
 		               rec->streamID().c_str());
 		return false;
@@ -351,7 +371,7 @@ bool GainAndBaselineCorrectionRecordFilter<T>::queryEpoch(const Record *rec) {
 	                             rec->locationCode(), rec->channelCode(),
 	                             rec->startTime());
 
-	if ( model == NULL ) {
+	if ( !model ) {
 		SEISCOMP_WARNING("[%s] no metadata found for data starting at %s: discarded",
 		                 rec->streamID().c_str(),
 		                 rec->startTime().iso().c_str());
@@ -364,16 +384,26 @@ bool GainAndBaselineCorrectionRecordFilter<T>::queryEpoch(const Record *rec) {
 		_currentEpoch.setEndTime(model->end());
 	}
 	catch ( ... ) {
+		#if SC_API_VERSION < SC_API_VERSION_CHECK(17, 0, 0)
 		_currentEpoch.setEndTime(Core::Time());
+		#else
+		_currentEpoch.setEndTime(Core::None);
+		#endif
 	}
 
 	try {
 		_gainCorrectionFactor = 1.0 / model->gain();
 	}
 	catch ( ... ) {
+#if SC_API_VERSION < SC_API_VERSION_CHECK(17, 0, 0)
 		SEISCOMP_WARNING("[%s] no gain set for epoch starting at %s",
 		                 rec->streamID().c_str(),
 		                 _currentEpoch.startTime().iso().c_str());
+#else
+		SEISCOMP_WARNING("[%s] no gain set for epoch starting at %s",
+		                 rec->streamID().c_str(),
+		                 _currentEpoch.startTime()->iso().c_str());
+#endif
 		_gainCorrectionFactor = 0.0;
 		return false;
 	}

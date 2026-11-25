@@ -153,7 +153,7 @@ private:
 	EventIDBuffer _publishedEvents;
 	Timeline _timeline;
 	VsEvents _events;
-	Core::Time _currentTime;
+	OPT(Core::Time) _currentTime;
 	Core::Time _lastProcessingTime;
 	DataModel::CreationInfo _creationInfo;
 

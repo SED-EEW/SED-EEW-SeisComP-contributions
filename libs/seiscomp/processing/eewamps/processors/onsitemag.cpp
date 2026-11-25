@@ -275,7 +275,7 @@ void OnsiteMagnitudeProcessor::updateAndPublishTriggerAmplitudes(Trigger &trigge
 		// Window no yet complete
 		return;
 
-	Core::Time lastEndTime;
+	OPT(Core::Time) lastEndTime;
 	double integralVelocity = 0;
 	double integralDisplacement = 0;
 
@@ -295,14 +295,14 @@ void OnsiteMagnitudeProcessor::updateAndPublishTriggerAmplitudes(Trigger &trigge
 
 		int startSample;
 
-		if ( lastEndTime.valid() ) {
-			Core::TimeSpan diff = rec->startTime()-lastEndTime;
+		if ( lastEndTime ) {
+			Core::TimeSpan diff = rec->startTime() - *lastEndTime;
 			if ( diff >= gapTolerance() ) {
 				SEISCOMP_ERROR("%s: gap detected, abort tauC computation", rec->streamID().c_str());
 				break;
 			}
 
-			startSample = (lastEndTime - rec->startTime()).length() * rec->samplingFrequency();
+			startSample = (*lastEndTime - rec->startTime()).length() * rec->samplingFrequency();
 		}
 		else {
 			startSample = (trigger.time - rec->startTime()).length() * rec->samplingFrequency();

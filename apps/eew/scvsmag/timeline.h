@@ -88,7 +88,7 @@ struct Cell {
 	Envelope envelopes[ComponentQuantity];
 };
 
-typedef circular_buffer<Cell> Row; // see circular.h by Pete Goodliffe 
+typedef circular_buffer<Cell> Row; // see circular.h by Pete Goodliffe
 
 struct SensorBuffer {
 	SensorBuffer(size_t capacity) :
@@ -131,7 +131,7 @@ public:
 	bool setReferenceTime(const Core::Time &ref);
 
 	//! Returns the current reference time.
-	const Core::Time &referenceTime() const {
+	OPT(Core::Time) referenceTime() const {
 		return _referenceTime;
 	}
 
@@ -177,7 +177,7 @@ public:
 	 */
 	int StreamCount();
 private:
-	Core::Time _referenceTime;
+	OPT(Core::Time) _referenceTime;
 	Stations _stations;
 	int _headSlots;
 	int _backSlots;

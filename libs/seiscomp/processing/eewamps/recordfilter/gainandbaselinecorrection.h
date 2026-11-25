@@ -21,6 +21,7 @@
 
 
 #include <seiscomp/processing/eewamps/api.h>
+#include <seiscomp/core/version.h>
 #include <seiscomp/datamodel/inventory.h>
 #include <seiscomp/io/recordfilter.h>
 #include <seiscomp/math/filter/average.h>
@@ -135,10 +136,14 @@ class SC_LIBEEWAMPS_API GainAndBaselineCorrectionRecordFilter : public RecordFil
 #endif
 
 		const DataModel::Inventory      *_inventory;
+#if SC_API_VERSION < SC_API_VERSION_CHECK(17, 0, 0)
 		Core::TimeWindow                 _currentEpoch;
+#else
+		Core::OpenTimeWindow             _currentEpoch;
+#endif
 		double                           _gainCorrectionFactor;
 
-		Core::Time                       _lastEndTime;
+		OPT(Core::Time)                  _lastEndTime;
 		double                           _samplingFrequency;
 		double                           _saturationThreshold;
 		double                           _baselineCorrectionLength;
