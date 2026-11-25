@@ -143,8 +143,9 @@ class App : public Client::StreamApplication {
 
 
 		bool init() {
-			if ( !StreamApplication::init() )
+			if ( !StreamApplication::init() ) {
 				return false;
+			}
 
 			_testMode = commandline().hasOption("test");
 
@@ -169,14 +170,16 @@ class App : public Client::StreamApplication {
 			                                  placeholders::_4));
 			_eewProc.setInventory(Client::Inventory::Instance()->inventory());
 
-			if ( !_eewProc.init(configuration(), "eewenv.") )
+			if ( !_eewProc.init(configuration(), "eewenv.") ) {
 				return false;
+			}
 
 			_eewProc.showConfig();
 			_eewProc.showRules();
 
-			if ( commandline().hasOption("dump-config") )
+			if ( commandline().hasOption("dump-config") ) {
 				return true;
+			}
 
 			if ( _startTime ) {
 				recordStream()->setStartTime(*_startTime);
