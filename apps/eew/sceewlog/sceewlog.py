@@ -233,11 +233,11 @@ class Listener(seiscomp.client.Application):
                 self.fcmEewMessageComment = False
                 pass
         
-        if self.fcm and not self.fcmTopicNotification and not self.fcmEewMessageComment:
-            seiscomp.logging.error("When FCM is enable, it is necessary to have either fcm.topicnotification and/or fcm.eewmessagecomment equal to true. This is an error. Leaving...")
-            return False
-        
-        if self.fcm and ( self.fcmTopicNotification or self.fcmEewMessageComment ) :
+            if not self.fcmTopicNotification and not self.fcmEewMessageComment:
+                seiscomp.logging.error("Configuration Error: When FCM.activate is True, you must enable FCM.topicnotification and/or FCM.eewmessagecomment. Leaving...")
+                return False
+
+            # Initialize profiles and call the broker configuration
             self.profilesInitConfig()
             if self.assocMagActivate:
                 self.prioritiesInitConfig()
@@ -346,27 +346,23 @@ class Listener(seiscomp.client.Application):
         #loading cities and language
         self.locationAndLanguage()
         
-        if self.fcmTopicNotification:
-            try:
-                self.fcmDataFile = self.configGetString("FCM.dataFile")
-                seiscomp.logging.info('Data file that contains Authorization Key and topic is:\n %s\n' % self.fcmDataFile )
-            except:
-                seiscomp.logging.warning('Not possible to read FCM.dataFile')
-                seiscomp.logging.warning('Disabling FCM')
-                self.fcm = False
-                pass
-        
+        try:
+            self.fcmDataFile = self.configGetString("FCM.dataFile")
+            seiscomp.logging.info('Data file that contains Authorization Key and topic is:\n %s\n' % self.fcmDataFile )
+        except Exception as e:
+            seiscomp.logging.error('Not possible to read FCM.dataFile path from configuration.')
+            seiscomp.logging.error('Firestore initialization aborted.')
+            sys.exit(-1)
         
         if self.fcm:   
             from eews2fcm import eews2fcm
+           
             try:
-                if self.fcmTopicNotification:
-                    self.moFcm = eews2fcm( self.hlCitiesFile, self.hlLanguage, self.fcmDataFile )
-                    self.moFcm.readFcmDataFile()
-                if self.fcmEewMessageComment and not self.fcmTopicNotification:
-                    self.moFcm = eews2fcm( self.hlCitiesFile, self.hlLanguage)
+                # Pass the config file path and parse it to authenticate Firestore
+                self.moFcm = eews2fcm( self.hlCitiesFile, self.hlLanguage, self.fcmDataFile )
+                self.moFcm.readFcmDataFile()
             except Exception as e:
-                seiscomp.logging.error("Not possible to instancing eews2fcm object")
+                seiscomp.logging.error("Not possible to instantiate eews2fcm object")
                 seiscomp.logging.error("error: %s" % e)
                 sys.exit(-1)
         
@@ -888,7 +884,7 @@ class Listener(seiscomp.client.Application):
 
         # Send Topic Notification through FCM if enabled
         if self.fcmTopicNotification:
-            self.moFcm.send( ep )
+            self.moFcm.send( ep, update_number=updateIndex )
         
         if self.fcmEewMessageComment:
             # eew message will be sent to the messaging system and persist it in the db as a comment for the magnitude object.
@@ -898,7 +894,7 @@ class Listener(seiscomp.client.Application):
                 mag = self.cache.get(seiscomp.datamodel.Magnitude, magID)
                 
                 # Creating the message JSON
-                _message = self.moFcm.message_creator( ep )
+                _message = self.moFcm.message_creator( ep, update_number=updateIndex )
                 _message_str = json.dumps( _message )
                 
                 # Comment

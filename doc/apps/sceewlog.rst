@@ -213,7 +213,9 @@ Further information on the Firebase Cloud Messaging interface can be found in `F
 
    FCM.activate = true
 
-When this is enable then two options are possible: 
+When this interface is enabled, at least one of the destination configuration options below (or both) must be set to ``true``. If both are set to ``false``, a configuration error will be logged and the daemon process will gracefully terminate. 
+
+Regardless of whether topic broadcasting or local database commenting is utilized, the file path parameter **FCM.dataFile** is unconditionally mandatory and parsed during module initialization to discover project service account credentials and establish connection protocols.
 
 1) For **sending push notification to a topic**:
 
@@ -221,11 +223,12 @@ When this is enable then two options are possible:
 
    FCM.topicnotification = true
 
-In this case the configuration file defined in *FCM.dataFile* must be provided and containing the firebase configuration. Additionally, the python libraries mentioned above must be installed. The configuration file includes the path to a service JSON (see the Firebase project console `Service JSON File`_), the broadcasted topic (notification topic), the project ID string (see `Project ID`_), and it controls (enable or disable) notification to Android, iOS and a legacy notification format.
-Below is an example how this file, referenced in the *FCM.dataFile*, looks like:
+In this case, the configuration file defined in *FCM.dataFile* must be provided. The push notification payload broadcasted to mobile devices over the network will automatically include a 0-based sequential tracking integer under the ``updateNumber`` string field key, reflecting the chronological propagation lifecycle of the running event.
 
-.. code-block:: python 
-   
+Below is an example of how this file, referenced in the *FCM.dataFile*, looks like:
+
+.. code-block:: python
+
    [TOPICS]
    topic=eqAlerts
    [SERVICEFILE]
@@ -268,17 +271,15 @@ The parameters in this configuration file are defined as follows:
 **[EVENT_INFO]**
 
 * ``save_evtinfo``: Boolean flag (``true`` or ``false``). If set to ``true``, earthquake event parameters and their updates will be saved to a Firestore database.
-* ``collection_name``: The name of the Firestore collection where the event information will be stored. This parameter is only used if ``save_evtinfo`` is enabled. Documents within this collection will use the Event ID as the document name.
+* ``collection_name``: The name of the Firestore collection where the event information will be stored. This parameter is only used if ``save_evtinfo`` is enabled. Documents within this collection use a sanitized variation of the SeisComP Event ID as the document path identifier, grouping updates within a map dictionary keyed sequentially by the alert update index.
 
 2) For creating an **eew message dictionary**:
-
 
 .. code-block:: sh
 
    FCM.eewmessagecomment = true
 
-In this case this message contains the EQ origin information. It will be added as a comment type: *eewmessage* and text will be the message dictionary. In addition to this, the comment will be sent to the messaging system so that any other module can listen to this comment.
- 
+In this case, the message object contains the complete earthquake parameter metadata. It will be serialized and appended directly to the SeisComP database magnitude object as a comment of type ``eewmessage``. The text payload contains the compiled JSON message dictionary, which explicitly includes the 0-based ``updateNumber`` key tracking index. In addition to this, the comment notifier will be broadcast internally over the local messaging loop to the **MAGNITUDE** channel group so that any external system process can consume it. 
  
 Headline Change for CAP1.2 XML alerts
 =====================================
